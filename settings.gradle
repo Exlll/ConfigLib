@@ -1,0 +1,9 @@
+rootProject.name = 'config-lib'
+include 'ConfigLib-Core'
+findProject(':ConfigLib-Core')?.name = 'config-lib-core'
+include 'ConfigLib-Bukkit'
+findProject(':ConfigLib-Bukkit')?.name = 'config-lib-bukkit'
+include 'ConfigLib-Bungee'
+findProject(':ConfigLib-Bungee')?.name = 'config-lib-bungee'
+rootProject.name = 'ConfigLib'
+

@@ -1,0 +1,5 @@
+name: ConfigLib
+author: Exlll
+
+version: 1.0
+main: de.exlll.configlib.ConfigLibPlugin
