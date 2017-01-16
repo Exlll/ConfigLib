@@ -15,18 +15,6 @@ final class FieldMapper {
         this.streamSupplier = streamSupplier;
     }
 
-//     TODO remove if unneccessary
-//    Map<String, Field> mapFieldNamesToFields() {
-//        Collector<Field, ?, Map<String, Field>> fieldCollector = Collectors.toMap(
-//                Field::getName,
-//                Function.identity(),
-//                (field1, field2) -> field1,
-//                LinkedHashMap::new
-//        );
-//
-//        return streamSupplier.get().collect(fieldCollector);
-//    }
-
     Map<String, Object> mapFieldNamesToValues(Object instance) {
         Map<String, Object> valuesByFieldNames = new LinkedHashMap<>();
         List<Field> fields = streamSupplier.get().collect(Collectors.toList());

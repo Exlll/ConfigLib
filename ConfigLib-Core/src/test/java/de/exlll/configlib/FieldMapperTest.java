@@ -25,15 +25,6 @@ public class FieldMapperTest {
         new FieldMapper(null);
     }
 
-//    @Test
-//    public void mapFieldNamesToFields() throws Exception {
-//        Map<String, Field> fieldsByFieldNames = new LinkedHashMap<>();
-//        fieldsByFieldNames.put("field1", TestClass.class.getDeclaredField("field1"));
-//        fieldsByFieldNames.put("field2", TestClass.class.getDeclaredField("field2"));
-//        fieldsByFieldNames.put("field3", TestClass.class.getDeclaredField("field3"));
-//        assertThat(fieldsByFieldNames, is(mapper.mapFieldNamesToFields()));
-//    }
-
     @Test
     public void mapFieldNamesToValues() throws Exception {
         TestClass testClass = new TestClass();

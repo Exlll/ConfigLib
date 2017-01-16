@@ -25,7 +25,7 @@ If the file doesn't exist, it is saved.
 
 ##### Adding and removing fields
 In order to add or to remove fields, you just need to add them to or remove them from your
-configuration class. The next time `save` or `load` is called, changes are saved to the 
+configuration class. The next time `save` or `loadAndSave` is called, changes are saved to the 
 configuration file.
 
 ##### Comments
@@ -68,7 +68,7 @@ public final class DatabaseConfig extends Configuration {
 ```java
 public class Plugin {
     public static void main(String[] args) {
-        Path path = ...
+        Path path = Paths.get("/dir1/dir2/config.yml");
     
         DatabaseConfig config = new DatabaseConfig(path);
         try {
