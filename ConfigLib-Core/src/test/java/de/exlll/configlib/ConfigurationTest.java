@@ -67,11 +67,18 @@ public class ConfigurationTest {
     public void load() throws Exception {
         new OriginalTestClass(filePath).save();
         ChangedTestClass cls = new ChangedTestClass(filePath);
-        cls.load();
+        cls.loadAndSave();
 
         assertThat(cls.a, is(0));
         assertThat(cls.b, is(1));
         assertThat(cls.c, is(4));
+    }
+
+    @Test
+    public void loadAndSaveSavesFile() throws Exception {
+        new OriginalTestClass(filePath).loadAndSave();
+
+        assertThat(Files.exists(filePath), is(true));
     }
 
     private static final class OriginalTestClass extends Configuration {

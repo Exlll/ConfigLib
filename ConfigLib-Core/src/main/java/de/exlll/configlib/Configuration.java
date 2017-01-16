@@ -1,44 +1,84 @@
 package de.exlll.configlib;
 
+import org.yaml.snakeyaml.parser.ParserException;
+
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 
 public abstract class Configuration {
     private final Path configPath;
-    private final Comments comments;
     private final FieldMapper fieldMapper;
+    private final ConfigurationWriter writer;
 
     public Configuration(Path configPath) {
         Objects.requireNonNull(configPath);
-        this.configPath = configPath;
+
         FilteredFieldStreamSupplier ffss = new FilteredFieldStreamSupplier(
                 getClass(), ConfigurationFieldFilter.INSTANCE);
-        this.comments = Comments.from(ffss);
+        Comments comments = Comments.from(ffss);
+
+        this.configPath = configPath;
         this.fieldMapper = new FieldMapper(ffss);
+        this.writer = new ConfigurationWriter(configPath, comments);
     }
 
+    /**
+     * Loads the configuration file from the specified {@code Path} and sets {@code this} fields.
+     *
+     * @throws ClassCastException if parsed Object is not a {@code Map}
+     * @throws IOException        if an I/O error occurs when loading the configuration file.
+     * @throws ParserException    if invalid YAML
+     */
+    public final void load() throws IOException {
+        String dump = new ConfigurationReader(configPath).read();
+        Map<String, Object> valuesByFieldNames = YamlSerializer.deserialize(dump);
+        fieldMapper.mapValuesToFields(valuesByFieldNames, this);
+    }
+
+    /**
+     * Saves {@code this} fields and {@code @Comment} annotations to a configuration file at the specified {@code Path}.
+     * <p>
+     * Fields which are {@code final}, {@code static} or {@code transient} are ignored.
+     * <p>
+     * If the file exists, it is overriden; otherwise, it is created.
+     *
+     * @throws IOException     if an I/O error occurs when saving the configuration file.
+     * @throws ParserException if invalid YAML
+     */
     public final void save() throws IOException {
         createParentDirectories();
 
-        Map<String, Object> valuesByFieldNames = fieldMapper
-                .mapFieldNamesToValues(this);
+        Map<String, Object> valuesByFieldNames = fieldMapper.mapFieldNamesToValues(this);
         String dump = YamlSerializer.serialize(valuesByFieldNames);
-        ConfigurationWriter writer = new ConfigurationWriter(configPath, comments);
         writer.write(dump);
+    }
+
+    /**
+     * Loads and saves the configuration file.
+     *
+     * @throws ClassCastException if parsed Object is not a {@code Map}
+     * @throws IOException        if an I/O error occurs when loading or saving the configuration file.
+     * @throws ParserException    if invalid YAML
+     * @see #load()
+     * @see #save()
+     */
+    public final void loadAndSave() throws IOException {
+        try {
+            load();
+            save();
+        } catch (NoSuchFileException e) {
+            save();
+        }
     }
 
     private void createParentDirectories() throws IOException {
         Path parentDirectory = configPath.getParent();
-        Files.createDirectories(parentDirectory);
-    }
-
-    public final void load() throws IOException {
-        // TODO save if not existent
-        String dump = new ConfigurationReader(configPath).read();
-        Map<String, Object> valuesByFieldNames = YamlSerializer.deserialize(dump);
-        fieldMapper.mapValuesToFields(valuesByFieldNames, this);
+        if (Files.notExists(parentDirectory)) {
+            Files.createDirectories(parentDirectory);
+        }
     }
 }

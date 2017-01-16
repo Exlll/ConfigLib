@@ -11,11 +11,17 @@ This library facilitates the creation, saving and loading of YAML configuration 
 
 ## How-to
 ##### Creating a configuration
-To create a new configuration, you need a class which extends `Configuration`. Instances of this 
-class have a `load` and a `save` method. Calling `save` dumps all fields which are not 
-`final`, `static` or `transient` to a configuration file. If the file is present, it is overriden; 
-otherwise, it is created. The `load` method tries to load the configuration file. If it fails 
-because the file doesn't exist, it calls `save` and then tries again.
+To create a new configuration, create a class which extends `Configuration`. Fields which are
+added to this class and which are not `final`, `static` or `transient` can automatically be saved
+ to the corresponding configuration file.
+
+##### Saving and loading a configuration
+Instances of your configuration class have a `load`, `save` and `loadAndSave` method:
+- `save` dumps all fields which are not `final`, `static` or `transient` to a configuration file.
+  If the file exists, it is overriden; otherwise, it is created.
+- `load` reads the configuration file and updates the instance's values.
+- `loadAndSave` loads the configuration file and then calls `save` to update the file's values.
+If the file doesn't exist, it is saved.
 
 ##### Adding and removing fields
 In order to add or to remove fields, you just need to add them to or remove them from your
@@ -66,7 +72,7 @@ public class Plugin {
     
         DatabaseConfig config = new DatabaseConfig(path);
         try {
-            config.load();
+            config.loadAndSave();
         } catch (IOException e) {
             /* do something with exception */
         }
