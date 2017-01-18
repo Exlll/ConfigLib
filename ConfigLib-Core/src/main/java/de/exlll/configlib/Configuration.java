@@ -2,6 +2,7 @@ package de.exlll.configlib;
 
 import org.yaml.snakeyaml.parser.ParserException;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -14,6 +15,14 @@ public abstract class Configuration {
     private final FieldMapper fieldMapper;
     private final ConfigurationWriter writer;
 
+    /**
+     * Creates a new {@code Configuration} instance.
+     *
+     * You can use {@link File#toPath()} to obtain a {@link Path} object from a {@link File}.
+     *
+     * @param configPath location of the configuration file
+     * @throws NullPointerException if {@code configPath} is null
+     */
     public Configuration(Path configPath) {
         Objects.requireNonNull(configPath);
 
@@ -40,11 +49,11 @@ public abstract class Configuration {
     }
 
     /**
-     * Saves {@code this} fields and {@code @Comment} annotations to a configuration file at the specified {@code Path}.
+     * Saves this instance and its {@code @Comment} annotations to a configuration file at the specified {@code Path}.
      * <p>
-     * Fields which are {@code final}, {@code static} or {@code transient} are ignored.
+     * Fields which are {@code final}, {@code static} or {@code transient} are not saved.
      * <p>
-     * If the file exists, it is overriden; otherwise, it is created.
+     * If the file exists, it is overridden; otherwise, it is created.
      *
      * @throws IOException     if an I/O error occurs when saving the configuration file.
      * @throws ParserException if invalid YAML
