@@ -6,12 +6,13 @@ import org.junit.rules.ExpectedException;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class FilteredFieldStreamSupplierTest {
     @Rule
@@ -47,6 +48,19 @@ public class FilteredFieldStreamSupplierTest {
         Stream<Field> fieldStream = supplier.get();
 
         assertThat(fieldStream.count(), is(3L));
+    }
+
+    @Test
+    public void toListReturnsFieldsAsList() throws Exception {
+        FilteredFieldStreamSupplier supplier = new FilteredFieldStreamSupplier(
+                TestClass.class, field -> true);
+
+        List<Field> fields = supplier.toList();
+
+        assertThat(fields.get(0), is(TestClass.class.getDeclaredField("i")));
+        assertThat(fields.get(1), is(TestClass.class.getDeclaredField("j")));
+        assertThat(fields.get(2), is(TestClass.class.getDeclaredField("k")));
+        assertThat(fields.get(3), is(TestClass.class.getDeclaredField("l")));
     }
 
     private static final class TestClass {

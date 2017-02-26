@@ -17,7 +17,7 @@ public abstract class Configuration {
 
     /**
      * Creates a new {@code Configuration} instance.
-     *
+     * <p>
      * You can use {@link File#toPath()} to obtain a {@link Path} object from a {@link File}.
      *
      * @param configPath location of the configuration file
@@ -85,9 +85,6 @@ public abstract class Configuration {
     }
 
     private void createParentDirectories() throws IOException {
-        Path parentDirectory = configPath.getParent();
-        if (Files.notExists(parentDirectory)) {
-            Files.createDirectories(parentDirectory);
-        }
+        Files.createDirectories(configPath.getParent());
     }
 }

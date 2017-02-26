@@ -1,9 +1,8 @@
-rootProject.name = 'config-lib'
+rootProject.name = 'configlib'
 include 'ConfigLib-Core'
-findProject(':ConfigLib-Core')?.name = 'config-lib-core'
+findProject(':ConfigLib-Core')?.name = 'configlib-core'
 include 'ConfigLib-Bukkit'
-findProject(':ConfigLib-Bukkit')?.name = 'config-lib-bukkit'
+findProject(':ConfigLib-Bukkit')?.name = 'configlib-bukkit'
 include 'ConfigLib-Bungee'
-findProject(':ConfigLib-Bungee')?.name = 'config-lib-bungee'
-rootProject.name = 'ConfigLib'
+findProject(':ConfigLib-Bungee')?.name = 'configlib-bungee'
 

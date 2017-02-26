@@ -1,5 +1,5 @@
 # ConfigLib
-This library facilitates the creation, saving and loading of YAML configuration files. It does so
+This library facilitates creating, saving and loading YAML configuration files. It does so
  by using Reflection on configuration classes and automatically saving and loading their fields,
  creating the configuration file and its parent directories if necessary.
 
@@ -17,16 +17,16 @@ added to this class and which are not `final`, `static` or `transient` can autom
 
 ##### Saving and loading a configuration
 Instances of your configuration class have a `load`, `save` and `loadAndSave` method:
-- `save` dumps all fields which are not `final`, `static` or `transient` to a configuration file.
-  If the file exists, it is overridden; otherwise, it is created.
-- `load` reads the configuration file and updates the instance's field values.
-- `loadAndSave` loads the configuration file and then calls `save` to update the file.
-If the file doesn't exist, it is saved.
+- `load` reads the configuration file and updates the field values of your instance.
+- `save` dumps all field names and values to a configuration file. If the file exists, it is 
+overridden; otherwise, it is created.
+- `loadAndSave` first calls `load` and then `save`, which is useful when you have added or 
+removed fields from the class or you simply don't know if the configuration file exists.
 
 ##### Adding and removing fields
 In order to add or to remove fields, you just need to add them to or remove them from your
-configuration class. The next time `save` or `loadAndSave` is called, changes are saved to the 
-configuration file.
+configuration class. The changes are saved to the configuration file the next time `save` or 
+`loadAndSave` is called.
 
 ##### Comments
 By using the `@Comment` annotation, you can add comments to your configuration file. The 

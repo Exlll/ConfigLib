@@ -2,10 +2,10 @@ package de.exlll.configlib;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toMap;
 
 final class FieldMapper {
     private final FilteredFieldStreamSupplier streamSupplier;
@@ -16,15 +16,11 @@ final class FieldMapper {
     }
 
     Map<String, Object> mapFieldNamesToValues(Object instance) {
-        Map<String, Object> valuesByFieldNames = new LinkedHashMap<>();
-        List<Field> fields = streamSupplier.get().collect(Collectors.toList());
-
-        for (Field field : fields) {
-            Object value = getValue(field, instance);
-            valuesByFieldNames.put(field.getName(), value);
-        }
-
-        return valuesByFieldNames;
+        return streamSupplier.get().collect(
+                toMap(Field::getName,
+                      field -> getValue(field, instance),
+                      (f1, f2) -> f1,
+                      LinkedHashMap::new));
     }
 
     private Object getValue(Field field, Object instance) {
@@ -38,9 +34,7 @@ final class FieldMapper {
     }
 
     void mapValuesToFields(Map<String, Object> valuesByFieldNames, Object instance) {
-        List<Field> fields = streamSupplier.get().collect(Collectors.toList());
-
-        for (Field field : fields) {
+        for (Field field : streamSupplier.toList()) {
             String fieldName = field.getName();
             if (valuesByFieldNames.containsKey(fieldName)) {
                 Object value = valuesByFieldNames.get(fieldName);
