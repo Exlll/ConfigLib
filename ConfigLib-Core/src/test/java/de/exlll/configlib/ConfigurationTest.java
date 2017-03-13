@@ -81,6 +81,45 @@ public class ConfigurationTest {
         assertThat(Files.exists(filePath), is(true));
     }
 
+    @Test
+    public void postLoadHookExecutedAfterLoad() throws Exception {
+        HookTestClass cls = new HookTestClass(filePath);
+        cls.save();
+        assertThat(cls.hookCalled, is(false));
+        cls.load();
+        assertThat(cls.hookCalled, is(true));
+    }
+
+    @Test
+    public void postLoadHookExecutedAfterLoadAndSaveIfPathNotExists() throws Exception {
+        HookTestClass cls = new HookTestClass(filePath);
+        assertThat(cls.hookCalled, is(false));
+        cls.loadAndSave();
+        assertThat(cls.hookCalled, is(true));
+    }
+
+    @Test
+    public void postLoadHookExecutedAfterLoadAndSaveIfPathExists() throws Exception {
+        HookTestClass cls = new HookTestClass(filePath);
+        cls.save();
+        assertThat(cls.hookCalled, is(false));
+        cls.loadAndSave();
+        assertThat(cls.hookCalled, is(true));
+    }
+
+    private static final class HookTestClass extends Configuration {
+        private transient boolean hookCalled;
+
+        public HookTestClass(Path configPath) {
+            super(configPath);
+        }
+
+        @Override
+        protected void postLoadHook() {
+            hookCalled = true;
+        }
+    }
+
     private static final class OriginalTestClass extends Configuration {
         private int a = 0;
         private int b = 1;

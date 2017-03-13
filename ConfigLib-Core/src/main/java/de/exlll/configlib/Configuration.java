@@ -46,6 +46,7 @@ public abstract class Configuration {
         String dump = new ConfigurationReader(configPath).read();
         Map<String, Object> valuesByFieldNames = YamlSerializer.deserialize(dump);
         fieldMapper.mapValuesToFields(valuesByFieldNames, this);
+        postLoadHook();
     }
 
     /**
@@ -81,7 +82,14 @@ public abstract class Configuration {
             save();
         } catch (NoSuchFileException e) {
             save();
+            postLoadHook();
         }
+    }
+
+    /**
+     * Can be overridden to do something after all fields have been loaded.
+     */
+    protected void postLoadHook() {
     }
 
     private void createParentDirectories() throws IOException {
