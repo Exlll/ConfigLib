@@ -14,43 +14,30 @@ subprojects {
 }
 
 project(':configlib-core') {
-    dependencies {
-        compile group: 'org.yaml', name: 'snakeyaml', version: '1.17'
-    }
+    dependencies { compile group: 'org.yaml', name: 'snakeyaml', version: '1.17' }
+    jar { baseName = 'ConfigLib-Core' }
 }
 
 project(':configlib-bukkit') {
-    repositories {
-        maven {
-            url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
-        }
-    }
+    repositories { maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } }
     dependencies {
         compile project(':configlib-core')
         compile group: 'org.bukkit', name: 'bukkit', version: '1.11.2-R0.1-SNAPSHOT'
     }
     jar {
-        baseName = 'ConfigLib.bukkit'
-        from {
-            project(':configlib-core').sourceSets.main.output
-        }
+        baseName = 'ConfigLib-Bukkit'
+        from { project(':configlib-core').sourceSets.main.output }
     }
 }
 
 project(':configlib-bungee') {
-    repositories {
-        maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots'
-        }
-    }
+    repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } }
     dependencies {
         compile project(':configlib-core')
         compile group: 'net.md-5', name: 'bungeecord-api', version: '1.10-SNAPSHOT'
     }
     jar {
-        baseName = 'ConfigLib.bungee'
-        from {
-            project(':configlib-core').sourceSets.main.output
-        }
+        baseName = 'ConfigLib-Bungee'
+        from { project(':configlib-core').sourceSets.main.output }
     }
 }
