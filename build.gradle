@@ -1,6 +1,7 @@
-group 'de.exlll'
-version '1.0-SNAPSHOT'
-
+allprojects {
+    group 'de.exlll'
+    version '1.0.0-SNAPSHOT'
+}
 subprojects {
     apply plugin: 'java'
 
@@ -12,12 +13,19 @@ subprojects {
         testCompile group: 'com.google.jimfs', name: 'jimfs', version: '1.1'
     }
 }
+buildscript {
+    if (project.hasProperty("local_script")) {
+        apply from: file(local_script + "/buildscript.local.gradle"), to: buildscript
+    }
+}
+if (project.hasProperty("local_script")) {
+    apply from: file(local_script + "/build.local.gradle")
+}
 
 project(':configlib-core') {
     dependencies { compile group: 'org.yaml', name: 'snakeyaml', version: '1.17' }
     jar { baseName = 'ConfigLib-Core' }
 }
-
 project(':configlib-bukkit') {
     repositories { maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } }
     dependencies {
@@ -29,7 +37,6 @@ project(':configlib-bukkit') {
         from { project(':configlib-core').sourceSets.main.output }
     }
 }
-
 project(':configlib-bungee') {
     repositories { maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } }
     dependencies {
