@@ -17,7 +17,7 @@ added to this class and which are not `final`, `static` or `transient` can autom
 
 ##### Saving and loading a configuration
 Instances of your configuration class have a `load`, `save` and `loadAndSave` method:
-- `load` reads the configuration file and updates the field values of your instance.
+- `load` updates all fields of an instance with the values read from the configuration file.
 - `save` dumps all field names and values to a configuration file. If the file exists, it is 
 overridden; otherwise, it is created.
 - `loadAndSave` first calls `load` and then `save`, which is useful when you have added or 
@@ -64,19 +64,20 @@ public final class DatabaseConfig extends Configuration {
     /* optional GETTER and SETTER methods */
 }
 ```
-#### Example usage
+#### Example Bukkit plugin
 ```java
-public class Plugin {
-    public static void main(String[] args) {
-        Path path = Paths.get("/dir1/dir2/config.yml");
-    
-        DatabaseConfig config = new DatabaseConfig(path);
+public class ExamplePlugin extends JavaPlugin {
+    @Override
+    public void onEnable() {
+        Path configPath = new File(getDataFolder(), "config.yml").toPath();
+
+        DatabaseConfig config = new DatabaseConfig(configPath);
         try {
             config.loadAndSave();
         } catch (IOException e) {
             /* do something with exception */
         }
-        
+
         int port = config.getPort();
     }
 }
