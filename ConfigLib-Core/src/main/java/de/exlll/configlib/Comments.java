@@ -16,7 +16,7 @@ final class Comments {
         this.commentsByFieldNames = commentsByFieldName;
     }
 
-    public static Comments from(FilteredFieldStreamSupplier supplier) {
+    static Comments from(FilteredFieldStreamSupplier supplier) {
         Objects.requireNonNull(supplier);
 
         List<String> classComments = getComments(supplier.getSupplyingClass());
@@ -27,22 +27,22 @@ final class Comments {
         return new Comments(classComments, commentsByFieldNames);
     }
 
-    public static List<String> getComments(AnnotatedElement element) {
+    static List<String> getComments(AnnotatedElement element) {
         Comment comment = element.getAnnotation(Comment.class);
         return (comment != null) ?
                 Arrays.asList(comment.value()) :
                 Collections.emptyList();
     }
 
-    public static boolean hasCommentAnnotation(AnnotatedElement element) {
+    static boolean hasCommentAnnotation(AnnotatedElement element) {
         return element.isAnnotationPresent(Comment.class);
     }
 
-    public List<String> getClassComments() {
+    List<String> getClassComments() {
         return classComments;
     }
 
-    public Map<String, List<String>> getCommentsByFieldNames() {
+    Map<String, List<String>> getCommentsByFieldNames() {
         return commentsByFieldNames;
     }
 }

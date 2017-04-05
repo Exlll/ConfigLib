@@ -26,7 +26,7 @@ public class ConfigurationWriterTest {
         FieldMapper mapper = new FieldMapper(streamSupplier);
         Map<String, Object> valuesByFieldNames = mapper.mapFieldNamesToValues(
                 new TestConfiguration(configPath));
-        dump = YamlSerializer.serialize(valuesByFieldNames);
+        dump = new YamlSerializer().serialize(valuesByFieldNames);
         writer = new ConfigurationWriter(configPath, comments);
     }
 

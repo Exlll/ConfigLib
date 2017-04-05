@@ -9,6 +9,16 @@ This library facilitates creating, saving and loading YAML configuration files. 
 - option to add explanatory comments by adding annotations to the class and its fields
 - option to exclude fields by making them final, static or transient
 
+## General information
+#### Default and null values
+All reference type fields of a configuration class must be assigned non-null default values.
+If a value is `null` while saving takes place, a `NullPointerException` will be thrown.
+#### Serialization of custom classes
+You can add fields to your configuration class whose type is some custom class. To be properly
+serialized, the fields of the custom class need to be either public or have getter and setter
+methods. `@Comment`s added to the custom class are ignored and won't be displayed in
+the configuration file.
+
 ## How-to
 ##### Creating a configuration
 To create a new configuration, create a class which extends `Configuration`. Fields which are
@@ -18,9 +28,9 @@ added to this class and which are not `final`, `static` or `transient` can autom
 ##### Saving and loading a configuration
 Instances of your configuration class have a `load`, `save` and `loadAndSave` method:
 - `load` updates all fields of an instance with the values read from the configuration file.
-- `save` dumps all field names and values to a configuration file. If the file exists, it is 
+- `save` dumps all field names and values to a configuration file. If the file exists, it is
 overridden; otherwise, it is created.
-- `loadAndSave` first calls `load` and then `save`, which is useful when you have added or 
+- `loadAndSave` first calls `load` and then `save`, which is useful when you have added or
 removed fields from the class or you simply don't know if the configuration file exists.
 
 ##### Adding and removing fields
@@ -28,11 +38,31 @@ In order to add or to remove fields, you just need to add them to or remove them
 configuration class. The changes are saved to the configuration file the next time `save` or 
 `loadAndSave` is called.
 
-##### Comments
-By using the `@Comment` annotation, you can add comments to your configuration file. The 
-annotation can be applied to classes or fields. Each `String` is written into a new line.
+##### Post load action
+You can override `postLoadHook` to execute some action after the configuration has successfully
+been loaded.
 
-#### Example class
+##### Comments
+By using the `@Comment` annotation, you can add comments to your configuration file. The
+annotation can be applied to classes or fields. Each `String` of the passed array is
+written into a new line.
+
+## Examples
+#### Example of a custom class
+```java
+public class Custom {
+    public String publicString = "public";    // doesn't need any additional methods to be saved
+    private String privateString = "private"; // needs additional getter and setter methods
+
+    public String getPrivateString() {
+        return privateString;
+    }
+    public void setPrivateString(String privateString) {
+        this.privateString = privateString;
+    }
+}
+```
+#### Example database configuration
 ```java
 import de.exlll.configlib.Comment;
 import de.exlll.configlib.Configuration;
@@ -57,6 +87,7 @@ public final class DatabaseConfig extends Configuration {
             "It describes what this field does."
     })
     private Map<String, List<String>> listByStrings = new HashMap<>();
+    private Custom custom = new Custom();
 
     public DatabaseConfig(Path configPath) {
         super(configPath);

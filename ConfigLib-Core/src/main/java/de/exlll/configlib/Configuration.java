@@ -2,7 +2,6 @@ package de.exlll.configlib;
 
 import org.yaml.snakeyaml.parser.ParserException;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -14,11 +13,13 @@ public abstract class Configuration {
     private final Path configPath;
     private final FieldMapper fieldMapper;
     private final ConfigurationWriter writer;
+    private final YamlSerializer serializer;
 
     /**
      * Creates a new {@code Configuration} instance.
      * <p>
-     * You can use {@link File#toPath()} to obtain a {@link Path} object from a {@link File}.
+     * You can use {@link java.io.File#toPath()} to obtain a {@link Path} object
+     * from a {@link java.io.File}.
      *
      * @param configPath location of the configuration file
      * @throws NullPointerException if {@code configPath} is null
@@ -33,6 +34,8 @@ public abstract class Configuration {
         this.configPath = configPath;
         this.fieldMapper = new FieldMapper(ffss);
         this.writer = new ConfigurationWriter(configPath, comments);
+        this.serializer = new YamlSerializer();
+        ffss.fieldTypes().forEach(serializer::addTagIfClassUnknown);
     }
 
     /**
@@ -44,7 +47,7 @@ public abstract class Configuration {
      */
     public final void load() throws IOException {
         String dump = new ConfigurationReader(configPath).read();
-        Map<String, Object> valuesByFieldNames = YamlSerializer.deserialize(dump);
+        Map<String, Object> valuesByFieldNames = serializer.deserialize(dump);
         fieldMapper.mapValuesToFields(valuesByFieldNames, this);
         postLoadHook();
     }
@@ -63,7 +66,7 @@ public abstract class Configuration {
         createParentDirectories();
 
         Map<String, Object> valuesByFieldNames = fieldMapper.mapFieldNamesToValues(this);
-        String dump = YamlSerializer.serialize(valuesByFieldNames);
+        String dump = serializer.serialize(valuesByFieldNames);
         writer.write(dump);
     }
 
@@ -87,7 +90,12 @@ public abstract class Configuration {
     }
 
     /**
-     * Can be overridden to do something after all fields have been loaded.
+     * Protected method invoked after all fields have been loaded.
+     * <p>
+     * The default implementation of this method does nothing.
+     * <p>
+     * Subclasses may override this method in order to execute some action
+     * after all fields have been loaded.
      */
     protected void postLoadHook() {
     }

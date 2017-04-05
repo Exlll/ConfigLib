@@ -26,6 +26,11 @@ final class FilteredFieldStreamSupplier implements Supplier<Stream<Field>> {
         return streamSupplier.get();
     }
 
+    public List<Class<?>> fieldTypes() {
+        return streamSupplier.get().map(Field::getType)
+                .collect(Collectors.toList());
+    }
+
     public List<Field> toList() {
         return streamSupplier.get().collect(Collectors.toList());
     }

@@ -18,18 +18,28 @@ final class FieldMapper {
     Map<String, Object> mapFieldNamesToValues(Object instance) {
         return streamSupplier.get().collect(
                 toMap(Field::getName,
-                      field -> getValue(field, instance),
-                      (f1, f2) -> f1,
-                      LinkedHashMap::new));
+                        field -> getValue(field, instance),
+                        (f1, f2) -> f1,
+                        LinkedHashMap::new));
     }
 
     private Object getValue(Field field, Object instance) {
         try {
             field.setAccessible(true);
+            Object value = field.get(instance);
+            checkNull(field, value);
             return field.get(instance);
         } catch (IllegalAccessException e) {
             /* cannot happen */
             throw new AssertionError(e);
+        }
+    }
+
+    private void checkNull(Field field, Object o) {
+        if (o == null) {
+            String msg = String.format("The value of field %s is null.\n" +
+                    "Please assign a non-null default value or remove this field.", field);
+            throw new NullPointerException(msg);
         }
     }
 
