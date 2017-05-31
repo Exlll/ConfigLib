@@ -4,13 +4,13 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-        CommentsTest.class,
-        ConfigurationFieldFilterTest.class,
-        ConfigurationReaderTest.class,
         ConfigurationTest.class,
-        ConfigurationWriterTest.class,
+        ConfigReadWriteTest.class,
+        CommentAdderTest.class,
+        CommentsTest.class,
+        FieldFilterTest.class,
         FieldMapperTest.class,
-        FilteredFieldStreamSupplierTest.class,
+        FilteredFieldsTest.class,
         YamlSerializerTest.class
 })
 public class ConfigLibTestSuite {

@@ -8,34 +8,6 @@ import java.util.*;
         "This comment is applied to a class."
 })
 final class TestConfiguration extends Configuration {
-    static final String CONFIG_AS_STRING = "# This is a test configuration.\n" +
-            "# This comment is applied to a class.\n" +
-            "\n" +
-            "# This comment is applied to a field.\n" +
-            "# It has more than 1 line.\n" +
-            "port: -1\n" +
-            "localhost: localhost\n" +
-            "modifier: 3.14\n" +
-            "# This comment is applied to a field.\n" +
-            "allowedIps:\n" +
-            "- 127.0.0.1\n" +
-            "- 127.0.0.2\n" +
-            "- 127.0.0.3\n" +
-            "intsByStrings:\n" +
-            "  third: 3\n" +
-            "  first: 1\n" +
-            "  second: 2\n" +
-            "stringListsByString:\n" +
-            "  za:\n" +
-            "  - z1\n" +
-            "  - z2\n" +
-            "  ya:\n" +
-            "  - y1\n" +
-            "  - y2\n" +
-            "  xa:\n" +
-            "  - x1\n" +
-            "  - x2\n";
-
     @Comment({
             "This comment is applied to a field.",
             "It has more than 1 line."
@@ -47,7 +19,7 @@ final class TestConfiguration extends Configuration {
     private List<String> allowedIps = new ArrayList<>();
     private Map<String, Integer> intsByStrings = new HashMap<>();
     private Map<String, List<String>> stringListsByString = new HashMap<>();
-
+    private Credentials credentials = new Credentials();
 
     public TestConfiguration(Path path) {
         super(path);
@@ -113,32 +85,47 @@ final class TestConfiguration extends Configuration {
         this.stringListsByString = stringListsByString;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        TestConfiguration that = (TestConfiguration) o;
-
-        if (port != that.port) return false;
-        if (Double.compare(that.modifier, modifier) != 0) return false;
-        if (!localhost.equals(that.localhost)) return false;
-        if (!allowedIps.equals(that.allowedIps)) return false;
-        if (!intsByStrings.equals(that.intsByStrings)) return false;
-        return stringListsByString.equals(that.stringListsByString);
+    public Credentials getCredentials() {
+        return credentials;
     }
 
-    @Override
-    public int hashCode() {
-        int result;
-        long temp;
-        result = port;
-        result = 31 * result + localhost.hashCode();
-        temp = Double.doubleToLongBits(modifier);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + allowedIps.hashCode();
-        result = 31 * result + intsByStrings.hashCode();
-        result = 31 * result + stringListsByString.hashCode();
-        return result;
+    public void setCredentials(Credentials credentials) {
+        this.credentials = credentials;
     }
+
+    public static final class Credentials {
+        private String username = "root";
+        private String password = "1234";
+    }
+
+    public static final String CONFIG_AS_TEXT = "# This is a test configuration.\n" +
+            "# This comment is applied to a class.\n" +
+            "\n" +
+            "# This comment is applied to a field.\n" +
+            "# It has more than 1 line.\n" +
+            "port: -1\n" +
+            "localhost: localhost\n" +
+            "modifier: 3.14\n" +
+            "# This comment is applied to a field.\n" +
+            "allowedIps:\n" +
+            "- 127.0.0.1\n" +
+            "- 127.0.0.2\n" +
+            "- 127.0.0.3\n" +
+            "intsByStrings:\n" +
+            "  third: 3\n" +
+            "  first: 1\n" +
+            "  second: 2\n" +
+            "stringListsByString:\n" +
+            "  za:\n" +
+            "  - z1\n" +
+            "  - z2\n" +
+            "  ya:\n" +
+            "  - y1\n" +
+            "  - y2\n" +
+            "  xa:\n" +
+            "  - x1\n" +
+            "  - x2\n" +
+            "credentials:\n" +
+            "  username: root\n" +
+            "  password: '1234'\n";
 }

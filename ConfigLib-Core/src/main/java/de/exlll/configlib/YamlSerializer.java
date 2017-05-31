@@ -1,68 +1,62 @@
 package de.exlll.configlib;
 
 import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.constructor.BaseConstructor;
 import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.representer.Representer;
+import org.yaml.snakeyaml.resolver.Resolver;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
 
 final class YamlSerializer {
-    static final Set<Class<?>> DEFAULT_CLASSES = new HashSet<>();
-    static final DumperOptions DUMPER_OPTIONS = new DumperOptions();
-    private final Constructor constructor = new Constructor();
-    private final Representer representer = new Representer();
-    private final Yaml yaml = new Yaml(constructor, representer, DUMPER_OPTIONS);
-    private final Set<Class<?>> knownClasses = new HashSet<>();
+    private final Yaml yaml;
 
-    static {
-        Class<?>[] classes = {
-                Boolean.class, Long.class, Integer.class, Short.class, Byte.class,
-                Double.class, Float.class, String.class, Character.class
-        };
-        DEFAULT_CLASSES.addAll(Arrays.asList(classes));
-
-        DUMPER_OPTIONS.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        DUMPER_OPTIONS.setIndent(2);
-    }
-
-    String serialize(Map<String, Object> mapToDump) {
-        mapToDump.forEach((fieldName, fieldValue) -> addTagIfClassUnknown(fieldValue.getClass()));
-        return yaml.dump(mapToDump);
+    /**
+     * @param baseConstructor BaseConstructor which is used to configure the {@code Yaml} object.
+     * @param representer     Representer which is used to configure the {@code Yaml} object.
+     * @param dumperOptions   DumperOptions which is used to configure the {@code Yaml} object.
+     * @param resolver        Resolver which is used to configure the {@code Yaml} object.
+     * @see org.yaml.snakeyaml.constructor.BaseConstructor
+     * @see org.yaml.snakeyaml.representer.Representer
+     * @see org.yaml.snakeyaml.DumperOptions
+     * @see org.yaml.snakeyaml.resolver.Resolver
+     */
+    YamlSerializer(BaseConstructor baseConstructor,
+                   Representer representer,
+                   DumperOptions dumperOptions,
+                   Resolver resolver) {
+        Objects.requireNonNull(baseConstructor);
+        Objects.requireNonNull(representer);
+        Objects.requireNonNull(dumperOptions);
+        Objects.requireNonNull(resolver);
+        yaml = new Yaml(baseConstructor, representer, dumperOptions, resolver);
     }
 
     /**
-     * @throws ParserException    if invalid YAML
-     * @throws ClassCastException if parsed Object is not a {@code Map}
+     * Serializes a Map.
+     *
+     * @param map Map to serialize
+     * @return a serialized representation of the Map
+     * @throws NullPointerException if {@code map} is null.
      */
-    Map<String, Object> deserialize(String stringToLoad) {
+    String serialize(Map<String, ?> map) {
+        return yaml.dump(map);
+    }
+
+    /**
+     * Deserializes a serialized Map.
+     *
+     * @param serializedMap a serialized YAML representation of a Map
+     * @return deserialized Map
+     * @throws ClassCastException   if {@code serializedMap} doesn't represent a Map
+     * @throws NullPointerException if {@code serializedMap} is null
+     * @throws ParserException      if {@code serializedMap} is invalid YAML
+     */
+    Map<String, Object> deserialize(String serializedMap) {
         @SuppressWarnings("unchecked")
-        Map<String, Object> map = (Map<String, Object>) yaml.load(stringToLoad);
+        Map<String, Object> map = (Map<String, Object>) yaml.load(serializedMap);
         return map;
-    }
-
-    void addTagIfClassUnknown(Class<?> valueClass) {
-        if (!isKnown(valueClass)) {
-            knownClasses.add(valueClass);
-            Tag tag = new Tag("!" + valueClass.getSimpleName());
-            constructor.addTypeDescription(new TypeDescription(valueClass, tag));
-            representer.addClassTag(valueClass, tag);
-        }
-    }
-
-    boolean isDefaultInstance(Class<?> c) {
-        return Set.class.isAssignableFrom(c) || Map.class.isAssignableFrom(c) ||
-                List.class.isAssignableFrom(c);
-    }
-
-    boolean isDefaultClass(Class<?> c) {
-        return DEFAULT_CLASSES.contains(c);
-    }
-
-    boolean isKnown(Class<?> cls) {
-        return knownClasses.contains(cls) || isDefaultClass(cls) || isDefaultInstance(cls);
     }
 }

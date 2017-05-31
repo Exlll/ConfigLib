@@ -7,10 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * The {@code Comment} annotation can be used to add comments to a configuration file.
- * <p>
- * Each {@code String} is written into a new line.
  */
-@Target({ElementType.TYPE, ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Comment {
     String[] value();

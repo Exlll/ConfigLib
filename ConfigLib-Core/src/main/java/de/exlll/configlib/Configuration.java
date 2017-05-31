@@ -1,19 +1,24 @@
 package de.exlll.configlib;
 
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.BaseConstructor;
+import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.parser.ParserException;
+import org.yaml.snakeyaml.representer.Representer;
+import org.yaml.snakeyaml.resolver.Resolver;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Objects;
 
 public abstract class Configuration {
     private final Path configPath;
-    private final FieldMapper fieldMapper;
-    private final ConfigurationWriter writer;
     private final YamlSerializer serializer;
+    private final CommentAdder adder;
 
     /**
      * Creates a new {@code Configuration} instance.
@@ -24,32 +29,26 @@ public abstract class Configuration {
      * @param configPath location of the configuration file
      * @throws NullPointerException if {@code configPath} is null
      */
-    public Configuration(Path configPath) {
-        Objects.requireNonNull(configPath);
-
-        FilteredFieldStreamSupplier ffss = new FilteredFieldStreamSupplier(
-                getClass(), ConfigurationFieldFilter.INSTANCE);
-        Comments comments = Comments.from(ffss);
-
+    protected Configuration(Path configPath) {
         this.configPath = configPath;
-        this.fieldMapper = new FieldMapper(ffss);
-        this.writer = new ConfigurationWriter(configPath, comments);
-        this.serializer = new YamlSerializer();
-        ffss.fieldTypes().forEach(serializer::addTagIfClassUnknown);
+        this.serializer = new YamlSerializer(
+                createConstructor(), createRepresenter(),
+                createDumperOptions(), createResolver()
+        );
+        this.adder = new CommentAdder(new Comments(getClass()));
     }
 
     /**
-     * Loads the configuration file from the specified {@code Path} and sets {@code this} fields.
+     * Loads the configuration file from the specified {@code Path} and updates this attribute values.
      *
      * @throws ClassCastException if parsed Object is not a {@code Map}
      * @throws IOException        if an I/O error occurs when loading the configuration file.
      * @throws ParserException    if invalid YAML
      */
     public final void load() throws IOException {
-        String dump = new ConfigurationReader(configPath).read();
-        Map<String, Object> valuesByFieldNames = serializer.deserialize(dump);
-        fieldMapper.mapValuesToFields(valuesByFieldNames, this);
-        postLoadHook();
+        String yaml = ConfigReader.read(configPath);
+        Map<String, Object> deserializedMap = serializer.deserialize(yaml);
+        FieldMapper.instanceFromMap(this, deserializedMap);
     }
 
     /**
@@ -65,13 +64,19 @@ public abstract class Configuration {
     public final void save() throws IOException {
         createParentDirectories();
 
-        Map<String, Object> valuesByFieldNames = fieldMapper.mapFieldNamesToValues(this);
-        String dump = serializer.serialize(valuesByFieldNames);
-        writer.write(dump);
+        Map<String, Object> map = FieldMapper.instanceToMap(this);
+        String serializedMap = serializer.serialize(map);
+        ConfigWriter.write(configPath, adder.addComments(serializedMap));
+    }
+
+    private void createParentDirectories() throws IOException {
+        Files.createDirectories(configPath.getParent());
     }
 
     /**
      * Loads and saves the configuration file.
+     * <p>
+     * This method first calls {@link #load()} and then {@link #save()}.
      *
      * @throws ClassCastException if parsed Object is not a {@code Map}
      * @throws IOException        if an I/O error occurs when loading or saving the configuration file.
@@ -83,9 +88,9 @@ public abstract class Configuration {
         try {
             load();
             save();
-        } catch (NoSuchFileException e) {
-            save();
+        } catch (NoSuchFileException | FileNotFoundException e) {
             postLoadHook();
+            save();
         }
     }
 
@@ -100,7 +105,62 @@ public abstract class Configuration {
     protected void postLoadHook() {
     }
 
-    private void createParentDirectories() throws IOException {
-        Files.createDirectories(configPath.getParent());
+    /**
+     * Creates a {@code BaseConstructor} which is used to configure a {@link Yaml} object.
+     * <p>
+     * Override this method to change the way the {@code Yaml} object is created.
+     * <p>
+     * This method may not return null.
+     *
+     * @return new {@code BaseConstructor}
+     * @see org.yaml.snakeyaml.constructor.BaseConstructor
+     */
+    protected BaseConstructor createConstructor() {
+        return new Constructor();
+    }
+
+    /**
+     * Creates a {@code Representer} which is used to configure a {@link Yaml} object.
+     * <p>
+     * Override this method to change the way the {@code Yaml} object is created.
+     * <p>
+     * This method may not return null.
+     *
+     * @return new {@code Representer}
+     * @see org.yaml.snakeyaml.representer.Representer
+     */
+    protected Representer createRepresenter() {
+        return new Representer();
+    }
+
+    /**
+     * Creates a {@code DumperOptions} object which is used to configure a {@link Yaml} object.
+     * <p>
+     * Override this method to change the way the {@code Yaml} object is created.
+     * <p>
+     * This method may not return null.
+     *
+     * @return new {@code DumperOptions}
+     * @see org.yaml.snakeyaml.DumperOptions
+     */
+    protected DumperOptions createDumperOptions() {
+        DumperOptions options = new DumperOptions();
+        options.setIndent(2);
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        return options;
+    }
+
+    /**
+     * Creates a {@code Resolver} which is used to configure a {@link Yaml} object.
+     * <p>
+     * Override this method to change the way the {@code Yaml} object is created.
+     * <p>
+     * This method may not return null.
+     *
+     * @return new {@code Resolver}
+     * @see org.yaml.snakeyaml.resolver.Resolver
+     */
+    protected Resolver createResolver() {
+        return new Resolver();
     }
 }
