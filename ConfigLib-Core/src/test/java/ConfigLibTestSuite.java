@@ -8,9 +8,13 @@ import org.junit.runners.Suite;
         ConfigReadWriteTest.class,
         CommentAdderTest.class,
         CommentsTest.class,
+        ConfigListTest.class,
+        ConfigSetTest.class,
+        ConfigMapTest.class,
         FieldFilterTest.class,
         FieldMapperTest.class,
         FilteredFieldsTest.class,
+        ReflectTest.class,
         YamlSerializerTest.class
 })
 public class ConfigLibTestSuite {

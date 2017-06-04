@@ -1,5 +1,7 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.classes.DefaultTypeClass;
+import de.exlll.configlib.classes.NonDefaultTypeClass;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -12,6 +14,81 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class FieldMapperTest {
+    @Test
+    public void toSerializableObjectReturnsObjectForDefaultTypes() throws Exception {
+        DefaultTypeClass instance = new DefaultTypeClass();
+        for (Field f : DefaultTypeClass.class.getDeclaredFields()) {
+            Object value = Reflect.getValue(f, instance);
+            assertThat(FieldMapper.toSerializableObject(value), sameInstance(value));
+        }
+    }
+
+    @Test
+    public void toSerializableObjectReturnsMapForNonDefaultTypes() throws Exception {
+        DefaultTypeClass instance = new DefaultTypeClass();
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> map = (Map<String, Object>) FieldMapper.toSerializableObject(instance);
+
+        int counter = 0;
+        for (Field field : DefaultTypeClass.class.getDeclaredFields()) {
+            Object fieldValue = Reflect.getValue(field, instance);
+            assertThat(map.get(field.getName()), is(fieldValue));
+            counter++;
+        }
+        assertThat(map.size(), is(counter));
+    }
+
+    @Test
+    public void fromSerializedObjectIgnoresNullValues() throws Exception {
+        DefaultTypeClass instance = new DefaultTypeClass();
+
+        for (Field field : DefaultTypeClass.class.getDeclaredFields()) {
+            Object currentValue = Reflect.getValue(field, instance);
+            FieldMapper.fromSerializedObject(field, instance, null);
+            Object newValue = Reflect.getValue(field, instance);
+
+            if (field.getType().isPrimitive()) {
+                assertThat(currentValue, is(newValue));
+            } else {
+                assertThat(currentValue, sameInstance(newValue));
+            }
+        }
+    }
+
+    @Test
+    public void fromSerializedObjectSetsValueIfDefaultType() throws Exception {
+        DefaultTypeClass instance = new DefaultTypeClass();
+
+        Map<String, Object> map = DefaultTypeClass.newValues();
+        for (Field field : DefaultTypeClass.class.getDeclaredFields()) {
+            String fieldName = field.getName();
+            Object mapValue = map.get(fieldName);
+            FieldMapper.fromSerializedObject(field, instance, mapValue);
+            Object value = Reflect.getValue(field, instance);
+
+            if (field.getType().isPrimitive()) {
+                assertThat(mapValue, is(value));
+            } else {
+                assertThat(mapValue, sameInstance(value));
+            }
+        }
+    }
+
+    @Test
+    public void fromSerializedObjectUpdatesValueIfNotDefaultType() throws Exception {
+        NonDefaultTypeClass instance = new NonDefaultTypeClass();
+        Field field = NonDefaultTypeClass.class.getDeclaredField("defaultTypeClass");
+
+        Map<String, Object> map = DefaultTypeClass.newValues();
+        FieldMapper.fromSerializedObject(field, instance, map);
+
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            Field f = DefaultTypeClass.class.getDeclaredField(entry.getKey());
+            Object value = Reflect.getValue(f, instance.defaultTypeClass);
+            assertThat(value, is(entry.getValue()));
+        }
+    }
 
     @Test
     public void instanceTopMapCreatesMap() throws Exception {
@@ -91,23 +168,6 @@ public class FieldMapperTest {
         assertThat(t.objects, is(objects));
         assertThat(t.b.j, is(20));
         assertThat(t.b.t, is("v"));
-    }
-
-    @Test
-    public void getValueGetsValue() throws Exception {
-        TestClass testClass = new TestClass();
-
-        Field s = TestClass.class.getDeclaredField("s");
-        assertThat(FieldMapper.getValue(s, testClass), is("s"));
-    }
-
-    @Test
-    public void setValueSetsValue() throws Exception {
-        TestClass testClass = new TestClass();
-
-        Field s = TestClass.class.getDeclaredField("s");
-        FieldMapper.setValue(s, testClass, "t");
-        assertThat(testClass.s, is("t"));
     }
 
     private static final class TestClass {

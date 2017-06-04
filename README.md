@@ -122,36 +122,36 @@ public class ExamplePlugin extends JavaPlugin {
 ```xml
 <repository>
     <id>de.exlll</id>
-    <url>https://repo.exlll.de/artifactory/releases/</url>
+    <url>https://repo.exlll.de/artifactory/snapshots/</url>
 </repository>
 
 <!-- for Bukkit plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0-SNAPSHOT</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0-SNAPSHOT</version>
 </dependency>
 ```
 #### Gradle
 ```groovy
 repositories {
     maven {
-        url 'https://repo.exlll.de/artifactory/releases/'
+        url 'https://repo.exlll.de/artifactory/snapshots/'
     }
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '1.2.0'
+    compile group: 'de.exlll', name: 'configlib-bukkit', version: '1.3.0-SNAPSHOT'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '1.2.0'
+    compile group: 'de.exlll', name: 'configlib-bungee', version: '1.3.0-SNAPSHOT'
 }
 ```
 Additionally, you either have to import the Bukkit or BungeeCord API
@@ -159,4 +159,4 @@ or disable transitive lookups. This project uses both of these APIs, so if you
 need an example of how to import them with Gradle, take a look at the `build.gradle`.
 
 If, for some reason, you have SSL errors that you're unable to resolve, you can
-use `http://exlll.de:8081/artifactory/releases/` as the repository instead.
+use `http://exlll.de:8081/artifactory/snapshots/` as the repository instead.
