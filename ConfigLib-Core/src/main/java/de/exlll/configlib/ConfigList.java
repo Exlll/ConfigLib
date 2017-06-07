@@ -191,6 +191,7 @@ public final class ConfigList<T> implements Defaultable<List<?>>, List<T>, Rando
 
     @Override
     public void fromDefault(Object value) {
+        clear();
         for (Object item : (List<?>) value) {
             Object instance = fromDefault(item, cls);
             add(cls.cast(instance));

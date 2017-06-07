@@ -20,7 +20,7 @@ public final class ConfigMap<K, V> implements Defaultable<Map<K, ?>>, Map<K, V> 
         this.keyClass = keyClass;
         this.valueClass = valueClass;
         this.map = Collections.checkedMap(
-                new HashMap<>(), keyClass, valueClass
+                new LinkedHashMap<>(), keyClass, valueClass
         );
     }
 
@@ -170,6 +170,7 @@ public final class ConfigMap<K, V> implements Defaultable<Map<K, ?>>, Map<K, V> 
 
     @Override
     public void fromDefault(Object value) {
+        clear();
         for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
             Object instance = fromDefault(entry.getValue(), valueClass);
             Reflect.checkType(entry.getKey(), keyClass);

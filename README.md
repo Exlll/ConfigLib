@@ -1,36 +1,42 @@
 # ConfigLib
 This library facilitates creating, saving and loading YAML configuration files. It does so
-by using Reflection on configuration classes and automatically saving and loading their
-attribute values, creating the configuration file and its parent directories if necessary.
+by using Reflection on configuration classes and automatically saving and loading their field
+names and values, creating the configuration file and its parent directories if necessary.
 
 ## Features
 - automatic creation, saving and loading of YAML configurations
 - automatic creation of parent directories
-- option to add explanatory comments by adding annotations to the class and its fields
+- option to add explanatory comments by adding annotations to the class or its fields
 - option to exclude fields by making them final, static or transient
 - option to change the style of the configuration file
 
 ## General information
 #### What can be serialized?
-If your configuration class uses the following types as attributes, it will be properly saved.
-- `String`s
-- primitive types (e.g. `int`, `char`) and their corresponding wrapper types
-(e.g. `Integer`, `Character`)
-- `Set`s, `List`s, and `Map`s containing the above (e.g. `Set<Integer>`, `Map<String, Double>`)
-- any other class that consists of the above
+You can add fields to your configuration class whose type is one of the following:
+- a simple type, which are all primitive types (e.g. `boolean`, `int`), their wrapper types (e.g.
+`Boolean`, `Integer`) and strings
+- `List`s, `Set`s and `Map`s of simple types (e.g `List<Double>`) or other lists, sets and maps
+(e.g. `List<List<Map<String, Integer>>>`)
+- custom types which have a no-argument constructor
+- `ConfigList`s, `ConfigSet`s and `ConfigMap`s of custom types
+
+If you want to use lists, sets or maps containing objects of custom types,
+you have to use `ConfigList`, `ConfigSet` or `ConfigMap`, respectively. If you don't use these
+special classes for storing custom objects, the stored objects won't be properly (de-)serialized.
 #### Default and null values
 All reference type fields of a configuration class must be assigned non-null default values.
-If a value is `null` while saving takes place, a `NullPointerException` will be thrown.
+If any value is `null`, (de-)serialization will fail with a `NullPointerException`.
 #### Serialization of custom classes
 You can add fields to your configuration class whose type is some custom class.
-`@Comment`s added to the custom class or its fields are ignored and won't be
+`@Comment`s added to custom classes or their fields are ignored and won't be
 displayed in the configuration file.
-
 ## How-to
+You can find a step-by-step tutorial here:
+[Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial)
 #### Creating a configuration
 To create a new configuration, create a class which extends `Configuration`. Fields which are
-added to this class and which are not `final`, `static` or `transient` can automatically be saved
- to the corresponding configuration file.
+not `final`, `static` or `transient` and whose type is one of the above can automatically be saved
+to the corresponding configuration file.
 #### Saving and loading a configuration
 Instances of your configuration class have a `load`, `save` and `loadAndSave` method:
 - `load` updates all fields of an instance with the values read from the configuration file.
@@ -58,6 +64,7 @@ will be thrown.
 For more information, consult the official
 [documentation](https://bitbucket.org/asomov/snakeyaml/wiki/Documentation).
 ## Examples
+Step-by-step tutorial: [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial)
 #### Example of a custom class
 ```java
 public class Credentials {
@@ -108,11 +115,10 @@ public class ExamplePlugin extends JavaPlugin {
         DatabaseConfig config = new DatabaseConfig(configPath);
         try {
             config.loadAndSave();
+            System.out.println(config.getPort());
         } catch (IOException e) {
             /* do something with exception */
         }
-
-        int port = config.getPort();
     }
 }
 ```
@@ -122,36 +128,36 @@ public class ExamplePlugin extends JavaPlugin {
 ```xml
 <repository>
     <id>de.exlll</id>
-    <url>https://repo.exlll.de/artifactory/snapshots/</url>
+    <url>https://repo.exlll.de/artifactory/releases/</url>
 </repository>
 
 <!-- for Bukkit plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.0</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 #### Gradle
 ```groovy
 repositories {
     maven {
-        url 'https://repo.exlll.de/artifactory/snapshots/'
+        url 'https://repo.exlll.de/artifactory/releases/'
     }
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '1.3.0-SNAPSHOT'
+    compile group: 'de.exlll', name: 'configlib-bukkit', version: '1.3.0'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '1.3.0-SNAPSHOT'
+    compile group: 'de.exlll', name: 'configlib-bungee', version: '1.3.0'
 }
 ```
 Additionally, you either have to import the Bukkit or BungeeCord API
@@ -159,4 +165,4 @@ or disable transitive lookups. This project uses both of these APIs, so if you
 need an example of how to import them with Gradle, take a look at the `build.gradle`.
 
 If, for some reason, you have SSL errors that you're unable to resolve, you can
-use `http://exlll.de:8081/artifactory/snapshots/` as the repository instead.
+use `http://exlll.de:8081/artifactory/releases/` as the repository instead.

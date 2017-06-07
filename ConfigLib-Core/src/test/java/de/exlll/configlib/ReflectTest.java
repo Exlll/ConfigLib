@@ -81,27 +81,6 @@ public class ReflectTest {
     }
 
     @Test
-    public void isConfigList() throws Exception {
-        assertThat(Reflect.isConfigList(list.getClass()), is(true));
-        assertThat(Reflect.isConfigList(set.getClass()), is(false));
-        assertThat(Reflect.isConfigList(map.getClass()), is(false));
-    }
-
-    @Test
-    public void isConfigSet() throws Exception {
-        assertThat(Reflect.isConfigSet(list.getClass()), is(false));
-        assertThat(Reflect.isConfigSet(set.getClass()), is(true));
-        assertThat(Reflect.isConfigSet(map.getClass()), is(false));
-    }
-
-    @Test
-    public void isConfigMap() throws Exception {
-        assertThat(Reflect.isConfigMap(list.getClass()), is(false));
-        assertThat(Reflect.isConfigMap(set.getClass()), is(false));
-        assertThat(Reflect.isConfigMap(map.getClass()), is(true));
-    }
-
-    @Test
     public void isContainerType() throws Exception {
         assertThat(Reflect.isContainerType(list.getClass()), is(true));
         assertThat(Reflect.isContainerType(set.getClass()), is(true));

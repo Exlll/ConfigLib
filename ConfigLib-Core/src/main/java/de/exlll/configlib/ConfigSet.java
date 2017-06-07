@@ -15,7 +15,7 @@ public final class ConfigSet<T> implements Defaultable<Set<?>>, Set<T> {
             Reflect.checkDefaultConstructor(cls);
         }
         this.cls = cls;
-        this.set = Collections.checkedSet(new HashSet<>(), cls);
+        this.set = Collections.checkedSet(new LinkedHashSet<>(), cls);
     }
 
     @Override
@@ -130,6 +130,7 @@ public final class ConfigSet<T> implements Defaultable<Set<?>>, Set<T> {
 
     @Override
     public void fromDefault(Object value) {
+        clear();
         for (Object item : (Set<?>) value) {
             Object instance = fromDefault(item, cls);
             add(cls.cast(instance));

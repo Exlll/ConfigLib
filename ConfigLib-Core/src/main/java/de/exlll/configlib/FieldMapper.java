@@ -45,14 +45,14 @@ enum FieldMapper {
         if (serialized == null) {
             return; // keep default value
         }
-        if (instance instanceof Defaultable<?>) {
-            instance = Reflect.getValue(field, instance);
-            ((Defaultable<?>) instance).fromDefault(serialized);
+        Object fieldValue = Reflect.getValue(field, instance);
+        checkNull(field, fieldValue);
+        if (fieldValue instanceof Defaultable<?>) {
+            ((Defaultable<?>) fieldValue).fromDefault(serialized);
         } else if (Reflect.isDefault(field.getType())) {
             Reflect.setValue(field, instance, serialized);
         } else {
-            instance = Reflect.getValue(field, instance);
-            instanceFromMap(instance, castToMap(serialized));
+            instanceFromMap(fieldValue, castToMap(serialized));
         }
     }
 

@@ -25,18 +25,6 @@ enum Reflect {
         return cls.isPrimitive() || simpleTypes.contains(cls);
     }
 
-    static boolean isConfigList(Class<?> cls) {
-        return ConfigList.class.isAssignableFrom(cls);
-    }
-
-    static boolean isConfigSet(Class<?> cls) {
-        return ConfigSet.class.isAssignableFrom(cls);
-    }
-
-    static boolean isConfigMap(Class<?> cls) {
-        return ConfigMap.class.isAssignableFrom(cls);
-    }
-
     static boolean isContainerType(Class<?> cls) {
         return List.class.isAssignableFrom(cls) ||
                 Set.class.isAssignableFrom(cls) ||
