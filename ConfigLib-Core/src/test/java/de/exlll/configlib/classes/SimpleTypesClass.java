@@ -1,6 +1,10 @@
 package de.exlll.configlib.classes;
 
-public class SimpleTypesClass {
+import de.exlll.configlib.Configuration;
+
+import java.nio.file.Path;
+
+public class SimpleTypesClass extends Configuration {
     private boolean bool = true;
     private char c = 'c';
     private byte b = 1;
@@ -18,4 +22,8 @@ public class SimpleTypesClass {
     private Float fObject = 5.0f;
     private Double dObject = 6.0;
     private String string = "string";
+
+    public SimpleTypesClass(Path configPath) {
+        super(configPath);
+    }
 }

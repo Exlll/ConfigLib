@@ -135,14 +135,14 @@ public class ExamplePlugin extends JavaPlugin {
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
 </dependency>
 ```
 #### Gradle
@@ -154,10 +154,10 @@ repositories {
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '1.3.0'
+    compile group: 'de.exlll', name: 'configlib-bukkit', version: '1.3.1'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '1.3.0'
+    compile group: 'de.exlll', name: 'configlib-bungee', version: '1.3.1'
 }
 ```
 Additionally, you either have to import the Bukkit or BungeeCord API

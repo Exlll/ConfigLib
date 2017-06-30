@@ -80,6 +80,7 @@ enum Reflect {
     static void setValue(Field field, Object instance, Object value) {
         try {
             field.setAccessible(true);
+            value = TypeConverter.convertValue(field.getType(), value);
             field.set(instance, value);
         } catch (IllegalAccessException e) {
             /* This exception is never thrown because we filter

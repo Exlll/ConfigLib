@@ -5,6 +5,8 @@ import de.exlll.configlib.classes.NonDefaultTypeClass;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -14,9 +16,11 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class FieldMapperTest {
+    private final Path path = Paths.get("a");
+
     @Test
     public void toSerializableObjectReturnsObjectForDefaultTypes() throws Exception {
-        DefaultTypeClass instance = new DefaultTypeClass();
+        DefaultTypeClass instance = new DefaultTypeClass(path);
         for (Field f : DefaultTypeClass.class.getDeclaredFields()) {
             Object value = Reflect.getValue(f, instance);
             assertThat(FieldMapper.toSerializableObject(value), sameInstance(value));
@@ -25,7 +29,7 @@ public class FieldMapperTest {
 
     @Test
     public void toSerializableObjectReturnsMapForNonDefaultTypes() throws Exception {
-        DefaultTypeClass instance = new DefaultTypeClass();
+        DefaultTypeClass instance = new DefaultTypeClass(path);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> map = (Map<String, Object>) FieldMapper.toSerializableObject(instance);
@@ -41,7 +45,7 @@ public class FieldMapperTest {
 
     @Test
     public void fromSerializedObjectIgnoresNullValues() throws Exception {
-        DefaultTypeClass instance = new DefaultTypeClass();
+        DefaultTypeClass instance = new DefaultTypeClass(path);
 
         for (Field field : DefaultTypeClass.class.getDeclaredFields()) {
             Object currentValue = Reflect.getValue(field, instance);
@@ -58,7 +62,7 @@ public class FieldMapperTest {
 
     @Test
     public void fromSerializedObjectSetsValueIfDefaultType() throws Exception {
-        DefaultTypeClass instance = new DefaultTypeClass();
+        DefaultTypeClass instance = new DefaultTypeClass(path);
 
         Map<String, Object> map = DefaultTypeClass.newValues();
         for (Field field : DefaultTypeClass.class.getDeclaredFields()) {
@@ -77,7 +81,7 @@ public class FieldMapperTest {
 
     @Test
     public void fromSerializedObjectUpdatesValueIfNotDefaultType() throws Exception {
-        NonDefaultTypeClass instance = new NonDefaultTypeClass();
+        NonDefaultTypeClass instance = new NonDefaultTypeClass(path);
         Field field = NonDefaultTypeClass.class.getDeclaredField("defaultTypeClass");
 
         Map<String, Object> map = DefaultTypeClass.newValues();

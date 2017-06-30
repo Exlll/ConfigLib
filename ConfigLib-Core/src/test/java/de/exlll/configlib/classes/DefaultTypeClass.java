@@ -1,8 +1,11 @@
 package de.exlll.configlib.classes;
 
+import de.exlll.configlib.Configuration;
+
+import java.nio.file.Path;
 import java.util.*;
 
-public class DefaultTypeClass {
+public class DefaultTypeClass extends Configuration {
     private boolean bool = true;
     private char c = 'c';
     private byte b = 1;
@@ -24,7 +27,8 @@ public class DefaultTypeClass {
     private Set<String> set = new HashSet<>();
     private Map<String, String> map = new HashMap<>();
 
-    public DefaultTypeClass() {
+    public DefaultTypeClass(Path path) {
+        super(path);
         list.add("a");
         set.add("b");
         map.put("c", "d");
