@@ -10,11 +10,11 @@ interface Defaultable<T> {
     default Object fromDefault(final Object instance, Class<?> cls) {
         Object newInstance = instance;
         if (!Reflect.isSimpleType(cls)) {
-            newInstance = Reflect.newInstance(cls);
             Reflect.checkType(instance, Map.class);
             Reflect.checkMapEntries((Map<?, ?>) instance, String.class, Object.class);
             @SuppressWarnings("unchecked")
             Map<String, ?> map = (Map<String, ?>) instance;
+            newInstance = Reflect.newInstance(cls);
             FieldMapper.instanceFromMap(newInstance, map);
         }
         Reflect.checkType(newInstance, cls);

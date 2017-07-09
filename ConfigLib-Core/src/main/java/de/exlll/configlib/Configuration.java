@@ -49,6 +49,7 @@ public abstract class Configuration {
         String yaml = ConfigReader.read(configPath);
         Map<String, Object> deserializedMap = serializer.deserialize(yaml);
         FieldMapper.instanceFromMap(this, deserializedMap);
+        postLoadHook();
     }
 
     /**
