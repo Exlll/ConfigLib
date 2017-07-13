@@ -13,6 +13,7 @@ final class Comments {
     Comments(Class<?> cls) {
         this.classComments = getComments(cls);
         this.fieldComments = getFieldComments(cls);
+        addVersionComments(cls);
     }
 
     private List<String> getComments(AnnotatedElement element) {
@@ -25,6 +26,15 @@ final class Comments {
         return Arrays.stream(cls.getDeclaredFields())
                 .filter(this::hasCommentAnnotation)
                 .collect(toMap(Field::getName, this::getComments));
+    }
+
+    private void addVersionComments(Class<?> cls) {
+        final Version version = Reflect.getVersion(cls);
+        if (version != null) {
+            final String vfn = version.fieldName();
+            final List<String> vfc = Arrays.asList(version.fieldComments());
+            fieldComments.put(vfn, vfc);
+        }
     }
 
     private boolean hasCommentAnnotation(AnnotatedElement element) {

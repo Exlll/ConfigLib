@@ -29,8 +29,10 @@ final class CommentAdder {
 
     private void addComments(List<String> comments) {
         for (String comment : comments) {
-            builder.append("# ");
-            builder.append(comment);
+            if (!comment.trim().isEmpty()) {
+                builder.append("# ");
+                builder.append(comment);
+            }
             builder.append('\n');
         }
     }

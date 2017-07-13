@@ -8,6 +8,7 @@ import java.util.*;
         "This comment is applied to a class."
 })
 final class TestConfiguration extends Configuration {
+    private transient Runnable postLoadAction;
     @Comment({
             "This comment is applied to a field.",
             "It has more than 1 line."
@@ -19,6 +20,7 @@ final class TestConfiguration extends Configuration {
     private List<String> allowedIps = new ArrayList<>();
     private Map<String, Integer> intsByStrings = new HashMap<>();
     private Map<String, List<String>> stringListsByString = new HashMap<>();
+
     private Credentials credentials = new Credentials();
 
     public TestConfiguration(Path path) {
@@ -34,6 +36,11 @@ final class TestConfiguration extends Configuration {
         stringListsByString.put("xa", Arrays.asList("x1", "x2"));
         stringListsByString.put("ya", Arrays.asList("y1", "y2"));
         stringListsByString.put("za", Arrays.asList("z1", "z2"));
+    }
+
+    public TestConfiguration(Path path, Runnable postLoadAction) {
+        this(path);
+        this.postLoadAction = postLoadAction;
     }
 
     public int getPort() {
@@ -128,4 +135,11 @@ final class TestConfiguration extends Configuration {
             "credentials:\n" +
             "  username: root\n" +
             "  password: '1234'\n";
+
+    @Override
+    protected void postLoadHook() {
+        if (postLoadAction != null) {
+            postLoadAction.run();
+        }
+    }
 }

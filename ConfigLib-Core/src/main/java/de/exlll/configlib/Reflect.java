@@ -105,4 +105,8 @@ enum Reflect {
             checkType(entry.getValue(), valueClass);
         }
     }
+
+    static Version getVersion(Class<?> cls) {
+        return cls.getAnnotation(Version.class);
+    }
 }

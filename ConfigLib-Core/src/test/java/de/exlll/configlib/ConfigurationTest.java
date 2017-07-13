@@ -11,6 +11,7 @@ import org.junit.Test;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -34,7 +35,7 @@ public class ConfigurationTest {
     public void saveCreatesParentDirectories() throws Exception {
         TestConfiguration cfg = new TestConfiguration(configPath);
         assertThat(Files.exists(configPath.getParent()), is(false));
-        
+
         cfg.save();
         assertThat(Files.exists(configPath.getParent()), is(true));
     }
@@ -68,5 +69,25 @@ public class ConfigurationTest {
         Configuration cfg = new NonDefaultTypeClass(configPath);
         cfg.save();
         cfg.load();
+    }
+
+    @Test
+    public void loadExecutesPostLoadHook() throws Exception {
+        AtomicInteger integer = new AtomicInteger();
+        Configuration cfg = new TestConfiguration(configPath, integer::incrementAndGet);
+
+        cfg.save();
+        assertThat(integer.get(), is(0));
+        cfg.load();
+        assertThat(integer.get(), is(1));
+    }
+
+    @Test
+    public void loadAndSaveExecutesPostLoadHook1() throws Exception {
+        AtomicInteger integer = new AtomicInteger();
+        Configuration cfg = new TestConfiguration(configPath, integer::incrementAndGet);
+
+        cfg.loadAndSave();
+        assertThat(integer.get(), is(1));
     }
 }

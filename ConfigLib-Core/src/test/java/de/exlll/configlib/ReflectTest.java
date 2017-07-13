@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ReflectTest {
@@ -140,11 +142,18 @@ public class ReflectTest {
         TestClass t = (TestClass) Reflect.newInstance(TestClass.class);
     }
 
+    @Test
+    public void getVersion() throws Exception {
+        assertThat(Reflect.getVersion(cls1), notNullValue());
+        assertThat(Reflect.getVersion(cls2), nullValue());
+    }
+
     private static final class NotDefaultConstructor {
         public NotDefaultConstructor(String a) {
         }
     }
 
+    @Version(version = "1.2.3")
     private static final class TestClass {
         private String s = "s";
     }

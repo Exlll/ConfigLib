@@ -16,6 +16,7 @@ import org.junit.runners.Suite;
         FilteredFieldsTest.class,
         ReflectTest.class,
         TypeConverterTest.class,
+        VersionTest.class,
         YamlSerializerTest.class
 })
 public class ConfigLibTestSuite {

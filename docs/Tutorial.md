@@ -36,6 +36,9 @@ channels:
   owner: User2
   members:
   - User1
+
+# Current version - DON'T TOUCH!
+my_version: '1.2.3-alpha'
 ```
 ### 1. Create a configuration
 Create a class which extends `de.exlll.configlib.Configuration`.
@@ -118,8 +121,7 @@ public final class WebchatConfig extends Configuration {
     public WebchatConfig(Path configPath) {
         super(configPath);
     }
-
-   /* other classes and methods */
+    // ... remainder unchanged
 }
 ```
 ### 4. Add comments
@@ -201,7 +203,27 @@ public final class WebchatConfig extends Configuration {
 }
 ```
 
-### 6. Create an instance of your configuration
+### 6. Add the version
+```java
+import de.exlll.configlib.Configuration;
+import de.exlll.configlib.Version;
+
+import java.nio.file.Path;
+
+@Version(
+        version = "1.2.3-alpha",
+        fieldName = "my_version",
+        fieldComments = {
+                "" /* empty line */,
+                "Current version - DON'T TOUCH!"
+        }
+)
+public final class WebchatConfig extends Configuration {
+    // ... remainder unchanged
+}
+```
+
+### 7. Create an instance of your configuration
 Create a `java.nio.file.Path` object and pass it to the configuration constructor.
 ```java
 /* imports */

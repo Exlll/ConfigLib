@@ -9,6 +9,7 @@ names and values, creating the configuration file and its parent directories if 
 - option to add explanatory comments by adding annotations to the class or its fields
 - option to exclude fields by making them final, static or transient
 - option to change the style of the configuration file
+- option to version configuration files and change the way updates are applied
 
 ## General information
 #### What can be serialized?
@@ -55,6 +56,9 @@ been loaded.
 By using the `@Comment` annotation, you can add comments to your configuration file. The
 annotation can be applied to classes or fields. Each `String` of the passed array is
 written into a new line.
+#### Versioning
+Use the `@Version` annotation to enable versioning. Versioning lets you change the way
+how configuration files are updated when a version change is detected.
 #### Custom configuration style
 You can change the style of the configuration file by overriding the protected `create...` methods
 of your configuration class. Overriding these methods effectively changes the behavior of the
@@ -82,6 +86,7 @@ import de.exlll.configlib.Configuration;
         "This is a multiline comment.",
         "It describes what the configuration is about."
 })
+@Version(version = "1.2.3")
 public final class DatabaseConfig extends Configuration {
     /* ignored fields */
     private final String ignored1 = "";     // ignored because final
@@ -135,14 +140,14 @@ public class ExamplePlugin extends JavaPlugin {
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>1.3.2</version>
+    <version>1.4.0</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>1.3.2</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 #### Gradle
@@ -154,10 +159,10 @@ repositories {
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '1.3.2'
+    compile group: 'de.exlll', name: 'configlib-bukkit', version: '1.4.0'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '1.3.2'
+    compile group: 'de.exlll', name: 'configlib-bungee', version: '1.4.0'
 }
 ```
 Additionally, you either have to import the Bukkit or BungeeCord API
