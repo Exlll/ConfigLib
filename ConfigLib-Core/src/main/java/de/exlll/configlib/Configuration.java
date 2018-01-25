@@ -16,8 +16,8 @@ import java.util.Map;
 
 public abstract class Configuration {
     private final Path configPath;
-    private final YamlSerializer serializer;
     private final CommentAdder adder;
+    private YamlSerializer serializer;
 
     /**
      * Constructs a new {@code Configuration} instance.
@@ -30,11 +30,16 @@ public abstract class Configuration {
      */
     protected Configuration(Path configPath) {
         this.configPath = configPath;
-        this.serializer = new YamlSerializer(
-                createConstructor(), createRepresenter(),
-                createDumperOptions(), createResolver()
-        );
         this.adder = new CommentAdder(new Comments(getClass()));
+    }
+
+    private void initSerializer() {
+        if (serializer == null) {
+            this.serializer = new YamlSerializer(
+                    createConstructor(), createRepresenter(),
+                    createDumperOptions(), createResolver()
+            );
+        }
     }
 
     /**
@@ -62,6 +67,7 @@ public abstract class Configuration {
     }
 
     private Map<String, Object> readAndDeserialize() throws IOException {
+        initSerializer();
         String yaml = ConfigReader.read(configPath);
         return serializer.deserialize(yaml);
     }
@@ -100,6 +106,7 @@ public abstract class Configuration {
      * @throws ParserException     if invalid YAML
      */
     public final void save() throws IOException {
+        initSerializer();
         createParentDirectories();
         Map<String, Object> map = FieldMapper.instanceToMap(this);
         version(map);

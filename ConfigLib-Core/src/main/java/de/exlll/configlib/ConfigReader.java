@@ -10,7 +10,11 @@ enum ConfigReader {
     static String read(Path path) throws IOException {
         try (Scanner scanner = new Scanner(path)) {
             scanner.useDelimiter("\\z");
-            return scanner.next();
+            StringBuilder builder = new StringBuilder();
+            while (scanner.hasNext()) {
+                builder.append(scanner.next());
+            }
+            return builder.toString();
         }
     }
 }
