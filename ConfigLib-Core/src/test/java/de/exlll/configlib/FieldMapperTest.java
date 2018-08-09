@@ -1,197 +1,530 @@
 package de.exlll.configlib;
 
-import de.exlll.configlib.classes.DefaultTypeClass;
-import de.exlll.configlib.classes.NonDefaultTypeClass;
-import org.junit.Test;
+import de.exlll.configlib.Converter.ConversionInfo;
+import de.exlll.configlib.FieldMapper.FieldFilter;
+import de.exlll.configlib.annotation.ElementType;
+import de.exlll.configlib.annotation.NoConvert;
+import de.exlll.configlib.classes.TestClass;
+import de.exlll.configlib.classes.TestSubClass;
+import de.exlll.configlib.classes.TestSubClassConverter;
+import de.exlll.configlib.format.FieldNameFormatters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.lang.reflect.Modifier;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
+import static de.exlll.configlib.Converters.ENUM_CONVERTER;
+import static de.exlll.configlib.Converters.SIMPLE_TYPE_CONVERTER;
+import static de.exlll.configlib.FieldMapperHelpers.*;
+import static java.util.stream.Collectors.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class FieldMapperTest {
-    private final Path path = Paths.get("a");
+@SuppressWarnings({"unused", "ThrowableNotThrown"})
+class FieldMapperTest {
+    private static final Class<ClassWithFinalStaticTransientField> CWFSTF =
+            ClassWithFinalStaticTransientField.class;
+    private static final Predicate<Field> filter = FieldFilter.DEFAULT;
+    private static final TestClass t = TestClass.TEST_VALUES;
+    private static final Configuration.Properties DEFAULT =
+            Configuration.Properties.builder().build();
+    private static final Map<String, Object> map = instanceToMap(
+            TestClass.TEST_VALUES, DEFAULT
+    );
+
+    private TestClass tmp;
+
+    @BeforeEach
+    void setUp() {
+        tmp = new TestClass();
+        FieldMapper.instanceFromMap(tmp, map, DEFAULT);
+    }
 
     @Test
-    public void toSerializableObjectReturnsObjectForDefaultTypes() throws Exception {
-        DefaultTypeClass instance = new DefaultTypeClass(path);
-        for (Field f : DefaultTypeClass.class.getDeclaredFields()) {
-            Object value = Reflect.getValue(f, instance);
-            assertThat(FieldMapper.toSerializableObject(value), sameInstance(value));
+    void instanceFromMapSetsSimpleTypes() {
+        assertAll(
+                () -> assertThat(tmp.getPrimBool(), is(t.getPrimBool())),
+                () -> assertThat(tmp.getRefBool(), is(t.getRefBool())),
+                () -> assertThat(tmp.getPrimByte(), is(t.getPrimByte())),
+                () -> assertThat(tmp.getRefByte(), is(t.getRefByte())),
+                () -> assertThat(tmp.getPrimChar(), is(t.getPrimChar())),
+                () -> assertThat(tmp.getRefChar(), is(t.getRefChar())),
+                () -> assertThat(tmp.getPrimShort(), is(t.getPrimShort())),
+                () -> assertThat(tmp.getRefShort(), is(t.getRefShort())),
+                () -> assertThat(tmp.getPrimInt(), is(t.getPrimInt())),
+                () -> assertThat(tmp.getRefInt(), is(t.getRefInt())),
+                () -> assertThat(tmp.getPrimLong(), is(t.getPrimLong())),
+                () -> assertThat(tmp.getRefLong(), is(t.getRefLong())),
+                () -> assertThat(tmp.getPrimFloat(), is(t.getPrimFloat())),
+                () -> assertThat(tmp.getRefFloat(), is(t.getRefFloat())),
+                () -> assertThat(tmp.getPrimDouble(), is(t.getPrimDouble())),
+                () -> assertThat(tmp.getRefDouble(), is(t.getRefDouble())),
+                () -> assertThat(tmp.getString(), is(t.getString()))
+        );
+    }
+
+    @Test
+    void instanceFromMapSetsEnums() {
+        assertThat(tmp.getE1(), is(t.getE1()));
+    }
+
+    @Test
+    void instanceFromMapSetsContainersOfSimpleTypes() {
+        assertAll(
+                () -> assertThat(tmp.getInts(), is(t.getInts())),
+                () -> assertThat(tmp.getStrings(), is(t.getStrings())),
+                () -> assertThat(tmp.getDoubleByBool(), is(t.getDoubleByBool()))
+        );
+    }
+
+    @Test
+    void instanceFromMapsConvertsMapsToTypes() {
+        assertThat(tmp.getSubClass(), is(t.getSubClass()));
+    }
+
+    @Test
+    void instanceFromMapsConvertsExcludedClasses() {
+        assertThat(tmp.getExcludedClass(), is(t.getExcludedClass()));
+    }
+
+    @Test
+    void instanceFromMapsConvertsContainersOfMaps() {
+        assertThat(tmp.getSubClassList(), is(t.getSubClassList()));
+        assertThat(tmp.getSubClassSet(), is(t.getSubClassSet()));
+        assertThat(tmp.getSubClassMap(), is(t.getSubClassMap()));
+        assertThat(tmp.getSubClassListsList(), is(t.getSubClassListsList()));
+        assertThat(tmp.getSubClassSetsSet(), is(t.getSubClassSetsSet()));
+        assertThat(tmp.getSubClassMapsMap(), is(t.getSubClassMapsMap()));
+    }
+
+    @Test
+    void instanceFromMapDoesNotSetFinalStaticOrTransientFields() {
+        Map<String, Object> map = Map.of(
+                "staticFinalInt", 10,
+                "staticInt", 10,
+                "finalInt", 10,
+                "transientInt", 10
+        );
+        TestClass cls = instanceFromMap(new TestClass(), map);
+        assertThat(TestClass.getStaticFinalInt(), is(1));
+        assertThat(TestClass.getStaticInt(), is(2));
+        assertThat(cls.getFinalInt(), is(3));
+        assertThat(cls.getTransientInt(), is(4));
+    }
+
+    @Test
+    void instanceFromMapConvertsAllFields() {
+        assertThat(tmp, is(t));
+    }
+
+    @Test
+    void instanceFromMapThrowsExceptionIfEnumConstantDoesNotExist() {
+        class A {
+            LocalTestEnum t = LocalTestEnum.T;
+        }
+        Map<String, Object> map = Map.of(
+                "t", "R"
+        );
+
+        String msg = "Cannot initialize enum 't' because there is no enum " +
+                "constant 'R'.\nValid constants are: [S, T]";
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> ((Converter<Enum<?>, String>) ENUM_CONVERTER)
+                        .convertFrom("R", newInfo("t", new A())),
+                msg
+        );
+    }
+
+    @Test
+    void instanceFromMapIgnoresNullValues() {
+        class A {
+            TestSubClass c = new TestSubClass();
+        }
+        Map<String, Object> map = Map.of("c", Map.of("primInt", 20));
+
+        A a = new A();
+        assertThat(a.c.getPrimInt(), is(0));
+        assertThat(a.c.getString(), is(""));
+        instanceFromMap(a, map);
+        assertThat(a.c.getPrimInt(), is(20));
+        assertThat(a.c.getString(), is(""));
+    }
+
+    @Test
+    void instanceFromMapSetsField() {
+        TestClass ins = TestClass.TEST_VALUES;
+        TestClass def = new TestClass();
+        assertThat(ins, is(not(def)));
+        instanceFromMap(def, map);
+        assertThat(ins, is(def));
+    }
+
+    @Test
+    void instanceFromMapCreatesConcreteInstances() {
+        class A {
+            LocalTestInterface l = new LocalTestInterfaceImpl();
+        }
+        class B {
+            LocalTestAbstractClass l = new LocalTestAbstractClassImpl();
+        }
+        instanceFromMap(new A(), Map.of("l", Map.of()));
+        instanceFromMap(new B(), Map.of("l", Map.of()));
+    }
+
+
+    @Test
+    void instanceToMapUsesFieldNameFormatter() {
+        Configuration.Properties.Builder builder =
+                Configuration.Properties.builder();
+        Map<String, Object> map = instanceToMap(
+                TestClass.TEST_VALUES,
+                builder.setFormatter(FieldNameFormatters.LOWER_UNDERSCORE).build()
+        );
+        assertThat(map.get("primBool"), nullValue());
+        assertThat(map.get("prim_bool"), is(true));
+    }
+
+    @Test
+    void instanceToMapContainsAllFields() {
+        assertThat(map.size(), is(34));
+    }
+
+    @Test
+    void instanceToMapDoesNotContainFinalStaticOrTransientFields() {
+        assertAll(
+                () -> assertThat(map.get("staticFinalInt"), is(nullValue())),
+                () -> assertThat(map.get("staticInt"), is(nullValue())),
+                () -> assertThat(map.get("finalInt"), is(nullValue())),
+                () -> assertThat(map.get("transientInt"), is(nullValue()))
+        );
+    }
+
+    @Test
+    void instanceToMapContainsAllSimpleFields() {
+        assertAll(
+                () -> assertThat(map.get("primBool"), is(t.getPrimBool())),
+                () -> assertThat(map.get("refBool"), is(t.getRefBool())),
+                () -> assertThat(map.get("primByte"), is(t.getPrimByte())),
+                () -> assertThat(map.get("refByte"), is(t.getRefByte())),
+                () -> assertThat(map.get("primChar"), is(t.getPrimChar())),
+                () -> assertThat(map.get("refChar"), is(t.getRefChar())),
+                () -> assertThat(map.get("primShort"), is(t.getPrimShort())),
+                () -> assertThat(map.get("refShort"), is(t.getRefShort())),
+                () -> assertThat(map.get("primInt"), is(t.getPrimInt())),
+                () -> assertThat(map.get("refInt"), is(t.getRefInt())),
+                () -> assertThat(map.get("primLong"), is(t.getPrimLong())),
+                () -> assertThat(map.get("refLong"), is(t.getRefLong())),
+                () -> assertThat(map.get("primFloat"), is(t.getPrimFloat())),
+                () -> assertThat(map.get("refFloat"), is(t.getRefFloat())),
+                () -> assertThat(map.get("primDouble"), is(t.getPrimDouble())),
+                () -> assertThat(map.get("refDouble"), is(t.getRefDouble())),
+                () -> assertThat(map.get("string"), is(t.getString()))
+        );
+    }
+
+    @Test
+    void instanceToMapContainsAllContainersOfSimpleTypes() {
+        assertAll(
+                () -> assertThat(map.get("ints"), is(t.getInts())),
+                () -> assertThat(map.get("strings"), is(t.getStrings())),
+                () -> assertThat(map.get("doubleByBool"), is(t.getDoubleByBool()))
+        );
+    }
+
+    @Test
+    void instanceToMapConvertsTypesToMaps() {
+        assertThat(map.get("subClass"), is(t.getSubClass().asMap()));
+    }
+
+    @Test
+    void instanceToMapConvertsExcludedClasses() {
+        assertThat(map.get("excludedClass"), is(t.getExcludedClass()));
+    }
+
+    @Test
+    void instanceToMapConvertsEnumsContainersToStringContainers() {
+        class A {
+            @ElementType(LocalTestEnum.class)
+            List<LocalTestEnum> el = List.of(LocalTestEnum.S, LocalTestEnum.T);
+            @ElementType(LocalTestEnum.class)
+            Set<LocalTestEnum> es = Set.of(LocalTestEnum.S, LocalTestEnum.T);
+            @ElementType(LocalTestEnum.class)
+            Map<String, LocalTestEnum> em = Map.of(
+                    "1", LocalTestEnum.S, "2", LocalTestEnum.T
+            );
+        }
+        Map<String, Object> map = instanceToMap(new A());
+        assertThat(map.get("el"), is(List.of("S", "T")));
+        assertThat(map.get("es"), is(Set.of("S", "T")));
+        assertThat(map.get("em"), is(Map.of("1", "S", "2", "T")));
+    }
+
+    @Test
+    void instanceFromMapConvertsStringContainersToEnumContainers() {
+        class A {
+            @ElementType(LocalTestEnum.class)
+            List<LocalTestEnum> el = List.of();
+            @ElementType(LocalTestEnum.class)
+            Set<LocalTestEnum> es = Set.of();
+            @ElementType(LocalTestEnum.class)
+            Map<String, LocalTestEnum> em = Map.of();
+        }
+        Map<String, Object> map = Map.of(
+                "el", List.of("S", "T"),
+                "es", Set.of("S", "T"),
+                "em", Map.of("1", "S", "2", "T")
+        );
+        A a = instanceFromMap(new A(), map);
+        assertThat(a.el, is(List.of(LocalTestEnum.S, LocalTestEnum.T)));
+        assertThat(a.es, is(Set.of(LocalTestEnum.S, LocalTestEnum.T)));
+        assertThat(a.em, is(Map.of(
+                "1", LocalTestEnum.S, "2", LocalTestEnum.T
+        )));
+    }
+
+
+    @Test
+    void instanceToMapConvertsContainerElementsToMaps() {
+        List<Map<String, Object>> subClassList = t.getSubClassList().stream()
+                .map(TestSubClass::asMap)
+                .collect(toList());
+        Set<Map<String, Object>> subClassSet = t.getSubClassSet().stream()
+                .map(TestSubClass::asMap)
+                .collect(toSet());
+        Map<String, Map<String, Object>> subClassMap = t.getSubClassMap()
+                .entrySet().stream()
+                .map(e -> Map.entry(e.getKey(), e.getValue().asMap()))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+        assertAll(
+                () -> assertThat(map.get("subClassSet"), is(subClassSet)),
+                () -> assertThat(map.get("subClassMap"), is(subClassMap)),
+                () -> assertThat(map.get("subClassList"), is(subClassList))
+        );
+    }
+
+    @Test
+    void instanceToMapContainsNestedContainersOfSimpleTypes() {
+        assertAll(
+                () -> assertThat(map.get("listsList"), is(t.getListsList())),
+                () -> assertThat(map.get("setsSet"), is(t.getSetsSet())),
+                () -> assertThat(map.get("mapsMap"), is(t.getMapsMap()))
+        );
+    }
+
+    @Test
+    void instanceToMapContainsNestedContainersOfCustomTypes() {
+        List<List<Map<String, Object>>> lists = t.getSubClassListsList()
+                .stream().map(list -> list.stream()
+                        .map(TestSubClass::asMap)
+                        .collect(toList()))
+                .collect(toList());
+        Set<Set<Map<String, Object>>> sets = t.getSubClassSetsSet()
+                .stream().map(set -> set.stream()
+                        .map(TestSubClass::asMap)
+                        .collect(toSet()))
+                .collect(toSet());
+        Function<Map<String, TestSubClass>, Map<String, Map<String, Object>>> f =
+                map -> map.entrySet().stream().collect(
+                        toMap(Map.Entry::getKey, e -> e.getValue().asMap())
+                );
+        Map<Integer, Map<String, Map<String, Object>>> m = t.getSubClassMapsMap()
+                .entrySet().stream()
+                .map(e -> Map.entry(e.getKey(), f.apply(e.getValue())))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        assertThat(map.get("subClassListsList"), is(lists));
+        assertThat(map.get("subClassSetsSet"), is(sets));
+        assertThat(map.get("subClassMapsMap"), is(m));
+    }
+
+    @Test
+    void instanceToMapContainsEnums() {
+        assertThat(map.get("e1"), is(t.getE1().toString()));
+    }
+
+    @Test
+    void instanceToMapContainsEnumLists() {
+        List<String> list = t.getEnums().stream()
+                .map(Enum::toString)
+                .collect(toList());
+        assertThat(map.get("enums"), is(list));
+    }
+
+
+    @Test
+    void instanceToMapConvertsConvertTypes() {
+        String s = new TestSubClassConverter()
+                .convertTo(t.getConverterSubClass(), null);
+        assertThat(map.get("converterSubClass"), is(s));
+    }
+
+    @Test
+    void instanceToMapCreatesLinkedHashMap() {
+        assertThat(instanceToMap(new Object()), instanceOf(LinkedHashMap.class));
+    }
+
+    @Test
+    void filteredFieldsFiltersFields() throws NoSuchFieldException {
+        List<Field> fields = FieldFilter.filterFields(CWFSTF);
+        assertThat(fields.size(), is(0));
+
+        class A {
+            private int i;
+            private final int j = 0;
+            private transient int k;
+        }
+        fields = FieldFilter.filterFields(A.class);
+        assertThat(fields.size(), is(1));
+        assertThat(fields.get(0), is(A.class.getDeclaredField("i")));
+    }
+
+    @Test
+    void defaultFilterFiltersSyntheticFields() {
+        for (Field field : ClassWithSyntheticField.class.getDeclaredFields()) {
+            assertThat(field.isSynthetic(), is(true));
+            assertThat(filter.test(field), is(false));
         }
     }
 
     @Test
-    public void toSerializableObjectReturnsMapForNonDefaultTypes() throws Exception {
-        DefaultTypeClass instance = new DefaultTypeClass(path);
+    void defaultFilterFiltersFinalStaticTransientFields()
+            throws NoSuchFieldException {
+        Field field = CWFSTF.getDeclaredField("i");
+        assertThat(Modifier.isFinal(field.getModifiers()), is(true));
+        assertThat(filter.test(field), is(false));
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> map = (Map<String, Object>) FieldMapper.toSerializableObject(instance);
+        field = CWFSTF.getDeclaredField("j");
+        assertThat(Modifier.isStatic(field.getModifiers()), is(true));
+        assertThat(filter.test(field), is(false));
 
-        int counter = 0;
-        for (Field field : DefaultTypeClass.class.getDeclaredFields()) {
-            Object fieldValue = Reflect.getValue(field, instance);
-            assertThat(map.get(field.getName()), is(fieldValue));
-            counter++;
+        field = CWFSTF.getDeclaredField("k");
+        assertThat(Modifier.isTransient(field.getModifiers()), is(true));
+        assertThat(filter.test(field), is(false));
+    }
+
+    private static Converter<Object, Object> converter = SIMPLE_TYPE_CONVERTER;
+
+    private static ConversionInfo newInfo(String fieldName, Object o) {
+        Field field = null;
+        try {
+            field = o.getClass().getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
         }
-        assertThat(map.size(), is(counter));
+        return ConversionInfo.of(field, o, null, null);
+    }
+
+    private static ConversionInfo newInfo(String fieldName) {
+        return newInfo(fieldName, new TestClass());
     }
 
     @Test
-    public void fromSerializedObjectIgnoresNullValues() throws Exception {
-        DefaultTypeClass instance = new DefaultTypeClass(path);
+    void typeConverterReturnsInstanceIfClassesMatch() {
+        //noinspection RedundantStringConstructorCall
+        String s = new String("123");
+        Object val = converter.convertFrom(s, newInfo("string"));
+        assertThat(val, sameInstance(s));
+    }
 
-        for (Field field : DefaultTypeClass.class.getDeclaredFields()) {
-            Object currentValue = Reflect.getValue(field, instance);
-            FieldMapper.fromSerializedObject(field, instance, null);
-            Object newValue = Reflect.getValue(field, instance);
+    @Test
+    void typeConverterConvertsStringToCharacter() {
+        String s = "1";
+        Object vc = converter.convertFrom(s, newInfo("primChar"));
+        Object vd = converter.convertFrom(s, newInfo("refChar"));
 
-            if (field.getType().isPrimitive()) {
-                assertThat(currentValue, is(newValue));
-            } else {
-                assertThat(currentValue, sameInstance(newValue));
+        assertThat(vc, instanceOf(Character.class));
+        assertThat(vd, instanceOf(Character.class));
+    }
+
+    @Test
+    void typeConverterChecksInvalidStrings() {
+        String msg = "An empty string cannot be converted to a character.";
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> converter.convertFrom("", newInfo("refChar")),
+                msg
+        );
+
+        String value = "123";
+        msg = "String '" + value + "' is too long to be converted to a character";
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> converter.convertFrom(value, newInfo("refChar")),
+                msg
+        );
+    }
+
+    @Test
+    void typeConverterConvertsNumbers() {
+        Number[] numbers = {
+                (byte) 1, (short) 2, 3, (long) 4,
+                (float) 5, (double) 6, 4L, 5f, 6d
+        };
+        String[] classes = {
+                "refByte", "refShort", "refInt",
+                "primLong", "refFloat", "refDouble"
+        };
+
+        for (String cls : classes) {
+            for (Number number : numbers) {
+                ConversionInfo info = newInfo(cls);
+                Object conv = converter.convertFrom(number, info);
+                assertThat(conv, instanceOf(info.getFieldType()));
             }
         }
     }
 
     @Test
-    public void fromSerializedObjectSetsValueIfDefaultType() throws Exception {
-        DefaultTypeClass instance = new DefaultTypeClass(path);
+    void typeConverterChecksInvalidNumbers() {
+        String msg = "Number '1' cannot be converted to type 'String'";
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> converter.convertFrom(1, newInfo("string")),
+                msg
+        );
+    }
 
-        Map<String, Object> map = DefaultTypeClass.newValues();
-        for (Field field : DefaultTypeClass.class.getDeclaredFields()) {
-            String fieldName = field.getName();
-            Object mapValue = map.get(fieldName);
-            FieldMapper.fromSerializedObject(field, instance, mapValue);
-            Object value = Reflect.getValue(field, instance);
+    private static final class ExcludedClass {}
 
-            if (field.getType().isPrimitive()) {
-                assertThat(mapValue, is(value));
-            } else {
-                assertThat(mapValue, sameInstance(value));
-            }
+    @Test
+    void instanceToMapSetsAutoConvertedInstancesAsIs() {
+        class A {
+            @NoConvert
+            ExcludedClass ex = new ExcludedClass();
         }
+        A a = new A();
+        Map<String, Object> map = instanceToMap(a);
+        assertThat(map.get("ex"), sameInstance(a.ex));
     }
 
     @Test
-    public void fromSerializedObjectUpdatesValueIfNotDefaultType() throws Exception {
-        NonDefaultTypeClass instance = new NonDefaultTypeClass(path);
-        Field field = NonDefaultTypeClass.class.getDeclaredField("defaultTypeClass");
-
-        Map<String, Object> map = DefaultTypeClass.newValues();
-        FieldMapper.fromSerializedObject(field, instance, map);
-
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            Field f = DefaultTypeClass.class.getDeclaredField(entry.getKey());
-            Object value = Reflect.getValue(f, instance.defaultTypeClass);
-            assertThat(value, is(entry.getValue()));
+    void instanceFromMapSetsAutoConvertedInstancesAsIs() {
+        class A {
+            @NoConvert
+            ExcludedClass ex = new ExcludedClass();
         }
+
+        ExcludedClass cls = new ExcludedClass();
+        Map<String, Object> map = Map.of("ex", cls);
+        A a = instanceFromMap(new A(), map);
+        assertThat(a.ex, sameInstance(cls));
     }
 
-    @Test
-    public void instanceTopMapCreatesMap() throws Exception {
-        TestClass t = new TestClass();
-        Map<String, Object> map = FieldMapper.instanceToMap(t);
-
-        assertThat(map.get("i"), is(1));
-        assertThat(map.get("i"), instanceOf(Integer.class));
-
-        assertThat(map.get("z"), is(0));
-        assertThat(map.get("z"), instanceOf(Integer.class));
-
-        assertThat(map.get("d"), is(2.0));
-        assertThat(map.get("d"), instanceOf(Double.class));
-
-        assertThat(map.get("s"), is("s"));
-        assertThat(map.get("s"), instanceOf(String.class));
-
-        assertThat(map.get("c"), is('c'));
-        assertThat(map.get("c"), instanceOf(Character.class));
-
-        assertThat(map.get("strings"), is(Arrays.asList("1", "2")));
-        assertThat(map.get("strings"), instanceOf(List.class));
-
-        Map<String, Integer> intMap = new HashMap<>();
-        intMap.put("a", 1);
-        intMap.put("b", 2);
-        assertThat(map.get("objects"), is(intMap));
-        assertThat(map.get("objects"), instanceOf(Map.class));
-
-        Map<String, Object> bMap = new HashMap<>();
-        bMap.put("j", -1);
-        bMap.put("t", "t");
-        assertThat(map.get("b"), is(bMap));
-        assertThat(map.get("b"), instanceOf(Map.class));
+    private static final class ClassWithFinalStaticTransientField {
+        private final int i = 0;
+        private static int j;
+        private transient int k;
     }
 
-    @Test
-    public void instanceFromMapKeepsDefaultValues() throws Exception {
-        TestClass t = new TestClass();
-        FieldMapper.instanceFromMap(t, new HashMap<>());
-        assertThat(t.z, is(0));
-        assertThat(t.i, is(1));
-        assertThat(t.s, is("s"));
-    }
-
-    @Test
-    public void instanceFromMapSetsValues() throws Exception {
-        TestClass t = new TestClass();
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("z", 2);
-        map.put("i", 10);
-        map.put("c", 'q');
-        map.put("s", "t");
-        map.put("strings", Arrays.asList("99", "100", "101"));
-
-        Map<String, Object> objects = new HashMap<>();
-        objects.put("a", 100);
-        objects.put("b", 200);
-        objects.put("c", 300);
-        objects.put("d", 400);
-        map.put("objects", objects);
-
-        Map<String, Object> bMap = new HashMap<>();
-        bMap.put("j", 20);
-        bMap.put("t", "v");
-        map.put("b", bMap);
-
-
-        FieldMapper.instanceFromMap(t, map);
-        assertThat(t.z, is(2));
-        assertThat(t.i, is(10));
-        assertThat(t.c, is('q'));
-        assertThat(t.s, is("t"));
-        assertThat(t.strings, is(Arrays.asList("99", "100", "101")));
-        assertThat(t.objects, is(objects));
-        assertThat(t.b.j, is(20));
-        assertThat(t.b.t, is("v"));
-    }
-
-    private static final class TestClass {
-        private int z;
-        private int i = 1;
-        private double d = 2.0;
-        private String s = "s";
-        private List<String> strings = Arrays.asList("1", "2");
-        private Map<String, Object> objects = new HashMap<>();
-        private char c = 'c';
-        private TestClassB b = new TestClassB();
-
-        public TestClass() {
-            objects.put("a", 1);
-            objects.put("b", 2);
-        }
-    }
-
-    private static final class TestClassB {
-        private int j = -1;
-        private String t = "t";
-    }
+    private final class ClassWithSyntheticField {}
 }

@@ -1,75 +1,105 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.Converter.ConversionInfo;
+import de.exlll.configlib.format.FieldNameFormatter;
+
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+
+import static de.exlll.configlib.Validator.*;
+import static java.util.stream.Collectors.toList;
 
 enum FieldMapper {
     ;
 
-    static Map<String, Object> instanceToMap(Object instance) {
+    static Map<String, Object> instanceToMap(
+            Object inst, Configuration.Properties props
+    ) {
         Map<String, Object> map = new LinkedHashMap<>();
-
-        FilteredFields ff = FilteredFields.of(instance.getClass());
-
-        for (Field field : ff) {
-            Object value = Reflect.getValue(field, instance);
-            checkNull(field, value);
-            value = toSerializableObject(value);
-            map.put(field.getName(), value);
+        for (Field field : FieldFilter.filterFields(inst.getClass())) {
+            Object val = toConvertibleObject(field, inst, props);
+            FieldNameFormatter fnf = props.getFormatter();
+            String fn = fnf.fromFieldName(field.getName());
+            map.put(fn, val);
         }
-
         return map;
     }
 
-    static Object toSerializableObject(Object input) {
-        if (input instanceof Defaultable<?>) {
-            return ((Defaultable<?>) input).toDefault();
-        } else if (Reflect.isDefault(input.getClass())) {
-            return input;
-        } else {
-            return instanceToMap(input);
+    private static Object toConvertibleObject(
+            Field field, Object instance, Configuration.Properties props
+    ) {
+        checkDefaultValueNull(field, instance);
+        ConversionInfo info = ConversionInfo.of(field, instance, props);
+        checkFieldWithElementTypeIsContainer(info);
+        Object converted = Converters.convertTo(info);
+        checkConverterNotReturnsNull(converted, info);
+        return converted;
+    }
+
+    static void instanceFromMap(
+            Object inst, Map<String, Object> instMap,
+            Configuration.Properties props
+    ) {
+        for (Field field : FieldFilter.filterFields(inst.getClass())) {
+            FieldNameFormatter fnf = props.getFormatter();
+            String fn = fnf.fromFieldName(field.getName());
+            Object mapValue = instMap.get(fn);
+            if (mapValue != null) {
+                fromConvertedObject(field, inst, mapValue, props);
+            }
         }
     }
 
-    static void instanceFromMap(Object instance, Map<String, ?> map) {
-        FilteredFields ff = FilteredFields.of(instance.getClass());
+    private static void fromConvertedObject(
+            Field field, Object instance, Object mapValue,
+            Configuration.Properties props
+    ) {
+        checkDefaultValueNull(field, instance);
+        ConversionInfo info = ConversionInfo.of(field, instance, mapValue, props);
+        checkFieldWithElementTypeIsContainer(info);
+        Object convert = Converters.convertFrom(info);
 
-        for (Field field : ff) {
-            Object value = map.get(field.getName());
-            fromSerializedObject(field, instance, value);
+        if (convert == null) {
+            return;
         }
+
+        if (Reflect.isContainerType(info.getFieldType())) {
+            checkFieldTypeAssignableFrom(convert.getClass(), info);
+        }
+
+        Reflect.setValue(field, instance, convert);
     }
 
-    static void fromSerializedObject(Field field, Object instance, Object serialized) {
-        if (serialized == null) {
-            return; // keep default value
-        }
-        Object fieldValue = Reflect.getValue(field, instance);
-        checkNull(field, fieldValue);
-        if (fieldValue instanceof Defaultable<?>) {
-            ((Defaultable<?>) fieldValue).fromDefault(serialized);
-        } else if (Reflect.isDefault(field.getType())) {
-            Reflect.setValue(field, instance, serialized);
-        } else {
-            instanceFromMap(fieldValue, castToMap(serialized));
-        }
+    private static void checkDefaultValueNull(Field field, Object instance) {
+        Object val = Reflect.getValue(field, instance);
+        checkNotNull(val, field.getName());
     }
 
-    private static void checkNull(Field field, Object o) {
-        if (o == null) {
-            String msg = "The value of field " + field.getName() + " is null.\n" +
-                    "Please assign a non-null default value or remove this field.";
-            throw new NullPointerException(msg);
+    enum FieldFilter implements Predicate<Field> {
+        DEFAULT;
+
+        static List<Field> filterFields(Class<?> cls) {
+            Field[] fields = cls.getDeclaredFields();
+            return Arrays.stream(fields)
+                    .filter(DEFAULT)
+                    .collect(toList());
         }
-    }
 
+        @Override
+        public boolean test(Field field) {
+            if (field.isSynthetic()) {
+                return false;
+            }
 
-    private static Map<String, Object> castToMap(Object mapObject) {
-        Reflect.checkType(mapObject, Map.class);
-        Reflect.checkMapEntries((Map<?, ?>) mapObject, String.class, Object.class);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> m = (Map<String, Object>) mapObject;
-        return m;
+            int mods = field.getModifiers();
+            return !(Modifier.isFinal(mods) ||
+                    Modifier.isStatic(mods) ||
+                    Modifier.isTransient(mods));
+        }
     }
 }

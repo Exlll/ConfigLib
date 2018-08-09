@@ -1,160 +1,60 @@
 package de.exlll.configlib;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import de.exlll.configlib.classes.TestClass;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
 
-public class ReflectTest {
-    private static final Class<TestClass> cls1 = TestClass.class;
-    private static final Class<NotDefaultConstructor> cls2 = NotDefaultConstructor.class;
-    private final List<String> list = new ConfigList<>(String.class);
-    private final Set<String> set = new ConfigSet<>(String.class);
-    private final Map<?, String> map = new ConfigMap<>(String.class, String.class);
-    private final Class<?>[] containerClasses = {List.class, Set.class, Map.class};
-    private final Class<?>[] simpleClasses = {
-            boolean.class, char.class, byte.class, short.class,
-            int.class, long.class, float.class, double.class,
-            Boolean.class, String.class, Character.class,
-            Byte.class, Short.class, Integer.class, Long.class,
-            Float.class, Double.class,
-    };
-    private final String errorMessage = "Class NotDefaultConstructor doesn't have a default constructor.";
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+class ReflectTest {
+    private static final Set<Class<?>> ALL_SIMPLE_TYPES = Set.of(
+            boolean.class, Boolean.class,
+            byte.class, Byte.class,
+            char.class, Character.class,
+            short.class, Short.class,
+            int.class, Integer.class,
+            long.class, Long.class,
+            float.class, Float.class,
+            double.class, Double.class,
+            String.class
+    );
 
     @Test
-    public void checkType() throws Exception {
-        Reflect.checkType(new HashMap<>(), Map.class);
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("Invalid type!\n" +
-                "Object 'a' is of type String. Expected type: Map");
-        Reflect.checkType("a", Map.class);
-    }
-
-    @Test
-    public void checkMapEntriesChecksKeys() throws Exception {
-        Map<String, Integer> map = new HashMap<>();
-        map.put("a", 1);
-        Reflect.checkMapEntries(map, String.class, Integer.class);
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("Invalid type!\n" +
-                "Object 'a' is of type String. Expected type: Integer");
-        Reflect.checkMapEntries(map, Integer.class, Integer.class);
-    }
-
-    @Test
-    public void checkMapEntriesChecksValues() throws Exception {
-        Map<String, Integer> map = new HashMap<>();
-        map.put("a", 1);
-        Reflect.checkMapEntries(map, String.class, Integer.class);
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("Invalid type!\n" +
-                "Object '1' is of type Integer. Expected type: String");
-        Reflect.checkMapEntries(map, String.class, String.class);
-    }
-
-    @Test
-    public void isDefault() throws Exception {
-        for (Class<?> cls : containerClasses) {
-            assertThat(Reflect.isDefault(cls), is(true));
-        }
-        for (Class<?> cls : simpleClasses) {
-            assertThat(Reflect.isDefault(cls), is(true));
-        }
-    }
-
-    @Test
-    public void isSimpleType() throws Exception {
-        for (Class<?> cls : simpleClasses) {
+    void isSimpleType() {
+        for (Class<?> cls : ALL_SIMPLE_TYPES) {
             assertThat(Reflect.isSimpleType(cls), is(true));
         }
+        assertThat(Reflect.isSimpleType(Object.class), is(false));
     }
 
     @Test
-    public void isContainerType() throws Exception {
-        assertThat(Reflect.isContainerType(list.getClass()), is(true));
-        assertThat(Reflect.isContainerType(set.getClass()), is(true));
-        assertThat(Reflect.isContainerType(map.getClass()), is(true));
+    void isContainerType() {
         assertThat(Reflect.isContainerType(Object.class), is(false));
+        assertThat(Reflect.isContainerType(HashMap.class), is(true));
+        assertThat(Reflect.isContainerType(HashSet.class), is(true));
+        assertThat(Reflect.isContainerType(ArrayList.class), is(true));
     }
 
     @Test
-    public void getValueGetsValue() throws Exception {
-        TestClass testClass = new TestClass();
+    void getValue() throws NoSuchFieldException {
+        TestClass testClass = TestClass.TEST_VALUES;
+        Field f1 = TestClass.class.getDeclaredField("string");
+        Field f2 = TestClass.class.getDeclaredField("primLong");
+        Field f3 = TestClass.class.getDeclaredField("staticFinalInt");
 
-        Field s = TestClass.class.getDeclaredField("s");
-        assertThat(Reflect.getValue(s, testClass), is("s"));
-    }
+        Object value = Reflect.getValue(f1, testClass);
+        assertThat(value, is(testClass.getString()));
 
-    @Test
-    public void setValueSetsValue() throws Exception {
-        TestClass testClass = new TestClass();
+        value = Reflect.getValue(f2, testClass);
+        assertThat(value, is(testClass.getPrimLong()));
 
-        Field s = TestClass.class.getDeclaredField("s");
-        Reflect.setValue(s, testClass, "t");
-        assertThat(testClass.s, is("t"));
-    }
-
-    @Test
-    public void checkForDefaultConstructorsThrowsExceptionIfNoDefault() throws Exception {
-        Reflect.checkDefaultConstructor(cls1);
-
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(errorMessage);
-        Reflect.checkDefaultConstructor(cls2);
-    }
-
-    @Test
-    public void hasDefaultConstructor() throws Exception {
-        assertThat(Reflect.hasDefaultConstructor(cls1), is(true));
-        assertThat(Reflect.hasDefaultConstructor(cls2), is(false));
-    }
-
-    @Test
-    public void getDefaultConstructor() throws Exception {
-        assertThat(Reflect.getDefaultConstructor(cls1), is(cls1.getDeclaredConstructor()));
-        expectedException.expect(RuntimeException.class);
-        Reflect.getDefaultConstructor(cls2);
-    }
-
-    @Test
-    public void newInstanceChecksForDefaultConstructor() throws Exception {
-        Reflect.newInstance(TestClass.class);
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(errorMessage);
-        Reflect.newInstance(NotDefaultConstructor.class);
-    }
-
-    @Test
-    public void newInstanceCreatesNewInstance() throws Exception {
-        TestClass t = (TestClass) Reflect.newInstance(TestClass.class);
-    }
-
-    @Test
-    public void getVersion() throws Exception {
-        assertThat(Reflect.getVersion(cls1), notNullValue());
-        assertThat(Reflect.getVersion(cls2), nullValue());
-    }
-
-    private static final class NotDefaultConstructor {
-        public NotDefaultConstructor(String a) {
-        }
-    }
-
-    @Version(version = "1.2.3")
-    private static final class TestClass {
-        private String s = "s";
+        value = Reflect.getValue(f3, testClass);
+        assertThat(value, is(TestClass.getStaticFinalInt()));
     }
 }

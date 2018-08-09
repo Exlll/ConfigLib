@@ -1,263 +1,174 @@
 package de.exlll.configlib;
 
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.BaseConstructor;
-import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.parser.ParserException;
-import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.resolver.Resolver;
+import de.exlll.configlib.format.FieldNameFormatter;
+import de.exlll.configlib.format.FieldNameFormatters;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.util.Map;
+import java.util.*;
 
-public abstract class Configuration {
-    private final Path configPath;
-    private final CommentAdder adder;
-    private YamlSerializer serializer;
+/**
+ * Parent class of all configurations.
+ * <p>
+ * This class contains the most basic methods that every configuration needs.
+ *
+ * @param <C> type of the configuration
+ */
+public abstract class Configuration<C extends Configuration<C>> {
+    /**
+     * {@code Comments} object containing all class and field comments
+     * of this configuration
+     */
+    protected final Comments comments;
+    private final Properties props;
 
     /**
-     * Constructs a new {@code Configuration} instance.
-     * <p>
-     * You can use {@link java.io.File#toPath()} get a {@link Path} object
-     * from a {@link java.io.File}.
+     * Constructs a new {@code Configuration} object.
      *
-     * @param configPath location of the configuration file
-     * @throws NullPointerException if {@code configPath} is null
+     * @param properties {@code Properties} used to configure this configuration
+     * @throws NullPointerException if {@code properties} is null
      */
-    protected Configuration(Path configPath) {
-        this.configPath = configPath;
-        this.adder = new CommentAdder(new Comments(getClass()));
-    }
-
-    private void initSerializer() {
-        if (serializer == null) {
-            this.serializer = new YamlSerializer(
-                    createConstructor(), createRepresenter(),
-                    createDumperOptions(), createResolver()
-            );
-        }
+    protected Configuration(Properties properties) {
+        this.props = Objects.requireNonNull(properties);
+        this.comments = Comments.ofClass(getClass());
     }
 
     /**
-     * Loads {@code this} configuration from a configuration file. The file is
-     * located at the path pointed to by the {@code Path} object used to create
-     * {@code this} instance.
-     * <p>
-     * The values of the fields of this instance are updated as follows:<br>
-     * For each non-{@code final}, non-{@code static} and non-{@code transient}
-     * field of {@code this} configuration instance: <br>
-     * - If the field's value is null, throw a {@code NullPointerException} <br>
-     * - If the file contains the field's name, update the field's value with
-     * the value from the file. Otherwise, keep the default value. <br>
-     * This algorithm is applied recursively for any non-default field.
+     * Saves this {@code Configuration}.
      *
-     * @throws ClassCastException   if parsed Object is not a {@code Map}
-     * @throws IOException          if an I/O error occurs when loading the configuration file
-     * @throws NullPointerException if a value of a field of this instance is null
-     * @throws ParserException      if invalid YAML
+     * @throws ConfigurationException      if any field is not properly configured
+     * @throws ConfigurationStoreException if an I/O error occurred while loading
+     *                                     this configuration
      */
-    public final void load() throws IOException {
-        Map<String, Object> deserializedMap = readAndDeserialize();
-        FieldMapper.instanceFromMap(this, deserializedMap);
-        postLoadHook();
-    }
-
-    private Map<String, Object> readAndDeserialize() throws IOException {
-        initSerializer();
-        String yaml = ConfigReader.read(configPath);
-        return serializer.deserialize(yaml);
-    }
-
-    /**
-     * Saves the comments of {@code this} class as well as the names,
-     * values and comments of its non-{@code final}, non-{@code static}
-     * and non-{@code transient} fields to a configuration file. If this
-     * class uses versioning, the current version is saved, too.
-     * <p>
-     * The file used to save this configuration is located at the path pointed
-     * to by the {@code Path} object used to create {@code this} instance.
-     * <p>
-     * The default algorithm used to save {@code this} configuration to a file
-     * is as follows:<br>
-     * <ol>
-     * <li>If the file doesn't exist, it is created.</li>
-     * <li>For each non-{@code final}, non-{@code static} and non-{@code transient}
-     * field of {@code this} configuration instance:
-     * <ul>
-     * <li>If the file doesn't contain the field's name, the field's name and
-     * value are added. Otherwise, the value is simply updated.</li>
-     * </ul>
-     * </li>
-     * <li>If the file contains field names that don't match any name of a field
-     * of this class, the file's field names together with their values are
-     * removed from the file.</li>
-     * <li>(only with versioning) The current version is updated.</li>
-     * </ol>
-     * The default behavior can be overridden using <i>versioning</i>.
-     *
-     * @throws ConfigException     if a name clash between a field name and the version
-     *                             field name occurs (can only happen if versioning is used)
-     * @throws NoSuchFileException if the old version contains illegal file path characters
-     * @throws IOException         if an I/O error occurs when saving the configuration file
-     * @throws ParserException     if invalid YAML
-     */
-    public final void save() throws IOException {
-        initSerializer();
-        createParentDirectories();
-        Map<String, Object> map = FieldMapper.instanceToMap(this);
-        version(map);
-        String serializedMap = serializer.serialize(map);
-        ConfigWriter.write(configPath, adder.addComments(serializedMap));
-    }
-
-    private void version(Map<String, Object> map) throws IOException {
-        final Version version = Reflect.getVersion(getClass());
-
-        if (version == null) {
-            return;
-        }
-
-        final String vfn = version.fieldName();
-        if (map.containsKey(vfn)) {
-            String msg = "Problem: Configuration '" + this + "' cannot be " +
-                    "saved because one its fields has the same name as the " +
-                    "version field: '" + vfn + "'.\nSolution: Rename the " +
-                    "field or use a different version field name.";
-            throw new ConfigException(msg);
-        }
-        map.put(vfn, version.version());
-        version.updateStrategy().update(this, version);
-    }
-
-    private void createParentDirectories() throws IOException {
-        Files.createDirectories(configPath.getParent());
-    }
-
-    /**
-     * Loads and saves {@code this} configuration.
-     * <p>
-     * This method first calls {@link #load()} and then {@link #save()}.
-     *
-     * @throws ClassCastException   if parsed Object is not a {@code Map}
-     * @throws IOException          if an I/O error occurs when loading or saving the configuration file
-     * @throws NullPointerException if a value of a field of this instance is null
-     * @throws ParserException      if invalid YAML
-     * @see #load()
-     * @see #save()
-     */
-    public final void loadAndSave() throws IOException {
+    public final void save() {
         try {
-            load();
-            save();
-        } catch (NoSuchFileException e) {
-            postLoadHook();
-            save();
+            preSave();
+            Map<String, Object> map = FieldMapper.instanceToMap(this, props);
+            getSource().saveConfiguration(getThis(), map);
+        } catch (IOException e) {
+            throw new ConfigurationStoreException(e);
         }
     }
 
     /**
-     * Protected method invoked after all fields have successfully been loaded.
-     * <p>
-     * The default implementation of this method does nothing. Subclasses may
-     * override this method in order to execute some action after all fields
-     * have successfully been loaded.
-     */
-    protected void postLoadHook() {}
-
-    /**
-     * Returns a {@link BaseConstructor} which is used to configure a
-     * {@link Yaml} object.
-     * <p>
-     * Override this method to change the way the {@code Yaml} object is created.
-     * <p>
-     * This method may not return null.
+     * Loads this {@code Configuration}.
      *
-     * @return a {@code BaseConstructor} object
-     * @see org.yaml.snakeyaml.constructor.BaseConstructor
-     * @see #createRepresenter()
-     * @see #createDumperOptions()
-     * @see #createResolver()
+     * @throws ConfigurationException      if values cannot be converted back to their
+     *                                     original representation
+     * @throws ConfigurationStoreException if an I/O error occurred while loading
+     *                                     this configuration
      */
-    protected BaseConstructor createConstructor() {
-        return new Constructor();
-    }
-
-    /**
-     * Returns a {@link Representer} which is used to configure a {@link Yaml}
-     * object.
-     * <p>
-     * Override this method to change the way the {@code Yaml} object is created.
-     * <p>
-     * This method may not return null.
-     *
-     * @return a {@code Representer} object
-     * @see org.yaml.snakeyaml.representer.Representer
-     * @see #createConstructor()
-     * @see #createDumperOptions()
-     * @see #createResolver()
-     */
-    protected Representer createRepresenter() {
-        return new Representer();
-    }
-
-    /**
-     * Returns a {@link DumperOptions} object which is used to configure a
-     * {@link Yaml} object.
-     * <p>
-     * Override this method to change the way the {@code Yaml} object is created.
-     * <p>
-     * This method may not return null.
-     *
-     * @return a {@code DumperOptions} object
-     * @see org.yaml.snakeyaml.DumperOptions
-     * @see #createConstructor()
-     * @see #createRepresenter()
-     * @see #createResolver()
-     */
-    protected DumperOptions createDumperOptions() {
-        DumperOptions options = new DumperOptions();
-        options.setIndent(2);
-        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        return options;
-    }
-
-    /**
-     * Returns a {@link Resolver} which is used to configure a {@link Yaml} object.
-     * <p>
-     * Override this method to change the way the {@code Yaml} object is created.
-     * <p>
-     * This method may not return null.
-     *
-     * @return a {@code Resolver} object
-     * @see org.yaml.snakeyaml.resolver.Resolver
-     * @see #createConstructor()
-     * @see #createRepresenter()
-     * @see #createDumperOptions()
-     */
-    protected Resolver createResolver() {
-        return new Resolver();
-    }
-
-    final String currentFileVersion() throws IOException {
-        final Version version = Reflect.getVersion(getClass());
-        return (version == null) ? null : readCurrentFileVersion(version);
-    }
-
-    private String readCurrentFileVersion(Version version) throws IOException {
+    public final void load() {
         try {
-            final Map<String, Object> map = readAndDeserialize();
-            return (String) map.get(version.fieldName());
-        } catch (NoSuchFileException ignored) {
-            /* there is no file version if the file doesn't exist */
-            return null;
+            Map<String, Object> map = getSource().loadConfiguration(getThis());
+            FieldMapper.instanceFromMap(this, map, props);
+            postLoad();
+        } catch (IOException e) {
+            throw new ConfigurationStoreException(e);
         }
     }
 
-    final Path getPath() {
-        return configPath;
+    /**
+     * Returns the {@link ConfigurationSource} used for saving and loading this
+     * {@code Configuration}.
+     *
+     * @return {@code ConfigurationSource} used for saving and loading
+     */
+    protected abstract ConfigurationSource<C> getSource();
+
+    /**
+     * Returns this {@code Configuration}.
+     *
+     * @return this {@code Configuration}
+     */
+    protected abstract C getThis();
+
+    /**
+     * Hook that is executed right before this {@code Configuration} is saved.
+     * <p>
+     * The default implementation of this method does nothing.
+     */
+    protected void preSave() {}
+
+    /**
+     * Hook that is executed right after this {@code Configuration} has
+     * successfully been loaded.
+     * <p>
+     * The default implementation of this method does nothing.
+     */
+    protected void postLoad() {}
+
+    /**
+     * Instances of a {@code Properties} class are used to configure different
+     * aspects of a configuration.
+     */
+    protected static class Properties {
+        private final FieldNameFormatter formatter;
+
+        /**
+         * Constructs a new {@code Properties} object.
+         *
+         * @param builder {@code Builder} used for construction
+         * @throws NullPointerException if {@code builder} is null
+         */
+        protected Properties(Builder<?> builder) {
+            this.formatter = builder.formatter;
+        }
+
+        static Builder<?> builder() {
+            return new Builder() {
+                @Override
+                protected Builder<?> getThis() {
+                    return this;
+                }
+            };
+        }
+
+        /**
+         * Returns the {@code FieldNameFormatter} of a configuration.
+         *
+         * @return {@code FieldNameFormatter} of a configuration
+         */
+        public final FieldNameFormatter getFormatter() {
+            return formatter;
+        }
+
+        /**
+         * Builder classes are used for constructing {@code Properties}.
+         *
+         * @param <B> type of the builder
+         */
+        protected static abstract class Builder<B extends Builder<B>> {
+            private FieldNameFormatter formatter = FieldNameFormatters.IDENTITY;
+
+            protected Builder() {}
+
+            /**
+             * Returns this {@code Builder}.
+             *
+             * @return this {@code Builder}
+             */
+            protected abstract B getThis();
+
+            /**
+             * Sets the {@link FieldNameFormatter} for a configuration.
+             *
+             * @param formatter formatter for configuration
+             * @return this {@code Builder}
+             * @throws NullPointerException if {@code formatter ist null}
+             */
+            public final B setFormatter(FieldNameFormatter formatter) {
+                this.formatter = Objects.requireNonNull(formatter);
+                return getThis();
+            }
+
+            /**
+             * Builds a new {@code Properties} instance using the values set.
+             *
+             * @return new {@code Properties} instance
+             */
+            public Properties build() {
+                return new Properties(this);
+            }
+        }
     }
 }

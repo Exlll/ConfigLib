@@ -1,93 +1,49 @@
 package de.exlll.configlib;
 
-import com.google.common.jimfs.Jimfs;
-import de.exlll.configlib.classes.DefaultTypeClass;
-import de.exlll.configlib.classes.NonDefaultTypeClass;
-import de.exlll.configlib.classes.SimpleTypesClass;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import de.exlll.configlib.configs.mem.InSharedMemoryConfiguration;
+import org.junit.jupiter.api.Test;
 
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.io.IOException;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public class ConfigurationTest {
-    private FileSystem fileSystem;
-    private Path configPath;
-
-    @Before
-    public void setUp() throws Exception {
-        fileSystem = Jimfs.newFileSystem();
-        configPath = fileSystem.getPath("/a/b/config.yml");
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        fileSystem.close();
+class ConfigurationTest {
+    private static class TestHook extends InSharedMemoryConfiguration {
+        protected TestHook() { super(Properties.builder().build()); }
     }
 
     @Test
-    public void saveCreatesParentDirectories() throws Exception {
-        TestConfiguration cfg = new TestConfiguration(configPath);
-        assertThat(Files.exists(configPath.getParent()), is(false));
+    void configExecutesPreSaveHook() throws IOException {
+        class A extends TestHook {
+            int i = 0;
 
-        cfg.save();
-        assertThat(Files.exists(configPath.getParent()), is(true));
+            @Override
+            protected void preSave() { i++; }
+        }
+        A save = new A();
+        save.save();
+        assertThat(save.i, is(1));
+
+        A load = new A();
+        load.load();
+        assertThat(load.i, is(1));
     }
 
     @Test
-    public void saveWritesConfig() throws Exception {
-        TestConfiguration cfg = new TestConfiguration(configPath);
-        assertThat(Files.exists(configPath), is(false));
+    void configExecutesPostLoadHook() throws IOException {
+        class A extends TestHook {
+            int i = 0;
 
-        cfg.save();
-        assertThat(Files.exists(configPath), is(true));
-        assertThat(ConfigReader.read(configPath), is(TestConfiguration.CONFIG_AS_TEXT));
-    }
+            @Override
+            protected void postLoad() { i++; }
+        }
+        A save = new A();
+        save.save();
+        assertThat(save.i, is(0));
 
-    @Test
-    public void simpleTypesConfigSavesAndLoads() throws Exception {
-        Configuration cfg = new SimpleTypesClass(configPath);
-        cfg.save();
-        cfg.load();
-    }
-
-    @Test
-    public void defaultTypesConfigSavesAndLoads() throws Exception {
-        Configuration cfg = new DefaultTypeClass(configPath);
-        cfg.save();
-        cfg.load();
-    }
-
-    @Test
-    public void nonDefaultConfigSavesAndLoads() throws Exception {
-        Configuration cfg = new NonDefaultTypeClass(configPath);
-        cfg.save();
-        cfg.load();
-    }
-
-    @Test
-    public void loadExecutesPostLoadHook() throws Exception {
-        AtomicInteger integer = new AtomicInteger();
-        Configuration cfg = new TestConfiguration(configPath, integer::incrementAndGet);
-
-        cfg.save();
-        assertThat(integer.get(), is(0));
-        cfg.load();
-        assertThat(integer.get(), is(1));
-    }
-
-    @Test
-    public void loadAndSaveExecutesPostLoadHook1() throws Exception {
-        AtomicInteger integer = new AtomicInteger();
-        Configuration cfg = new TestConfiguration(configPath, integer::incrementAndGet);
-
-        cfg.loadAndSave();
-        assertThat(integer.get(), is(1));
+        A load = new A();
+        load.load();
+        assertThat(load.i, is(1));
     }
 }

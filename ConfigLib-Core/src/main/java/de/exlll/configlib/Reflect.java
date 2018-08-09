@@ -1,28 +1,33 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.annotation.ConfigurationElement;
+import de.exlll.configlib.annotation.Convert;
+import de.exlll.configlib.annotation.NoConvert;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 enum Reflect {
     ;
-    private static final Class<?>[] SIMPLE_TYPES = {
-            Boolean.class, String.class, Character.class,
-            Byte.class, Short.class, Integer.class, Long.class,
-            Float.class, Double.class
-    };
-    private static final Set<Class<?>> simpleTypes = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList(SIMPLE_TYPES))
+    private static final Set<Class<?>> SIMPLE_TYPES = Set.of(
+            Boolean.class,
+            Byte.class,
+            Character.class,
+            Short.class,
+            Integer.class,
+            Long.class,
+            Float.class,
+            Double.class,
+            String.class
     );
-
-    static boolean isDefault(Class<?> cls) {
-        // default classes can be properly serialized by default
-        return isSimpleType(cls) || isContainerType(cls);
-    }
-
+    
     static boolean isSimpleType(Class<?> cls) {
-        return cls.isPrimitive() || simpleTypes.contains(cls);
+        return cls.isPrimitive() || SIMPLE_TYPES.contains(cls);
     }
 
     static boolean isContainerType(Class<?> cls) {
@@ -31,82 +36,77 @@ enum Reflect {
                 Map.class.isAssignableFrom(cls);
     }
 
-    static Object newInstance(Class<?> cls) {
-        checkDefaultConstructor(cls);
-        Constructor<?> constructor = getDefaultConstructor(cls);
-        constructor.setAccessible(true);
-        return newInstance(constructor);
+    static boolean isEnumType(Class<?> cls) {
+        return cls.isEnum();
     }
 
-    private static Object newInstance(Constructor<?> constructor) {
+    static boolean hasConverter(Field field) {
+        return field.isAnnotationPresent(Convert.class);
+    }
+
+    static boolean hasNoConvert(Field field) {
+        return field.isAnnotationPresent(NoConvert.class);
+    }
+
+    static <T> T newInstance(Class<T> cls) {
         try {
+            Constructor<T> constructor = cls.getDeclaredConstructor();
+            constructor.setAccessible(true);
             return constructor.newInstance();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    static void checkDefaultConstructor(Class<?> cls) {
-        if (!hasDefaultConstructor(cls)) {
-            String msg = "Class " + cls.getSimpleName() + " doesn't have a default constructor.";
-            throw new IllegalArgumentException(msg);
-        }
-    }
-
-    static Constructor<?> getDefaultConstructor(Class<?> cls) {
-        try {
-            return cls.getDeclaredConstructor();
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            /* This exception should not be thrown because we check
+             * the presence of a no-args constructor elsewhere. */
+            String msg = "Class " + cls.getSimpleName() + " doesn't have a " +
+                    "no-args constructor.";
+            throw new ConfigurationException(msg, e);
+        } catch (IllegalAccessException e) {
+            /* This exception should not be thrown because
+             * we set the field to be accessible. */
+            String msg = "No-args constructor of class " + cls.getSimpleName() +
+                    " not accessible.";
+            throw new ConfigurationException(msg, e);
+        } catch (InstantiationException e) {
+            /* This exception should not be thrown because
+             * we call this method only for concrete types. */
+            String msg = "Class " + cls.getSimpleName() + " not instantiable.";
+            throw new ConfigurationException(msg, e);
+        } catch (InvocationTargetException e) {
+            String msg = "Constructor of class " + cls.getSimpleName() +
+                    " has thrown an exception.";
+            throw new ConfigurationException(msg, e);
         }
     }
 
-    static boolean hasDefaultConstructor(Class<?> cls) {
+    static Object getValue(Field field, Object inst) {
+        try {
+            field.setAccessible(true);
+            return field.get(inst);
+        } catch (IllegalAccessException e) {
+            /* This exception should not be thrown because
+             * we set the field to be accessible. */
+            String msg = "Illegal access of field '" + field + "' " +
+                    "on object " + inst + ".";
+            throw new ConfigurationException(msg, e);
+        }
+    }
+
+    static void setValue(Field field, Object inst, Object value) {
+        try {
+            field.setAccessible(true);
+            field.set(inst, value);
+        } catch (IllegalAccessException e) {
+            String msg = "Illegal access of field '" + field + "' " +
+                    "on object " + inst + ".";
+            throw new ConfigurationException(msg, e);
+        }
+    }
+
+    static boolean isConfigurationElement(Class<?> cls) {
+        return cls.isAnnotationPresent(ConfigurationElement.class);
+    }
+
+    static boolean hasNoArgConstructor(Class<?> cls) {
         return Arrays.stream(cls.getDeclaredConstructors())
-                .anyMatch(cst -> cst.getParameterCount() == 0);
-    }
-
-    static Object getValue(Field field, Object instance) {
-        try {
-            field.setAccessible(true);
-            return field.get(instance);
-        } catch (IllegalAccessException e) {
-            /* This exception is never thrown because we filter
-             * inaccessible fields out. */
-            throw new RuntimeException(e);
-        }
-    }
-
-    static void setValue(Field field, Object instance, Object value) {
-        try {
-            field.setAccessible(true);
-            value = TypeConverter.convertValue(field.getType(), value);
-            field.set(instance, value);
-        } catch (IllegalAccessException e) {
-            /* This exception is never thrown because we filter
-             * inaccessible fields out. */
-            throw new RuntimeException(e);
-        }
-    }
-
-    static void checkType(Object object, Class<?> expectedType) {
-        if (!expectedType.isAssignableFrom(object.getClass())) {
-            String clsName = object.getClass().getSimpleName();
-            String msg = "Invalid type!\n" +
-                    "Object '" + object + "' is of type " + clsName + ". " +
-                    "Expected type: " + expectedType.getSimpleName();
-            throw new IllegalArgumentException(msg);
-        }
-    }
-
-    static void checkMapEntries(Map<?, ?> map, Class<?> keyClass, Class<?> valueClass) {
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            checkType(entry.getKey(), keyClass);
-            checkType(entry.getValue(), valueClass);
-        }
-    }
-
-    static Version getVersion(Class<?> cls) {
-        return cls.getAnnotation(Version.class);
+                .anyMatch(c -> c.getParameterCount() == 0);
     }
 }

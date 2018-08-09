@@ -1,31 +1,55 @@
 package de.exlll.configlib;
 
-import org.junit.Test;
+import de.exlll.configlib.annotation.Comment;
+import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class CommentsTest {
-    @Comment({"a", "b"})
-    public static final class TestClass {
-        @Comment("c")
-        private int i;
-        @Comment({"d", "e"})
-        private int j;
-        private int k;
+
+    @Test
+    void classCommentsAdded() {
+        class A {}
+
+        @Comment("B")
+        class B {}
+
+        @Comment({"C", "D"})
+        class C {}
+
+        Comments comments = Comments.ofClass(A.class);
+        assertThat(comments.getClassComments(), empty());
+        assertThat(comments.getFieldComments().entrySet(), empty());
+
+        comments = Comments.ofClass(B.class);
+        assertThat(comments.getClassComments(), is(List.of("B")));
+        assertThat(comments.getFieldComments().entrySet(), empty());
+
+        comments = Comments.ofClass(C.class);
+        assertThat(comments.getClassComments(), is(List.of("C", "D")));
+        assertThat(comments.getFieldComments().entrySet(), empty());
     }
 
     @Test
-    public void getCommentsReturnsComments() throws Exception {
-        Comments comments = new Comments(TestClass.class);
+    void fieldCommentsAdded() {
+        class A {
+            int a;
+            @Comment("b")
+            int b;
+            @Comment({"c", "d"})
+            int c;
+        }
 
-        assertThat(comments.getClassComments(), is(Arrays.asList("a", "b")));
-
-        assertThat(comments.getFieldComments().get("i"), is(Collections.singletonList("c")));
-        assertThat(comments.getFieldComments().get("j"), is(Arrays.asList("d", "e")));
-        assertThat(comments.getFieldComments().get("k"), nullValue());
+        Comments comments = Comments.ofClass(A.class);
+        assertThat(comments.getClassComments(), empty());
+        assertThat(comments.getFieldComments(), is(Map.of(
+                "b", List.of("b"),
+                "c", List.of("c", "d")
+        )));
     }
 }
