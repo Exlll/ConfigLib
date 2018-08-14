@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static de.exlll.configlib.FieldMapperHelpers.*;
+import static de.exlll.configlib.util.CollectionFactory.listOf;
+import static de.exlll.configlib.util.CollectionFactory.mapOf;
+import static de.exlll.configlib.util.CollectionFactory.setOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -39,7 +42,7 @@ public class FieldMapperConverterTest {
             implements Converter<Point2D, List<Integer>> {
         @Override
         public List<Integer> convertTo(Point2D element, ConversionInfo info) {
-            return List.of(element.x, element.y);
+            return listOf(element.x, element.y);
         }
 
         @Override
@@ -57,7 +60,7 @@ public class FieldMapperConverterTest {
         public Map<String, String> convertTo(Point2D element, ConversionInfo info) {
             int x = element.x;
             int y = element.y;
-            return Map.of("p", x + ":" + y);
+            return mapOf("p", x + ":" + y);
         }
 
         @Override
@@ -153,7 +156,7 @@ public class FieldMapperConverterTest {
             @Convert(NullConverter.class)
             String s = "string";
         }
-        Map<String, Object> map = Map.of("s", "value");
+        Map<String, Object> map = mapOf("s", "value");
         A a = instanceFromMap(new A(), map);
         assertThat(a.s, is("string"));
     }
@@ -190,7 +193,7 @@ public class FieldMapperConverterTest {
             @Convert(IntToStringConverter.class)
             int i = 1;
         }
-        A i = instanceFromMap(new A(), Map.of("i", "10"));
+        A i = instanceFromMap(new A(), mapOf("i", "10"));
         assertThat(i.i, is(10));
     }
 
@@ -203,8 +206,8 @@ public class FieldMapperConverterTest {
             Point2D p2 = new Point2D();
         }
         Map<String, Object> map = instanceToMap(new A());
-        assertThat(map.get("p1"), is(List.of(1, 2)));
-        assertThat(map.get("p2"), is(Map.of("p", "1:2")));
+        assertThat(map.get("p1"), is(listOf(1, 2)));
+        assertThat(map.get("p2"), is(mapOf("p", "1:2")));
     }
 
     @Test
@@ -215,9 +218,9 @@ public class FieldMapperConverterTest {
             @Convert(PointToMapConverter.class)
             Point2D p2 = new Point2D();
         }
-        Map<String, Object> map = Map.of(
-                "p1", List.of(10, 11),
-                "p2", Map.of("p", "11:12")
+        Map<String, Object> map = mapOf(
+                "p1", listOf(10, 11),
+                "p2", mapOf("p", "11:12")
         );
         A i = instanceFromMap(new A(), map);
         assertThat(i.p1.x, is(10));
@@ -277,7 +280,7 @@ public class FieldMapperConverterTest {
             @Convert(TestSubClassConverter.class)
             TestSubClass a = new TestSubClass();
         }
-        Map<String, Object> map = Map.of(
+        Map<String, Object> map = mapOf(
                 "a", 1
         );
         String msg = "The value for field 'a' with type 'TestSubClass' " +
@@ -294,7 +297,7 @@ public class FieldMapperConverterTest {
         class D {
             char d;
         }
-        Map<String, Object> map = Map.of(
+        Map<String, Object> map = mapOf(
                 "c", "", "d", "12"
         );
         String msg = "The value for field 'c' with type 'char' " +
@@ -313,7 +316,7 @@ public class FieldMapperConverterTest {
         class B {
             String b = "string";
         }
-        Map<String, Object> map = Map.of(
+        Map<String, Object> map = mapOf(
                 "b", 2
         );
         String msg = "The value for field 'b' with type 'String' " +
@@ -327,7 +330,7 @@ public class FieldMapperConverterTest {
         class A {
             LocalTestEnum e = LocalTestEnum.T;
         }
-        Map<String, Object> map = Map.of(
+        Map<String, Object> map = mapOf(
                 "e", "V"
         );
         String msg = "The value for field 'e' with type 'LocalTestEnum' " +
@@ -340,10 +343,10 @@ public class FieldMapperConverterTest {
     void instanceFromMapCatchesClassCastExceptionOfUnknownEnumConstantsInLists() {
         class A {
             @ElementType(LocalTestEnum.class)
-            List<List<LocalTestEnum>> l = List.of();
+            List<List<LocalTestEnum>> l = listOf();
         }
-        Map<String, Object> map = Map.of(
-                "l", List.of(List.of("Q", "V"))
+        Map<String, Object> map = mapOf(
+                "l", listOf(listOf("Q", "V"))
         );
         ConfigurationException ex = assertIfmThrowsCfgException(new A(), map);
         Throwable cause = ex.getCause();
@@ -357,10 +360,10 @@ public class FieldMapperConverterTest {
     void instanceFromMapCatchesClassCastExceptionOfUnknownEnumConstantsInSets() {
         class A {
             @ElementType(LocalTestEnum.class)
-            Set<List<LocalTestEnum>> s = Set.of();
+            Set<List<LocalTestEnum>> s = setOf();
         }
-        Map<String, Object> map = Map.of(
-                "s", Set.of(List.of("Q", "V"))
+        Map<String, Object> map = mapOf(
+                "s", setOf(listOf("Q", "V"))
         );
         ConfigurationException ex = assertIfmThrowsCfgException(new A(), map);
         Throwable cause = ex.getCause();
@@ -374,10 +377,10 @@ public class FieldMapperConverterTest {
     void instanceFromMapCatchesClassCastExceptionOfUnknownEnumConstantsInMaps() {
         class A {
             @ElementType(LocalTestEnum.class)
-            Map<Integer, List<LocalTestEnum>> m = Map.of();
+            Map<Integer, List<LocalTestEnum>> m = mapOf();
         }
-        Map<String, Object> map = Map.of(
-                "m", Map.of(1, List.of("Q", "V"))
+        Map<String, Object> map = mapOf(
+                "m", mapOf(1, listOf("Q", "V"))
         );
         ConfigurationException ex = assertIfmThrowsCfgException(new A(), map);
         Throwable cause = ex.getCause();

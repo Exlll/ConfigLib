@@ -11,8 +11,8 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 
+import static de.exlll.configlib.util.CollectionFactory.mapOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -36,7 +36,7 @@ class YamlSourceTest {
         YamlSource source = new YamlSource(configPath, YamlProperties.DEFAULT);
         Path parentDir = configPath.getParent();
         assertThat(Files.exists(parentDir), is(false));
-        source.saveConfiguration(new TestClass(configPath), Map.of());
+        source.saveConfiguration(new TestClass(configPath), mapOf());
         assertThat(Files.exists(parentDir), is(true));
     }
 }

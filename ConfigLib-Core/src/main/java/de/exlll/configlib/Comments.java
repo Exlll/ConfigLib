@@ -41,7 +41,7 @@ public final class Comments {
     private static List<String> getComments(AnnotatedElement element) {
         Comment comment = element.getAnnotation(Comment.class);
         return (comment != null)
-                ? List.of(comment.value())
+                ? Arrays.asList(comment.value())
                 : Collections.emptyList();
     }
 

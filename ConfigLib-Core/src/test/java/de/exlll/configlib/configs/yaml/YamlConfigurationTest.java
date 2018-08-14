@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
+import static de.exlll.configlib.util.CollectionFactory.listOf;
 import static java.util.stream.Collectors.joining;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -129,8 +129,8 @@ class YamlConfigurationTest {
             }
         }
         YamlProperties properties = YamlProperties.builder()
-                .setPrependedComments(List.of("AB", "", "CD"))
-                .setAppendedComments(List.of("AB", "", "CD"))
+                .setPrependedComments(listOf("AB", "", "CD"))
+                .setAppendedComments(listOf("AB", "", "CD"))
                 .build();
         new A(properties).save();
         assertThat(readConfig(testPath), is(PRE_AND_APPENDED_COMMENTS_YML));

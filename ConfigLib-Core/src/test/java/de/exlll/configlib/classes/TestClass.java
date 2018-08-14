@@ -10,6 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static de.exlll.configlib.util.CollectionFactory.listOf;
+import static de.exlll.configlib.util.CollectionFactory.mapOf;
 import static java.util.stream.Collectors.toCollection;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -44,13 +46,13 @@ public final class TestClass extends YamlConfiguration {
         TEST_VALUES.subClass = TestSubClass.TEST_VALUES;
         /* containers of simple types */
         TEST_VALUES.ints = linkedHashSetOf(1, 2, 3);
-        TEST_VALUES.strings = List.of("a", "b", "c");
+        TEST_VALUES.strings = listOf("a", "b", "c");
         TEST_VALUES.doubleByBool = linkedHashMap(true, 1.0, false, 2.0);
         /* containers of other types */
         TEST_VALUES.subClassSet = linkedHashSetOf(
                 TestSubClass.of(1, "1"), TestSubClass.of(2, "2")
         );
-        TEST_VALUES.subClassList = List.of(
+        TEST_VALUES.subClassList = listOf(
                 TestSubClass.of(1, "1"), TestSubClass.of(2, "2")
         );
         TEST_VALUES.subClassMap = linkedHashMap(
@@ -58,28 +60,28 @@ public final class TestClass extends YamlConfiguration {
                 "2", TestSubClass.of(2, "2")
         );
         /* nested containers of simple types */
-        TEST_VALUES.listsList = List.of(
-                List.of(1, 2), List.of(3, 4)
+        TEST_VALUES.listsList = listOf(
+                listOf(1, 2), listOf(3, 4)
         );
         TEST_VALUES.setsSet = linkedHashSetOf(
                 linkedHashSetOf("a", "b"), linkedHashSetOf("c", "d")
         );
         TEST_VALUES.mapsMap = linkedHashMap(
-                1, Map.of("1", 1), 2, Map.of("2", 2)
+                1, mapOf("1", 1), 2, mapOf("2", 2)
         );
         /* nested containers of custom types */
-        TEST_VALUES.subClassListsList = List.of(
-                List.of(TestSubClass.of(1, "1"), TestSubClass.of(2, "2"))
+        TEST_VALUES.subClassListsList = listOf(
+                listOf(TestSubClass.of(1, "1"), TestSubClass.of(2, "2"))
         );
         TEST_VALUES.subClassSetsSet = linkedHashSetOf(linkedHashSetOf(
                 TestSubClass.of(1, "1"), TestSubClass.of(2, "2")
         ));
         TEST_VALUES.subClassMapsMap = linkedHashMap(
-                1, Map.of("1", TestSubClass.of(1, "2")),
-                2, Map.of("2", TestSubClass.of(2, "2"))
+                1, mapOf("1", TestSubClass.of(1, "2")),
+                2, mapOf("2", TestSubClass.of(2, "2"))
         );
         TEST_VALUES.e1 = TestEnum.NON_DEFAULT;
-        TEST_VALUES.enums = List.of(TestEnum.DEFAULT, TestEnum.NON_DEFAULT);
+        TEST_VALUES.enums = listOf(TestEnum.DEFAULT, TestEnum.NON_DEFAULT);
         TEST_VALUES.converterSubClass = TestSubClass.of(2, "2");
         TEST_VALUES.excludedClass = TestExcludedClass.TEST_VALUES;
     }

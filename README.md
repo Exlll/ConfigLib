@@ -430,14 +430,14 @@ public final class DatabasePlugin extends JavaPlugin {
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
 </dependency>
 ```
 #### Gradle
@@ -449,9 +449,9 @@ repositories {
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.0.0'
+    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.0.1'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.0.0'
+    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.0.1'
 }
 ```

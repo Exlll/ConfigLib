@@ -12,6 +12,9 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static de.exlll.configlib.FieldMapperHelpers.*;
+import static de.exlll.configlib.util.CollectionFactory.listOf;
+import static de.exlll.configlib.util.CollectionFactory.mapOf;
+import static de.exlll.configlib.util.CollectionFactory.setOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -23,7 +26,7 @@ public class ValidatorTest {
             TestSubClass c = new TestSubClass();
         }
 
-        Map<String, Object> map = Map.of(
+        Map<String, Object> map = mapOf(
                 "c", "s"
         );
         String msg = "Initializing field 'c' requires a Map<String, Object> " +
@@ -37,7 +40,7 @@ public class ValidatorTest {
         class A {
             LocalTestEnum t = LocalTestEnum.T;
         }
-        Map<String, Object> map = Map.of(
+        Map<String, Object> map = mapOf(
                 "t", 1
         );
         String msg = "Initializing enum 't' requires a string but '1' is of " +
@@ -51,8 +54,8 @@ public class ValidatorTest {
             TestSubClass c = new TestSubClass();
         }
 
-        Map<String, Object> map = Map.of(
-                "c", Map.of(1, 200, "string", "s")
+        Map<String, Object> map = mapOf(
+                "c", mapOf(1, 200, "string", "s")
         );
         String msg = "Initializing field 'c' requires a Map<String, Object> " +
                 "but the given map contains non-string keys." +
@@ -68,7 +71,7 @@ public class ValidatorTest {
         }
         Map<String, Object> m1 = new HashMap<>();
         m1.put(null, "null");
-        Map<String, Object> m2 = Map.of("c", m1);
+        Map<String, Object> m2 = mapOf("c", m1);
         String msg = "Initializing field 'c' requires a Map<String, Object> " +
                 "but the given map contains non-string keys." +
                 "\nAll entries: {null=null}";
@@ -80,7 +83,7 @@ public class ValidatorTest {
         class A {
             Sub3 s = new Sub3(1);
         }
-        Map<String, Object> map = Map.of("s", Map.of());
+        Map<String, Object> map = mapOf("s", mapOf());
         String msg = "Type 'Sub3' of field 's' doesn't have a no-args constructor.";
         assertIfmCfgExceptionMessage(new A(), map, msg);
     }
@@ -90,7 +93,7 @@ public class ValidatorTest {
         class A {
             Sub1 s = new Sub1();
         }
-        Map<String, Object> map = Map.of("s", Map.of());
+        Map<String, Object> map = mapOf("s", mapOf());
         String msg = "Type 'Sub1' of field 's' is not annotated " +
                 "as a configuration element.";
         assertIfmCfgExceptionMessage(new A(), map, msg);
@@ -107,17 +110,17 @@ public class ValidatorTest {
         class C {
             ConcurrentHashMap<?, ?> m = new ConcurrentHashMap<>();
         }
-        Map<String, Object> m = Map.of("l", List.of("s"));
+        Map<String, Object> m = mapOf("l", listOf("s"));
         String msg = "Can not set field 'l' with type 'CopyOnWriteArrayList' " +
                 "to 'List1'.";
         assertIfmCfgExceptionMessage(new A(), m, msg);
 
-        m = Map.of("s", Set.of("s"));
+        m = mapOf("s", setOf("s"));
         msg = "Can not set field 's' with type 'ConcurrentSkipListSet' " +
                 "to 'Set1'.";
         assertIfmCfgExceptionMessage(new B(), m, msg);
 
-        m = Map.of("m", Map.of(1, "s"));
+        m = mapOf("m", mapOf(1, "s"));
         msg = "Can not set field 'm' with type 'ConcurrentHashMap' " +
                 "to 'Map1'.";
         assertIfmCfgExceptionMessage(new C(), m, msg);
@@ -139,7 +142,7 @@ public class ValidatorTest {
         class A {
             String string;
         }
-        Map<String, Object> map = Map.of("string", "s");
+        Map<String, Object> map = mapOf("string", "s");
         String msg = "The value of field 'string' is null.\n" +
                 "Please assign a non-null default value or remove this field.";
         assertIfmCfgExceptionMessage(new A(), map, msg);
@@ -148,13 +151,13 @@ public class ValidatorTest {
     @Test
     void instanceToMapRequiresListsWithoutElementTypeToContainSimpleTypes() {
         class A {
-            List<TestSubClass> l = new ArrayList<>(List.of(
+            List<TestSubClass> l = new ArrayList<>(listOf(
                     TestSubClass.of(1, "1")
             ));
         }
         class B {
-            List<Set<Map<Integer, TestSubClass>>> l = new ArrayList<>(List.of(
-                    Set.of(Map.of(1, TestSubClass.of(1, "1")))
+            List<Set<Map<Integer, TestSubClass>>> l = new ArrayList<>(listOf(
+                    setOf(mapOf(1, TestSubClass.of(1, "1")))
             ));
         }
 
@@ -174,13 +177,13 @@ public class ValidatorTest {
     @Test
     void instanceToMapRequiresSetsWithoutElementTypeToContainSimpleTypes() {
         class A {
-            Set<TestSubClass> s = new HashSet<>(Set.of(
+            Set<TestSubClass> s = new HashSet<>(setOf(
                     TestSubClass.of(1, "1")
             ));
         }
         class B {
-            Set<List<Map<Integer, TestSubClass>>> s = new HashSet<>(Set.of(
-                    List.of(Map.of(1, TestSubClass.of(1, "1")))
+            Set<List<Map<Integer, TestSubClass>>> s = new HashSet<>(setOf(
+                    listOf(mapOf(1, TestSubClass.of(1, "1")))
             ));
         }
 
@@ -200,13 +203,13 @@ public class ValidatorTest {
     @Test
     void instanceToMapRequiresMapsWithoutElementTypeToContainSimpleTypes() {
         class A {
-            Map<Integer, TestSubClass> m = new HashMap<>(Map.of(
+            Map<Integer, TestSubClass> m = new HashMap<>(mapOf(
                     1, TestSubClass.of(1, "1")
             ));
         }
         class B {
-            Map<Integer, Set<List<TestSubClass>>> m = new HashMap<>(Map.of(
-                    1, Set.of(List.of(TestSubClass.of(1, "1")))
+            Map<Integer, Set<List<TestSubClass>>> m = new HashMap<>(mapOf(
+                    1, setOf(listOf(TestSubClass.of(1, "1")))
             ));
         }
 
@@ -395,7 +398,7 @@ public class ValidatorTest {
             Sub2 s = new Sub2();
         }
 
-        Map<String, Object> map = Map.of("s", Collections.emptyMap());
+        Map<String, Object> map = mapOf("s", Collections.emptyMap());
 
         assertThat(instanceToMap(new B()), is(map));
 
@@ -426,7 +429,7 @@ public class ValidatorTest {
             @ElementType(LocalTestEnum.class)
             List<LocalTestEnum> l = new ArrayList<>();
         }
-        Map<String, Object> m = Map.of("l", List.of());
+        Map<String, Object> m = mapOf("l", listOf());
 
         String msg = "The element type of field 'l' must be a concrete class " +
                 "but type 'LocalTestInterface' is an interface.";
@@ -494,17 +497,17 @@ public class ValidatorTest {
         String msg = "Field 's' is annotated with the ElementType annotation but " +
                 "is not a List, Set or Map.";
         assertItmCfgExceptionMessage(new A(), msg);
-        assertIfmCfgExceptionMessage(new A(), Map.of("s", ""), msg);
+        assertIfmCfgExceptionMessage(new A(), mapOf("s", ""), msg);
     }
 
     @Test
     void instanceFromMapsRequiresElementTypeToBeEnumType() {
         class A {
             @ElementType(TestSubClass.class)
-            List<List<TestSubClass>> l = List.of();
+            List<List<TestSubClass>> l = listOf();
         }
-        Map<String, Object> map = Map.of(
-                "l", List.of(List.of("Q", "V"))
+        Map<String, Object> map = mapOf(
+                "l", listOf(listOf("Q", "V"))
         );
         ConfigurationException ex = assertIfmThrowsCfgException(new A(), map);
         Throwable cause = ex.getCause();
@@ -517,10 +520,10 @@ public class ValidatorTest {
     void instanceFromMapElementConverterRequiresObjectsOfTypeMapStringObject() {
         class A {
             @ElementType(TestSubClass.class)
-            List<List<TestSubClass>> l = List.of();
+            List<List<TestSubClass>> l = listOf();
         }
-        Map<String, Object> map = Map.of(
-                "l", List.of(List.of(1, 2))
+        Map<String, Object> map = mapOf(
+                "l", listOf(listOf(1, 2))
         );
         ConfigurationException ex = assertIfmThrowsCfgException(new A(), map);
         Throwable cause = ex.getCause();

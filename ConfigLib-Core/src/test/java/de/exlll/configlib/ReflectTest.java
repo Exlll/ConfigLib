@@ -9,11 +9,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import static de.exlll.configlib.util.CollectionFactory.setOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 class ReflectTest {
-    private static final Set<Class<?>> ALL_SIMPLE_TYPES = Set.of(
+    private static final Set<Class<?>> ALL_SIMPLE_TYPES = setOf(
             boolean.class, Boolean.class,
             byte.class, Byte.class,
             char.class, Character.class,

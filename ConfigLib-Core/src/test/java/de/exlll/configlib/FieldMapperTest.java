@@ -23,6 +23,7 @@ import java.util.function.Predicate;
 import static de.exlll.configlib.Converters.ENUM_CONVERTER;
 import static de.exlll.configlib.Converters.SIMPLE_TYPE_CONVERTER;
 import static de.exlll.configlib.FieldMapperHelpers.*;
+import static de.exlll.configlib.util.CollectionFactory.*;
 import static java.util.stream.Collectors.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -108,7 +109,7 @@ class FieldMapperTest {
 
     @Test
     void instanceFromMapDoesNotSetFinalStaticOrTransientFields() {
-        Map<String, Object> map = Map.of(
+        Map<String, Object> map = mapOf(
                 "staticFinalInt", 10,
                 "staticInt", 10,
                 "finalInt", 10,
@@ -131,7 +132,7 @@ class FieldMapperTest {
         class A {
             LocalTestEnum t = LocalTestEnum.T;
         }
-        Map<String, Object> map = Map.of(
+        Map<String, Object> map = mapOf(
                 "t", "R"
         );
 
@@ -150,7 +151,7 @@ class FieldMapperTest {
         class A {
             TestSubClass c = new TestSubClass();
         }
-        Map<String, Object> map = Map.of("c", Map.of("primInt", 20));
+        Map<String, Object> map = mapOf("c", mapOf("primInt", 20));
 
         A a = new A();
         assertThat(a.c.getPrimInt(), is(0));
@@ -177,8 +178,8 @@ class FieldMapperTest {
         class B {
             LocalTestAbstractClass l = new LocalTestAbstractClassImpl();
         }
-        instanceFromMap(new A(), Map.of("l", Map.of()));
-        instanceFromMap(new B(), Map.of("l", Map.of()));
+        instanceFromMap(new A(), mapOf("l", mapOf()));
+        instanceFromMap(new B(), mapOf("l", mapOf()));
     }
 
 
@@ -255,39 +256,39 @@ class FieldMapperTest {
     void instanceToMapConvertsEnumsContainersToStringContainers() {
         class A {
             @ElementType(LocalTestEnum.class)
-            List<LocalTestEnum> el = List.of(LocalTestEnum.S, LocalTestEnum.T);
+            List<LocalTestEnum> el = listOf(LocalTestEnum.S, LocalTestEnum.T);
             @ElementType(LocalTestEnum.class)
-            Set<LocalTestEnum> es = Set.of(LocalTestEnum.S, LocalTestEnum.T);
+            Set<LocalTestEnum> es = setOf(LocalTestEnum.S, LocalTestEnum.T);
             @ElementType(LocalTestEnum.class)
-            Map<String, LocalTestEnum> em = Map.of(
+            Map<String, LocalTestEnum> em = mapOf(
                     "1", LocalTestEnum.S, "2", LocalTestEnum.T
             );
         }
         Map<String, Object> map = instanceToMap(new A());
-        assertThat(map.get("el"), is(List.of("S", "T")));
-        assertThat(map.get("es"), is(Set.of("S", "T")));
-        assertThat(map.get("em"), is(Map.of("1", "S", "2", "T")));
+        assertThat(map.get("el"), is(listOf("S", "T")));
+        assertThat(map.get("es"), is(setOf("S", "T")));
+        assertThat(map.get("em"), is(mapOf("1", "S", "2", "T")));
     }
 
     @Test
     void instanceFromMapConvertsStringContainersToEnumContainers() {
         class A {
             @ElementType(LocalTestEnum.class)
-            List<LocalTestEnum> el = List.of();
+            List<LocalTestEnum> el = listOf();
             @ElementType(LocalTestEnum.class)
-            Set<LocalTestEnum> es = Set.of();
+            Set<LocalTestEnum> es = setOf();
             @ElementType(LocalTestEnum.class)
-            Map<String, LocalTestEnum> em = Map.of();
+            Map<String, LocalTestEnum> em = mapOf();
         }
-        Map<String, Object> map = Map.of(
-                "el", List.of("S", "T"),
-                "es", Set.of("S", "T"),
-                "em", Map.of("1", "S", "2", "T")
+        Map<String, Object> map = mapOf(
+                "el", listOf("S", "T"),
+                "es", setOf("S", "T"),
+                "em", mapOf("1", "S", "2", "T")
         );
         A a = instanceFromMap(new A(), map);
-        assertThat(a.el, is(List.of(LocalTestEnum.S, LocalTestEnum.T)));
-        assertThat(a.es, is(Set.of(LocalTestEnum.S, LocalTestEnum.T)));
-        assertThat(a.em, is(Map.of(
+        assertThat(a.el, is(listOf(LocalTestEnum.S, LocalTestEnum.T)));
+        assertThat(a.es, is(setOf(LocalTestEnum.S, LocalTestEnum.T)));
+        assertThat(a.em, is(mapOf(
                 "1", LocalTestEnum.S, "2", LocalTestEnum.T
         )));
     }
@@ -303,7 +304,7 @@ class FieldMapperTest {
                 .collect(toSet());
         Map<String, Map<String, Object>> subClassMap = t.getSubClassMap()
                 .entrySet().stream()
-                .map(e -> Map.entry(e.getKey(), e.getValue().asMap()))
+                .map(e -> mapEntry(e.getKey(), e.getValue().asMap()))
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
         assertAll(
                 () -> assertThat(map.get("subClassSet"), is(subClassSet)),
@@ -339,7 +340,7 @@ class FieldMapperTest {
                 );
         Map<Integer, Map<String, Map<String, Object>>> m = t.getSubClassMapsMap()
                 .entrySet().stream()
-                .map(e -> Map.entry(e.getKey(), f.apply(e.getValue())))
+                .map(e -> mapEntry(e.getKey(), f.apply(e.getValue())))
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         assertThat(map.get("subClassListsList"), is(lists));
@@ -515,7 +516,7 @@ class FieldMapperTest {
         }
 
         ExcludedClass cls = new ExcludedClass();
-        Map<String, Object> map = Map.of("ex", cls);
+        Map<String, Object> map = mapOf("ex", cls);
         A a = instanceFromMap(new A(), map);
         assertThat(a.ex, sameInstance(cls));
     }

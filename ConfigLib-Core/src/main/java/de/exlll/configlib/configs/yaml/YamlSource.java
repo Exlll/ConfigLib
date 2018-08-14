@@ -8,6 +8,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -103,7 +104,7 @@ final class YamlSource implements ConfigurationSource<YamlConfiguration> {
 
         private void addFieldComments() {
             if (comments.hasFieldComments()) {
-                List<String> dumpLines = List.of(dump.split("\n"));
+                List<String> dumpLines = Arrays.asList(dump.split("\n"));
                 addDumpLines(dumpLines);
             } else {
                 builder.append(dump);

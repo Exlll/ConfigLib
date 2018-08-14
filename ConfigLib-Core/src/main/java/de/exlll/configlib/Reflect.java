@@ -7,14 +7,11 @@ import de.exlll.configlib.annotation.NoConvert;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 enum Reflect {
     ;
-    private static final Set<Class<?>> SIMPLE_TYPES = Set.of(
+    private static final Set<Class<?>> SIMPLE_TYPES = new HashSet<>(Arrays.asList(
             Boolean.class,
             Byte.class,
             Character.class,
@@ -24,8 +21,8 @@ enum Reflect {
             Float.class,
             Double.class,
             String.class
-    );
-    
+    ));
+
     static boolean isSimpleType(Class<?> cls) {
         return cls.isPrimitive() || SIMPLE_TYPES.contains(cls);
     }

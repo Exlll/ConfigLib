@@ -3,9 +3,8 @@ package de.exlll.configlib;
 import de.exlll.configlib.annotation.Comment;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Map;
-
+import static de.exlll.configlib.util.CollectionFactory.listOf;
+import static de.exlll.configlib.util.CollectionFactory.mapOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -27,11 +26,11 @@ public class CommentsTest {
         assertThat(comments.getFieldComments().entrySet(), empty());
 
         comments = Comments.ofClass(B.class);
-        assertThat(comments.getClassComments(), is(List.of("B")));
+        assertThat(comments.getClassComments(), is(listOf("B")));
         assertThat(comments.getFieldComments().entrySet(), empty());
 
         comments = Comments.ofClass(C.class);
-        assertThat(comments.getClassComments(), is(List.of("C", "D")));
+        assertThat(comments.getClassComments(), is(listOf("C", "D")));
         assertThat(comments.getFieldComments().entrySet(), empty());
     }
 
@@ -47,9 +46,9 @@ public class CommentsTest {
 
         Comments comments = Comments.ofClass(A.class);
         assertThat(comments.getClassComments(), empty());
-        assertThat(comments.getFieldComments(), is(Map.of(
-                "b", List.of("b"),
-                "c", List.of("c", "d")
+        assertThat(comments.getFieldComments(), is(mapOf(
+                "b", listOf("b"),
+                "c", listOf("c", "d")
         )));
     }
 }

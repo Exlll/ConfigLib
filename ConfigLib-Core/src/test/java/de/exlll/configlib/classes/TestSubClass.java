@@ -4,6 +4,8 @@ import de.exlll.configlib.annotation.ConfigurationElement;
 
 import java.util.Map;
 
+import static de.exlll.configlib.util.CollectionFactory.mapOf;
+
 @SuppressWarnings("FieldCanBeLocal")
 @ConfigurationElement
 public final class TestSubClass {
@@ -27,7 +29,7 @@ public final class TestSubClass {
     }
 
     public Map<String, Object> asMap() {
-        return Map.of("primInt", primInt, "string", string);
+        return mapOf("primInt", primInt, "string", string);
     }
 
     public int getFinalInt() {
