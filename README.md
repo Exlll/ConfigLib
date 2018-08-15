@@ -9,11 +9,13 @@ stored to files or other storage systems.
 Currently this library only supports storing configurations as YAML. However, users may provide their own
 storage systems.
 
+For a step-by-step tutorial see: [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial)
+
 ## Features
 * automatic creation, saving, loading and updating of configurations
     * (_YAML_) automatic creation of files and directories
 * support for all primitive types, their wrapper types and `String`s
-* support for `List`s, `Set`s and `Map`s
+* support for (nested) `List`s, `Set`s and `Map`s
 * support for `Enum`s and POJOs
 * option to add explanatory comments by annotating classes and their fields
 * option to provide custom configuration sources
@@ -59,6 +61,9 @@ subclass of `A` and `A` is a subclass of `YamlConfiguration` and you save or loa
 fields of class `B` will be saved or loaded, respectively.
 
 ## How-to (_YAML_)
+
+For a step-by-step tutorial see: [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial)
+
 #### Creating configurations
 To create a YAML configuration, create a new class and extend `YamlConfiguration`. If you write a Bukkit plugin, 
 you can alternatively extend `BukkitYamlConfiguration` which is a subclass of `YamlConfiguration` and can 
@@ -181,7 +186,7 @@ class MyConfiguration extends YamlConfiguration {
 ```
 
 Note: Even though sets are supported, their YAML-representation is 'pretty ugly', so it's better to use lists instead.
-If you need the set behavior, you can internally use lists and convert them to sets using the `preSave/postLoad`-hooks.
+If you need set behavior, you can internally use lists and convert them to sets using the `preSave/postLoad`-hooks.
 
 Lists, sets and maps that contain other types (e.g. custom types or enums) must use the `ElementType` annotation.
 Only simple types can be used as map keys.
@@ -351,6 +356,10 @@ class MyConfiguration extends YamlConfiguration {
 Note: Only a single converter instance is created which is cached.
 
 ## Example
+
+For a step-by-step tutorial of a more complex example see:
+[Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial)
+
 ```java
 import de.exlll.configlib.annotation.Comment;
 import de.exlll.configlib.annotation.ConfigurationElement;

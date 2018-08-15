@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the annotated field should not be converted but used as is.
+ * Indicates that the annotated field should not be converted but instead used as is.
  * <p>
  * This may be useful if the configuration knows how to (de-)serialize
  * instances of that type. For example, a {@code BukkitYamlConfiguration}
