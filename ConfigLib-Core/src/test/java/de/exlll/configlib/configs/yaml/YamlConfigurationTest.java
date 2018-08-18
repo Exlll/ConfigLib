@@ -5,6 +5,7 @@ import de.exlll.configlib.Configuration;
 import de.exlll.configlib.annotation.Comment;
 import de.exlll.configlib.classes.TestClass;
 import de.exlll.configlib.configs.yaml.YamlConfiguration.YamlProperties;
+import de.exlll.configlib.format.FieldNameFormatters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -171,6 +172,27 @@ class YamlConfigurationTest {
         assertThat(readConfig(testPath), is(FIELD_COMMENTS_YML));
     }
 
+    @Test
+    void saveDumpsFormattedFieldComments() throws IOException {
+        class A extends YamlConfiguration {
+            @Comment("aB")
+            private int aB = 1;
+            @Comment({"cD", "dC"})
+            private int cD = 2;
+
+            protected A(YamlProperties properties) {
+                super(testPath, properties);
+            }
+        }
+
+        YamlProperties properties = YamlProperties.builder()
+                .setFormatter(FieldNameFormatters.LOWER_UNDERSCORE)
+                .build();
+
+        new A(properties).save();
+        assertThat(readConfig(testPath), is(FORMATTED_FIELD_COMMENTS_YML));
+    }
+
     private String readConfig(Path path) throws IOException {
         return Files.lines(path).collect(joining("\n"));
     }
@@ -193,6 +215,12 @@ class YamlConfigurationTest {
             "# y\n" +
             "c: 3\n" +
             "d: 4";
+
+    private static final String FORMATTED_FIELD_COMMENTS_YML = "# aB\n" +
+            "a_b: 1\n" +
+            "# cD\n" +
+            "# dC\n" +
+            "c_d: 2";
 
     private static final String CLASS_COMMENTS_YML = "# 1\n" +
             "\n" +

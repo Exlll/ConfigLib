@@ -112,17 +112,17 @@ public class ValidatorTest {
         }
         Map<String, Object> m = mapOf("l", listOf("s"));
         String msg = "Can not set field 'l' with type 'CopyOnWriteArrayList' " +
-                "to 'List1'.";
+                "to 'ArrayList'.";
         assertIfmCfgExceptionMessage(new A(), m, msg);
 
         m = mapOf("s", setOf("s"));
         msg = "Can not set field 's' with type 'ConcurrentSkipListSet' " +
-                "to 'Set1'.";
+                "to 'HashSet'.";
         assertIfmCfgExceptionMessage(new B(), m, msg);
 
         m = mapOf("m", mapOf(1, "s"));
         msg = "Can not set field 'm' with type 'ConcurrentHashMap' " +
-                "to 'Map1'.";
+                "to 'HashMap'.";
         assertIfmCfgExceptionMessage(new C(), m, msg);
 
     }

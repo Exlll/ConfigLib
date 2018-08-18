@@ -1,6 +1,7 @@
 package de.exlll.configlib.configs.yaml;
 
 import de.exlll.configlib.Comments;
+import de.exlll.configlib.format.FieldNameFormatter;
 
 import java.util.List;
 import java.util.Map;
@@ -20,18 +21,19 @@ final class YamlComments {
         return commentListToString(classComments);
     }
 
-    Map<String, String> fieldCommentAsStrings() {
+    Map<String, String> fieldCommentAsStrings(FieldNameFormatter formatter) {
         Map<String, List<String>> fieldComments = comments.getFieldComments();
         return fieldComments.entrySet().stream()
-                .map(this::toStringCommentEntry)
+                .map(e -> toFormattedStringCommentEntry(e, formatter))
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private Map.Entry<String, String> toStringCommentEntry(
-            Map.Entry<String, List<String>> entry
+    private Map.Entry<String, String> toFormattedStringCommentEntry(
+            Map.Entry<String, List<String>> entry, FieldNameFormatter formatter
     ) {
         String fieldComments = commentListToString(entry.getValue());
-        return new MapEntry<>(entry.getKey(), fieldComments);
+        String formattedKey = formatter.fromFieldName(entry.getKey());
+        return new MapEntry<>(formattedKey, fieldComments);
     }
 
     private String commentListToString(List<String> comments) {

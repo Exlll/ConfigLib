@@ -122,7 +122,9 @@ final class YamlSource implements ConfigurationSource<YamlConfiguration> {
         }
 
         private void addFieldComment(String dumpLine) {
-            Map<String, String> map = yamlComments.fieldCommentAsStrings();
+            Map<String, String> map = yamlComments.fieldCommentAsStrings(
+                    props.getFormatter()
+            );
             for (Map.Entry<String, String> entry : map.entrySet()) {
                 String prefix = entry.getKey() + ":";
                 if (dumpLine.startsWith(prefix)) {

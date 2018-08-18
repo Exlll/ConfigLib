@@ -1,6 +1,6 @@
 allprojects {
     group 'de.exlll'
-    version '2.0.1'
+    version '2.0.2'
 }
 subprojects {
     apply plugin: 'java'
