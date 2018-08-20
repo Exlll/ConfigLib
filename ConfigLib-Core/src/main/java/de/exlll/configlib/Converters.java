@@ -344,24 +344,46 @@ final class Converters {
     private static Function<Object, ?> createToConversionFunction(
             Object element, ConversionInfo info
     ) {
-        return o -> selectNonSimpleConverter(element.getClass(), info)
-                .convertTo(o, info);
+        checkNestingLevel(element, info);
+        if (Reflect.isContainerType(element.getClass())) {
+            info.incCurrentNestingLevel();
+        }
+        Converter<Object, ?> converter = selectNonSimpleConverter(
+                element.getClass(), info
+        );
+        return o -> converter.convertTo(o, info);
     }
 
     private static Function<Object, ?> createFromConversionFunction(
             Object element, ConversionInfo info
     ) {
-        if ((element instanceof Map<?, ?>) && isTypeMap((Map<?, ?>) element)) {
+        boolean currentLevelSameAsExpected =
+                info.getNestingLevel() == info.getCurrentNestingLevel();
+        checkCurrentLevelSameAsExpectedRequiresMapOrString(
+                currentLevelSameAsExpected, element, info
+        );
+        if ((element instanceof Map<?, ?>) && currentLevelSameAsExpected) {
             return o -> {
                 Map<String, Object> map = toTypeMap(o, null);
                 Object inst = Reflect.newInstance(info.getElementType());
                 FieldMapper.instanceFromMap(inst, map, info.getProperties());
                 return inst;
             };
+        } else if ((element instanceof String) && currentLevelSameAsExpected) {
+            return createNonSimpleConverter(element, info);
         } else {
-            return o -> selectNonSimpleConverter(element.getClass(), info)
-                    .convertFrom(o, info);
+            info.incCurrentNestingLevel();
+            return createNonSimpleConverter(element, info);
         }
+    }
+
+    private static Function<Object, ?> createNonSimpleConverter(
+            Object element, ConversionInfo info
+    ) {
+        Converter<?, Object> converter = selectNonSimpleConverter(
+                element.getClass(), info
+        );
+        return o -> converter.convertFrom(o, info);
     }
 
     private static Map<String, Object> toTypeMap(Object value, String fn) {

@@ -10,9 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static de.exlll.configlib.util.CollectionFactory.listOf;
-import static de.exlll.configlib.util.CollectionFactory.mapOf;
-import static java.util.stream.Collectors.toCollection;
+import static de.exlll.configlib.util.CollectionFactory.*;
 
 @SuppressWarnings("FieldCanBeLocal")
 @Comment({"A", "", "B", "C"})
@@ -45,57 +43,47 @@ public final class TestClass extends YamlConfiguration {
         /* other types */
         TEST_VALUES.subClass = TestSubClass.TEST_VALUES;
         /* containers of simple types */
-        TEST_VALUES.ints = linkedHashSetOf(1, 2, 3);
+        TEST_VALUES.ints = setOf(1, 2, 3);
         TEST_VALUES.strings = listOf("a", "b", "c");
-        TEST_VALUES.doubleByBool = linkedHashMap(true, 1.0, false, 2.0);
+        TEST_VALUES.doubleByBool = mapOf(true, 1.0, false, 2.0);
         /* containers of other types */
-        TEST_VALUES.subClassSet = linkedHashSetOf(
-                TestSubClass.of(1, "1"), TestSubClass.of(2, "2")
+        TEST_VALUES.subClassSet = setOf(
+                TestSubClass.of(1, "1"),
+                TestSubClass.of(2, "2")
         );
         TEST_VALUES.subClassList = listOf(
-                TestSubClass.of(1, "1"), TestSubClass.of(2, "2")
+                TestSubClass.of(3, "3"),
+                TestSubClass.of(4, "4")
         );
-        TEST_VALUES.subClassMap = linkedHashMap(
-                "1", TestSubClass.of(1, "1"),
-                "2", TestSubClass.of(2, "2")
+        TEST_VALUES.subClassMap = mapOf(
+                "5", TestSubClass.of(5, "5"),
+                "6", TestSubClass.of(6, "6")
         );
         /* nested containers of simple types */
         TEST_VALUES.listsList = listOf(
                 listOf(1, 2), listOf(3, 4)
         );
-        TEST_VALUES.setsSet = linkedHashSetOf(
-                linkedHashSetOf("a", "b"), linkedHashSetOf("c", "d")
+        TEST_VALUES.setsSet = setOf(
+                setOf("a", "b"), setOf("c", "d")
         );
-        TEST_VALUES.mapsMap = linkedHashMap(
+        TEST_VALUES.mapsMap = mapOf(
                 1, mapOf("1", 1), 2, mapOf("2", 2)
         );
         /* nested containers of custom types */
         TEST_VALUES.subClassListsList = listOf(
-                listOf(TestSubClass.of(1, "1"), TestSubClass.of(2, "2"))
+                listOf(TestSubClass.of(7, "7"), TestSubClass.of(8, "8"))
         );
-        TEST_VALUES.subClassSetsSet = linkedHashSetOf(linkedHashSetOf(
-                TestSubClass.of(1, "1"), TestSubClass.of(2, "2")
+        TEST_VALUES.subClassSetsSet = setOf(setOf(
+                TestSubClass.of(9, "9"), TestSubClass.of(10, "10")
         ));
-        TEST_VALUES.subClassMapsMap = linkedHashMap(
-                1, mapOf("1", TestSubClass.of(1, "2")),
-                2, mapOf("2", TestSubClass.of(2, "2"))
+        TEST_VALUES.subClassMapsMap = mapOf(
+                1, mapOf("1", TestSubClass.of(11, "11")),
+                2, mapOf("2", TestSubClass.of(12, "12"))
         );
         TEST_VALUES.e1 = TestEnum.NON_DEFAULT;
         TEST_VALUES.enums = listOf(TestEnum.DEFAULT, TestEnum.NON_DEFAULT);
-        TEST_VALUES.converterSubClass = TestSubClass.of(2, "2");
+        TEST_VALUES.converterSubClass = TestSubClass.of(13, "13");
         TEST_VALUES.excludedClass = TestExcludedClass.TEST_VALUES;
-    }
-
-    @SafeVarargs
-    private static <T> Set<T> linkedHashSetOf(T... values) {
-        return Arrays.stream(values).collect(toCollection(LinkedHashSet::new));
-    }
-
-    private static <K, V> Map<K, V> linkedHashMap(K k1, V v1, K k2, V v2) {
-        Map<K, V> map = new LinkedHashMap<>();
-        map.put(k1, v1);
-        map.put(k2, v2);
-        return map;
     }
 
     /* not converted */
@@ -144,11 +132,11 @@ public final class TestClass extends YamlConfiguration {
     private Set<Set<String>> setsSet = new HashSet<>();
     private Map<Integer, Map<String, Integer>> mapsMap = new HashMap<>();
     /* nested containers of custom types */
-    @ElementType(TestSubClass.class)
+    @ElementType(value = TestSubClass.class, nestingLevel = 1)
     private List<List<TestSubClass>> subClassListsList = new ArrayList<>();
-    @ElementType(TestSubClass.class)
+    @ElementType(value = TestSubClass.class, nestingLevel = 1)
     private Set<Set<TestSubClass>> subClassSetsSet = new HashSet<>();
-    @ElementType(TestSubClass.class)
+    @ElementType(value = TestSubClass.class, nestingLevel = 1)
     private Map<Integer, Map<String, TestSubClass>> subClassMapsMap
             = new HashMap<>();
     private TestEnum e1 = TestEnum.DEFAULT;

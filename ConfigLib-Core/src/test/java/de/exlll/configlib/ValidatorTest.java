@@ -12,9 +12,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static de.exlll.configlib.FieldMapperHelpers.*;
-import static de.exlll.configlib.util.CollectionFactory.listOf;
-import static de.exlll.configlib.util.CollectionFactory.mapOf;
-import static de.exlll.configlib.util.CollectionFactory.setOf;
+import static de.exlll.configlib.util.CollectionFactory.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -117,12 +115,12 @@ public class ValidatorTest {
 
         m = mapOf("s", setOf("s"));
         msg = "Can not set field 's' with type 'ConcurrentSkipListSet' " +
-                "to 'HashSet'.";
+                "to 'LinkedHashSet'.";
         assertIfmCfgExceptionMessage(new B(), m, msg);
 
         m = mapOf("m", mapOf(1, "s"));
         msg = "Can not set field 'm' with type 'ConcurrentHashMap' " +
-                "to 'HashMap'.";
+                "to 'LinkedHashMap'.";
         assertIfmCfgExceptionMessage(new C(), m, msg);
 
     }
@@ -152,25 +150,27 @@ public class ValidatorTest {
     void instanceToMapRequiresListsWithoutElementTypeToContainSimpleTypes() {
         class A {
             List<TestSubClass> l = new ArrayList<>(listOf(
-                    TestSubClass.of(1, "1")
+                    TestSubClass.TEST_VALUES
             ));
         }
         class B {
             List<Set<Map<Integer, TestSubClass>>> l = new ArrayList<>(listOf(
-                    setOf(mapOf(1, TestSubClass.of(1, "1")))
+                    setOf(mapOf(1, TestSubClass.TEST_VALUES))
             ));
         }
+
+        String asString = TestSubClass.TEST_VALUES.toString();
 
         A a = new A();
         String msg = "The type of an element of list 'l' is not a simple type " +
                 "but list 'l' is missing the ElementType annotation.\n" +
-                "All elements: [TestSubClass{\nprimInt=1,\nstring='1'}]";
+                "All elements: [" + asString + "]";
         assertItmCfgExceptionMessage(a, msg);
 
         B b = new B();
         msg = "The type of an element of list 'l' is not a simple type " +
                 "but list 'l' is missing the ElementType annotation.\n" +
-                "All elements: [[{1=TestSubClass{\nprimInt=1,\nstring='1'}}]]";
+                "All elements: [[{1=" + asString + "}]]";
         assertItmCfgExceptionMessage(b, msg);
     }
 
@@ -178,25 +178,27 @@ public class ValidatorTest {
     void instanceToMapRequiresSetsWithoutElementTypeToContainSimpleTypes() {
         class A {
             Set<TestSubClass> s = new HashSet<>(setOf(
-                    TestSubClass.of(1, "1")
+                    TestSubClass.TEST_VALUES
             ));
         }
         class B {
             Set<List<Map<Integer, TestSubClass>>> s = new HashSet<>(setOf(
-                    listOf(mapOf(1, TestSubClass.of(1, "1")))
+                    listOf(mapOf(1, TestSubClass.TEST_VALUES))
             ));
         }
+
+        String asString = TestSubClass.TEST_VALUES.toString();
 
         A a = new A();
         String msg = "The type of an element of set 's' is not a simple type " +
                 "but set 's' is missing the ElementType annotation.\n" +
-                "All elements: [TestSubClass{\nprimInt=1,\nstring='1'}]";
+                "All elements: [" + asString + "]";
         assertItmCfgExceptionMessage(a, msg);
 
         B b = new B();
         msg = "The type of an element of set 's' is not a simple type " +
                 "but set 's' is missing the ElementType annotation.\n" +
-                "All elements: [[{1=TestSubClass{\nprimInt=1,\nstring='1'}}]]";
+                "All elements: [[{1=" + asString + "}]]";
         assertItmCfgExceptionMessage(b, msg);
     }
 
@@ -204,25 +206,27 @@ public class ValidatorTest {
     void instanceToMapRequiresMapsWithoutElementTypeToContainSimpleTypes() {
         class A {
             Map<Integer, TestSubClass> m = new HashMap<>(mapOf(
-                    1, TestSubClass.of(1, "1")
+                    1, TestSubClass.TEST_VALUES
             ));
         }
         class B {
             Map<Integer, Set<List<TestSubClass>>> m = new HashMap<>(mapOf(
-                    1, setOf(listOf(TestSubClass.of(1, "1")))
+                    1, setOf(listOf(TestSubClass.TEST_VALUES))
             ));
         }
+
+        String asString = TestSubClass.TEST_VALUES.toString();
 
         A a = new A();
         String msg = "The type of a value of map 'm' is not a simple type " +
                 "but map 'm' is missing the ElementType annotation.\n" +
-                "All entries: {1=TestSubClass{\nprimInt=1,\nstring='1'}}";
+                "All entries: {1=" + asString + "}";
         assertItmCfgExceptionMessage(a, msg);
 
         B b = new B();
         msg = "The type of a value of map 'm' is not a simple type " +
                 "but map 'm' is missing the ElementType annotation.\n" +
-                "All entries: {1=[[TestSubClass{\nprimInt=1,\nstring='1'}]]}";
+                "All entries: {1=[[" + asString + "]]}";
         assertItmCfgExceptionMessage(b, msg);
     }
 
@@ -503,7 +507,7 @@ public class ValidatorTest {
     @Test
     void instanceFromMapsRequiresElementTypeToBeEnumType() {
         class A {
-            @ElementType(TestSubClass.class)
+            @ElementType(value = TestSubClass.class, nestingLevel = 1)
             List<List<TestSubClass>> l = listOf();
         }
         Map<String, Object> map = mapOf(
@@ -519,17 +523,146 @@ public class ValidatorTest {
     @Test
     void instanceFromMapElementConverterRequiresObjectsOfTypeMapStringObject() {
         class A {
-            @ElementType(TestSubClass.class)
+            @ElementType(value = TestSubClass.class, nestingLevel = 1)
             List<List<TestSubClass>> l = listOf();
         }
         Map<String, Object> map = mapOf(
                 "l", listOf(listOf(1, 2))
         );
-        ConfigurationException ex = assertIfmThrowsCfgException(new A(), map);
-        Throwable cause = ex.getCause();
+        String msg = "Field 'l' of class 'A' has a nesting level of 1 but element " +
+                "'1' of type 'Integer' cannot be converted to 'TestSubClass'.";
+        assertIfmCfgExceptionMessage(new A(), map, msg);
+    }
 
-        String msg = "Initializing field 'l' requires objects of type " +
-                "Map<String, Object> but element '1' is of type 'Integer'.";
-        assertThat(cause.getMessage(), is(msg));
+    @Test
+    void instanceToMapRequiresCorrectNestingLevelForLists() {
+        TestSubClass testValues = TestSubClass.TEST_VALUES;
+        class A {
+            @ElementType(TestSubClass.class)
+            List<List<TestSubClass>> l1 = listOf();
+
+            @ElementType(TestSubClass.class)
+            List<List<TestSubClass>> l2 = listOf(listOf(testValues));
+        }
+        class B {
+            @ElementType(value = TestSubClass.class, nestingLevel = 1)
+            List<List<List<TestSubClass>>> l = listOf(listOf(listOf(testValues)));
+        }
+        class C {
+            @ElementType(value = TestSubClass.class, nestingLevel = 3)
+            List<List<List<TestSubClass>>> l = listOf(listOf(listOf(testValues)));
+        }
+        class D {
+            @ElementType(value = TestSubClass.class, nestingLevel = 1)
+            List<List<TestSubClass>> l = listOf(listOf(
+                    TestSubClass.of(11, "11"), TestSubClass.of(12, "12"),
+                    TestSubClass.of(13, "13"), TestSubClass.of(14, "14")
+            ));
+        }
+
+        String msg = "Field 'l2' of class 'A' has a nesting level of 0 but the " +
+                "first object of type 'TestSubClass' was found on level 1.";
+        assertItmCfgExceptionMessage(new A(), msg);
+
+        msg = "Field 'l' of class 'B' has a nesting level of 1 but the " +
+                "first object of type 'TestSubClass' was found on level 2.";
+        assertItmCfgExceptionMessage(new B(), msg);
+
+        msg = "Field 'l' of class 'C' has a nesting level of 3 but the " +
+                "first object of type 'TestSubClass' was found on level 2.";
+        assertItmCfgExceptionMessage(new C(), msg);
+
+        Map<String, Object> map = instanceToMap(new D());
+        D d = instanceFromMap(new D(), map);
+        assertThat(d.l, is(new D().l));
+    }
+
+
+    @Test
+    void instanceToMapRequiresCorrectNestingLevelForMaps() {
+        TestSubClass testValues = TestSubClass.TEST_VALUES;
+        class A {
+            @ElementType(TestSubClass.class)
+            Map<String, Map<String, TestSubClass>> m1 = mapOf();
+
+            @ElementType(TestSubClass.class)
+            Map<Integer, Map<String, TestSubClass>> m2 = mapOf(
+                    1, mapOf("1", TestSubClass.of(11, "11")),
+                    2, mapOf("2", TestSubClass.of(12, "12"))
+            );
+        }
+        class B {
+            @ElementType(value = TestSubClass.class, nestingLevel = 1)
+            Map<String, Map<String, Map<String, TestSubClass>>> m = mapOf(
+                    "1", mapOf("2", mapOf("3", testValues)),
+                    "1", mapOf("2", mapOf("3", testValues))
+            );
+        }
+        class C {
+            @ElementType(value = TestSubClass.class, nestingLevel = 3)
+            Map<String, Map<String, Map<String, TestSubClass>>> m = mapOf(
+                    "1", mapOf("2", mapOf("3", testValues)),
+                    "1", mapOf("2", mapOf("3", testValues))
+            );
+        }
+        class D {
+            @ElementType(value = TestSubClass.class, nestingLevel = 1)
+            Map<Integer, Map<String, TestSubClass>> m = mapOf(
+                    1, mapOf("1", TestSubClass.of(11, "11")),
+                    2, mapOf("2", TestSubClass.of(12, "12")),
+                    3, mapOf("3", TestSubClass.of(13, "13")),
+                    4, mapOf("4", TestSubClass.of(14, "14"))
+            );
+        }
+
+        String msg = "Field 'm2' of class 'A' has a nesting level of 0 but the " +
+                "first object of type 'TestSubClass' was found on level 1.";
+        assertItmCfgExceptionMessage(new A(), msg);
+
+        msg = "Field 'm' of class 'B' has a nesting level of 1 but the " +
+                "first object of type 'TestSubClass' was found on level 2.";
+        assertItmCfgExceptionMessage(new B(), msg);
+
+        msg = "Field 'm' of class 'C' has a nesting level of 3 but the " +
+                "first object of type 'TestSubClass' was found on level 2.";
+        assertItmCfgExceptionMessage(new C(), msg);
+
+        Map<String, Object> map = instanceToMap(new D());
+        D d = instanceFromMap(new D(), map);
+        assertThat(d.m, is(new D().m));
+    }
+
+    /* The case that the nestingLevel is set to high cannot properly be detected. */
+    @Test
+    void instanceFromMapRequiresCorrectNestingLevelForLists() {
+        class A {
+            @ElementType(TestSubClass.class)
+            List<TestSubClass> l = listOf();
+        }
+        class B {
+            @ElementType(LocalTestEnum.class)
+            List<LocalTestEnum> l = listOf();
+        }
+        class C {
+            @ElementType(TestSubClass.class)
+            List<List<TestSubClass>> l = listOf();
+        }
+        class D {
+            @ElementType(LocalTestEnum.class)
+            List<List<LocalTestEnum>> l = listOf();
+        }
+        Map<String, Object> m = TestSubClass.TEST_VALUES.asMap();
+        instanceFromMap(new A(), mapOf("l", listOf(m)));
+        instanceFromMap(new B(), mapOf("l", listOf("S", "T")));
+
+        String elementAsString = m.toString();
+        String msg = "Field 'l' of class 'C' has a nesting level of 0 but element '[" +
+                elementAsString + "]' of type 'ArrayList' cannot be converted " +
+                "to 'TestSubClass'.";
+        assertIfmCfgExceptionMessage(new C(), mapOf("l", listOf(listOf(m))), msg);
+
+        msg = "Field 'l' of class 'D' has a nesting level of 0 but element '[S, T]' of type " +
+                "'ArrayList' cannot be converted to 'LocalTestEnum'.";
+        assertIfmCfgExceptionMessage(new D(), mapOf("l", listOf(listOf("S", "T"))), msg);
     }
 }

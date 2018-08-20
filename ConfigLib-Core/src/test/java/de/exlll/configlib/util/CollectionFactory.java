@@ -13,15 +13,15 @@ public final class CollectionFactory {
 
     @SafeVarargs
     public static <T> Set<T> setOf(T... values) {
-        return new HashSet<>(Arrays.asList(values));
+        return new LinkedHashSet<>(Arrays.asList(values));
     }
 
     public static <K, V> Map<K, V> mapOf() {
-        return new HashMap<>();
+        return new LinkedHashMap<>();
     }
 
     public static <K, V> Map<K, V> mapOf(K k, V v) {
-        HashMap<K, V> map = new HashMap<>();
+        HashMap<K, V> map = new LinkedHashMap<>();
         map.put(k, v);
         return map;
     }

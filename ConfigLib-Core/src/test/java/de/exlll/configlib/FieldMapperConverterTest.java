@@ -342,7 +342,7 @@ public class FieldMapperConverterTest {
     @Test
     void instanceFromMapCatchesClassCastExceptionOfUnknownEnumConstantsInLists() {
         class A {
-            @ElementType(LocalTestEnum.class)
+            @ElementType(value = LocalTestEnum.class, nestingLevel = 1)
             List<List<LocalTestEnum>> l = listOf();
         }
         Map<String, Object> map = mapOf(
@@ -359,7 +359,7 @@ public class FieldMapperConverterTest {
     @Test
     void instanceFromMapCatchesClassCastExceptionOfUnknownEnumConstantsInSets() {
         class A {
-            @ElementType(LocalTestEnum.class)
+            @ElementType(value = LocalTestEnum.class, nestingLevel = 1)
             Set<List<LocalTestEnum>> s = setOf();
         }
         Map<String, Object> map = mapOf(
@@ -376,7 +376,7 @@ public class FieldMapperConverterTest {
     @Test
     void instanceFromMapCatchesClassCastExceptionOfUnknownEnumConstantsInMaps() {
         class A {
-            @ElementType(LocalTestEnum.class)
+            @ElementType(value = LocalTestEnum.class, nestingLevel = 1)
             Map<Integer, List<LocalTestEnum>> m = mapOf();
         }
         Map<String, Object> map = mapOf(

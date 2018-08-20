@@ -67,6 +67,8 @@ public interface Converter<F, T> {
         private final Class<?> elementType;
         private final String fieldName;
         private final Configuration.Properties props;
+        private final int nestingLevel;
+        private int currentNestingLevel;
 
         private ConversionInfo(Field field, Object instance, Object mapValue,
                                Configuration.Properties props) {
@@ -79,6 +81,7 @@ public interface Converter<F, T> {
             this.fieldName = field.getName();
             this.props = props;
             this.elementType = elementType(field);
+            this.nestingLevel = nestingLevel(field);
         }
 
         private static Class<?> elementType(Field field) {
@@ -87,6 +90,14 @@ public interface Converter<F, T> {
                 return et.value();
             }
             return null;
+        }
+
+        private static int nestingLevel(Field field) {
+            if (field.isAnnotationPresent(ElementType.class)) {
+                ElementType et = field.getAnnotation(ElementType.class);
+                return et.nestingLevel();
+            }
+            return -1;
         }
 
         static ConversionInfo of(Field field, Object instance,
@@ -191,6 +202,18 @@ public interface Converter<F, T> {
          */
         public boolean hasElementType() {
             return elementType != null;
+        }
+
+        int getNestingLevel() {
+            return nestingLevel;
+        }
+
+        int getCurrentNestingLevel() {
+            return currentNestingLevel;
+        }
+
+        void incCurrentNestingLevel() {
+            currentNestingLevel++;
         }
     }
 }

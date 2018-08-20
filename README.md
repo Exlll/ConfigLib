@@ -188,7 +188,7 @@ class MyConfiguration extends YamlConfiguration {
 Note: Even though sets are supported, their YAML-representation is 'pretty ugly', so it's better to use lists instead.
 If you need set behavior, you can internally use lists and convert them to sets using the `preSave/postLoad`-hooks.
 
-Lists, sets and maps that contain other types (e.g. custom types or enums) must use the `ElementType` annotation.
+Lists, sets and maps that contain other types (e.g. custom types or enums) must use the `@ElementType` annotation.
 Only simple types can be used as map keys.
 
 ```java
@@ -208,7 +208,15 @@ class MyConfiguration extends YamlConfiguration {
 }
 ```
 
-Lists, sets and maps can be nested.
+Lists, sets and maps can be nested. If nested collections contain custom types, you must specify the
+nesting level using the `@ElementType` annotation. Examples:
+
+* `List<T>` requires a nesting level of 0, which is the default value, so you don't have to set it
+* `List<List<T>>` requires a nesting level of 1
+* `List<List<List<T>>>` requires a nesting level of 2
+* `List<Map<String, T>>` requires a nesting level of 1
+* `List<Map<String, Map<String, T>>>` requires a nesting level of 2
+
 ```java
 @ConfigurationElement
 class MyCustomClass {/* fields etc.*/}
@@ -218,19 +226,19 @@ class MyConfiguration extends YamlConfiguration {
     private Set<Set<String>> setsSet = new HashSet<>();
     private Map<Integer, Map<String, Integer>> mapsMap = new HashMap<>();
     
-    @ElementType(MyCustomClass.class)
+    @ElementType(value = MyCustomClass.class, nestingLevel = 1)
     private List<List<MyCustomClass>> customClassListsList = new ArrayList<>();
     
-    @ElementType(MyCustomClass.class)
+    @ElementType(value = MyCustomClass.class, nestingLevel = 1)
     private Set<Set<MyCustomClass>> customClassSetsSet = new HashSet<>();
     
-    @ElementType(MyCustomClass.class)
+    @ElementType(value = MyCustomClass.class, nestingLevel = 1)
     private Map<Integer, Map<String, MyCustomClass>> customClassMapsMap = new HashMap<>();
     // ...
 }
 ```
 #### Adding comments
-You can add comments to a configuration class or a its field by using the `Comment` annotation.
+You can add comments to a configuration class or a its field by using the `@Comment` annotation.
 Class comments are saved at the beginning of a configuration file.
 
 ```java
@@ -259,7 +267,7 @@ class MyConfiguration extends YamlConfiguration {
 ```
 
 #### Excluding fields from being converted
-To exclude fields from being converted, annotate them with the `NoConvert` annotation. This may be useful if the
+To exclude fields from being converted, annotate them with the `@NoConvert` annotation. This may be useful if the
 configuration knows how to (de-)serialize instances of that type. For example, a `BukkitYamlConfiguration` knows how
 to serialize `ItemStack` instances.
 
@@ -439,14 +447,14 @@ public final class DatabasePlugin extends JavaPlugin {
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>2.0.2</version>
+    <version>2.0.3</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>2.0.2</version>
+    <version>2.0.3</version>
 </dependency>
 ```
 #### Gradle
@@ -458,9 +466,9 @@ repositories {
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.0.2'
+    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.0.3'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.0.2'
+    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.0.3'
 }
 ```

@@ -186,7 +186,7 @@ final class Credentials {
     private String password;
 
     // ConfigurationElements must have a no-args constructor (can be private)
-    private Credentials() {}
+    private Credentials() { this("", ""); }
 
     public Credentials(String username, String password) {
         this.username = username;
@@ -200,7 +200,7 @@ final class User {
     private Credentials credentials;
     private String email;
 
-    private User() {}
+    private User() { this("", "", ""); }
 
     public User(String username, String password, String email) {
         this.credentials = new Credentials(username, password);
@@ -215,7 +215,7 @@ Now we can use the `User` class for our `moderator` field:
 ```java
 public final class GameConfig extends BukkitYamlConfiguration {
     // ...
-    private User moderator = new User("alex", "a@b.c", "123");
+    private User moderator = new User("alex", "123", "a@b.c");
     // ...
 }
 ```
@@ -238,8 +238,8 @@ public final class GameConfig extends BukkitYamlConfiguration {
 
     private Map<String, User> initUsersByName() {
         Map<String, User> usersByName = new HashMap<>();
-        usersByName.put("Pete", new User("Pete", "pete@example.com", "123"));
-        usersByName.put("Mary", new User("Mary", "mary@example.com", "456"));
+        usersByName.put("Pete", new User("Pete", "123", "pete@example.com"));
+        usersByName.put("Mary", new User("Mary", "456", "mary@example.com"));
         // ...
         return usersByName;
     }
@@ -416,7 +416,7 @@ public final class GamePlugin extends JavaPlugin {
 final class GameConfig extends BukkitYamlConfiguration {
     @Comment("Valid color codes: &4, &c, &e")
     private String winMessage = "&4YOU  WON";
-    private User moderator = new User("alex", "a@b.c", "123");
+    private User moderator = new User("alex", "123", "a@b.c");
     private List<String> blockedUsers = Arrays.asList("root", "john");
     private List<List<String>> teamMembers = Arrays.asList(
             Arrays.asList("Pete", "Mary", "Alice", "Leo"),
@@ -447,16 +447,16 @@ final class GameConfig extends BukkitYamlConfiguration {
         super(path, properties);
     }
 
-    private HashMap<String, User> initUsersByName() {
-        HashMap<String, User> usersByName = new HashMap<>();
-        usersByName.put("Pete", new User("Pete", "pete@example.com", "123"));
-        usersByName.put("Mary", new User("Mary", "mary@example.com", "456"));
-        usersByName.put("Alice", new User("Alice", "alice@example.com", "789"));
-        usersByName.put("Leo", new User("Leo", "leo@example.com", "135"));
-        usersByName.put("Eli", new User("Eli", "eli@example.com", "246"));
-        usersByName.put("Eve", new User("Eve", "eve@example.com", "357"));
-        usersByName.put("Paul", new User("Paul", "paul@example.com", "468"));
-        usersByName.put("Patrick", new User("Patrick", "patrick@example.com", "579"));
+    private Map<String, User> initUsersByName() {
+        Map<String, User> usersByName = new HashMap<>();
+        usersByName.put("Pete", new User("Pete", "123", "pete@example.com"));
+        usersByName.put("Mary", new User("Mary", "456", "mary@example.com"));
+        usersByName.put("Alice", new User("Alice", "789", "alice@example.com"));
+        usersByName.put("Leo", new User("Leo", "135", "leo@example.com"));
+        usersByName.put("Eli", new User("Eli", "246", "eli@example.com"));
+        usersByName.put("Eve", new User("Eve", "357", "eve@example.com"));
+        usersByName.put("Paul", new User("Paul", "468", "paul@example.com"));
+        usersByName.put("Patrick", new User("Patrick", "579", "patrick@example.com"));
         return usersByName;
     }
 
@@ -497,7 +497,7 @@ final class User {
     private Credentials credentials;
     private String email;
 
-    private User() {}
+    private User() { this("", "", ""); }
 
     public User(String username, String password, String email) {
         this.credentials = new Credentials(username, password);
@@ -511,7 +511,7 @@ final class Credentials {
     private String password;
 
     // ConfigurationElements must have a no-args constructor (can be private)
-    private Credentials() {}
+    private Credentials() { this("", ""); }
 
     public Credentials(String username, String password) {
         this.username = username;

@@ -269,6 +269,67 @@ class YamlConfigurationTest {
             "subClass:\n" +
             "  primInt: 1\n" +
             "  string: string\n" +
+            "  list:\n" +
+            "  - list\n" +
+            "  set: !!set\n" +
+            "    set: null\n" +
+            "  map:\n" +
+            "    map: 1\n" +
+            "  testSubSubClass:\n" +
+            "    primInt: 14\n" +
+            "    string: '14'\n" +
+            "    list:\n" +
+            "    - '1414'\n" +
+            "    set: !!set\n" +
+            "      '1414': null\n" +
+            "    map:\n" +
+            "      '1414': 14\n" +
+            "  subClassList:\n" +
+            "  - primInt: 15\n" +
+            "    string: '15'\n" +
+            "    list:\n" +
+            "    - '1515'\n" +
+            "    set: !!set\n" +
+            "      '1515': null\n" +
+            "    map:\n" +
+            "      '1515': 15\n" +
+            "  - primInt: 16\n" +
+            "    string: '16'\n" +
+            "    list:\n" +
+            "    - '1616'\n" +
+            "    set: !!set\n" +
+            "      '1616': null\n" +
+            "    map:\n" +
+            "      '1616': 16\n" +
+            "  subClassSet: !!set\n" +
+            "    ? primInt: 18\n" +
+            "      string: '18'\n" +
+            "      list:\n" +
+            "      - '1818'\n" +
+            "      set: !!set\n" +
+            "        '1818': null\n" +
+            "      map:\n" +
+            "        '1818': 18\n" +
+            "    : null\n" +
+            "    ? primInt: 17\n" +
+            "      string: '17'\n" +
+            "      list:\n" +
+            "      - '1717'\n" +
+            "      set: !!set\n" +
+            "        '1717': null\n" +
+            "      map:\n" +
+            "        '1717': 17\n" +
+            "    : null\n" +
+            "  subClassMap:\n" +
+            "    map:\n" +
+            "      primInt: 19\n" +
+            "      string: '19'\n" +
+            "      list:\n" +
+            "      - '1919'\n" +
+            "      set: !!set\n" +
+            "        '1919': null\n" +
+            "      map:\n" +
+            "        '1919': 19\n" +
             "ints: !!set\n" +
             "  1: null\n" +
             "  2: null\n" +
@@ -283,22 +344,286 @@ class YamlConfigurationTest {
             "subClassSet: !!set\n" +
             "  ? primInt: 1\n" +
             "    string: '1'\n" +
+            "    list:\n" +
+            "    - '1'\n" +
+            "    set: !!set\n" +
+            "      '1': null\n" +
+            "    map:\n" +
+            "      '1': 1\n" +
+            "    testSubSubClass:\n" +
+            "      primInt: 1\n" +
+            "      string: '1'\n" +
+            "      list:\n" +
+            "      - '11'\n" +
+            "      set: !!set\n" +
+            "        '11': null\n" +
+            "      map:\n" +
+            "        '11': 1\n" +
+            "    subClassList:\n" +
+            "    - primInt: 100\n" +
+            "      string: '1'\n" +
+            "      list:\n" +
+            "      - '11'\n" +
+            "      set: !!set\n" +
+            "        '11': null\n" +
+            "      map:\n" +
+            "        '11': 100\n" +
+            "    subClassSet: !!set\n" +
+            "      ? primInt: 101\n" +
+            "        string: '1'\n" +
+            "        list:\n" +
+            "        - '11'\n" +
+            "        set: !!set\n" +
+            "          '11': null\n" +
+            "        map:\n" +
+            "          '11': 101\n" +
+            "      : null\n" +
+            "    subClassMap:\n" +
+            "      '1':\n" +
+            "        primInt: 102\n" +
+            "        string: '1'\n" +
+            "        list:\n" +
+            "        - '11'\n" +
+            "        set: !!set\n" +
+            "          '11': null\n" +
+            "        map:\n" +
+            "          '11': 102\n" +
             "  : null\n" +
             "  ? primInt: 2\n" +
             "    string: '2'\n" +
+            "    list:\n" +
+            "    - '2'\n" +
+            "    set: !!set\n" +
+            "      '2': null\n" +
+            "    map:\n" +
+            "      '2': 2\n" +
+            "    testSubSubClass:\n" +
+            "      primInt: 2\n" +
+            "      string: '2'\n" +
+            "      list:\n" +
+            "      - '22'\n" +
+            "      set: !!set\n" +
+            "        '22': null\n" +
+            "      map:\n" +
+            "        '22': 2\n" +
+            "    subClassList:\n" +
+            "    - primInt: 200\n" +
+            "      string: '2'\n" +
+            "      list:\n" +
+            "      - '22'\n" +
+            "      set: !!set\n" +
+            "        '22': null\n" +
+            "      map:\n" +
+            "        '22': 200\n" +
+            "    subClassSet: !!set\n" +
+            "      ? primInt: 202\n" +
+            "        string: '2'\n" +
+            "        list:\n" +
+            "        - '22'\n" +
+            "        set: !!set\n" +
+            "          '22': null\n" +
+            "        map:\n" +
+            "          '22': 202\n" +
+            "      : null\n" +
+            "    subClassMap:\n" +
+            "      '2':\n" +
+            "        primInt: 204\n" +
+            "        string: '2'\n" +
+            "        list:\n" +
+            "        - '22'\n" +
+            "        set: !!set\n" +
+            "          '22': null\n" +
+            "        map:\n" +
+            "          '22': 204\n" +
             "  : null\n" +
             "subClassList:\n" +
-            "- primInt: 1\n" +
-            "  string: '1'\n" +
-            "- primInt: 2\n" +
-            "  string: '2'\n" +
+            "- primInt: 3\n" +
+            "  string: '3'\n" +
+            "  list:\n" +
+            "  - '3'\n" +
+            "  set: !!set\n" +
+            "    '3': null\n" +
+            "  map:\n" +
+            "    '3': 3\n" +
+            "  testSubSubClass:\n" +
+            "    primInt: 3\n" +
+            "    string: '3'\n" +
+            "    list:\n" +
+            "    - '33'\n" +
+            "    set: !!set\n" +
+            "      '33': null\n" +
+            "    map:\n" +
+            "      '33': 3\n" +
+            "  subClassList:\n" +
+            "  - primInt: 300\n" +
+            "    string: '3'\n" +
+            "    list:\n" +
+            "    - '33'\n" +
+            "    set: !!set\n" +
+            "      '33': null\n" +
+            "    map:\n" +
+            "      '33': 300\n" +
+            "  subClassSet: !!set\n" +
+            "    ? primInt: 303\n" +
+            "      string: '3'\n" +
+            "      list:\n" +
+            "      - '33'\n" +
+            "      set: !!set\n" +
+            "        '33': null\n" +
+            "      map:\n" +
+            "        '33': 303\n" +
+            "    : null\n" +
+            "  subClassMap:\n" +
+            "    '3':\n" +
+            "      primInt: 306\n" +
+            "      string: '3'\n" +
+            "      list:\n" +
+            "      - '33'\n" +
+            "      set: !!set\n" +
+            "        '33': null\n" +
+            "      map:\n" +
+            "        '33': 306\n" +
+            "- primInt: 4\n" +
+            "  string: '4'\n" +
+            "  list:\n" +
+            "  - '4'\n" +
+            "  set: !!set\n" +
+            "    '4': null\n" +
+            "  map:\n" +
+            "    '4': 4\n" +
+            "  testSubSubClass:\n" +
+            "    primInt: 4\n" +
+            "    string: '4'\n" +
+            "    list:\n" +
+            "    - '44'\n" +
+            "    set: !!set\n" +
+            "      '44': null\n" +
+            "    map:\n" +
+            "      '44': 4\n" +
+            "  subClassList:\n" +
+            "  - primInt: 400\n" +
+            "    string: '4'\n" +
+            "    list:\n" +
+            "    - '44'\n" +
+            "    set: !!set\n" +
+            "      '44': null\n" +
+            "    map:\n" +
+            "      '44': 400\n" +
+            "  subClassSet: !!set\n" +
+            "    ? primInt: 404\n" +
+            "      string: '4'\n" +
+            "      list:\n" +
+            "      - '44'\n" +
+            "      set: !!set\n" +
+            "        '44': null\n" +
+            "      map:\n" +
+            "        '44': 404\n" +
+            "    : null\n" +
+            "  subClassMap:\n" +
+            "    '4':\n" +
+            "      primInt: 408\n" +
+            "      string: '4'\n" +
+            "      list:\n" +
+            "      - '44'\n" +
+            "      set: !!set\n" +
+            "        '44': null\n" +
+            "      map:\n" +
+            "        '44': 408\n" +
             "subClassMap:\n" +
-            "  '1':\n" +
-            "    primInt: 1\n" +
-            "    string: '1'\n" +
-            "  '2':\n" +
-            "    primInt: 2\n" +
-            "    string: '2'\n" +
+            "  '5':\n" +
+            "    primInt: 5\n" +
+            "    string: '5'\n" +
+            "    list:\n" +
+            "    - '5'\n" +
+            "    set: !!set\n" +
+            "      '5': null\n" +
+            "    map:\n" +
+            "      '5': 5\n" +
+            "    testSubSubClass:\n" +
+            "      primInt: 5\n" +
+            "      string: '5'\n" +
+            "      list:\n" +
+            "      - '55'\n" +
+            "      set: !!set\n" +
+            "        '55': null\n" +
+            "      map:\n" +
+            "        '55': 5\n" +
+            "    subClassList:\n" +
+            "    - primInt: 500\n" +
+            "      string: '5'\n" +
+            "      list:\n" +
+            "      - '55'\n" +
+            "      set: !!set\n" +
+            "        '55': null\n" +
+            "      map:\n" +
+            "        '55': 500\n" +
+            "    subClassSet: !!set\n" +
+            "      ? primInt: 505\n" +
+            "        string: '5'\n" +
+            "        list:\n" +
+            "        - '55'\n" +
+            "        set: !!set\n" +
+            "          '55': null\n" +
+            "        map:\n" +
+            "          '55': 505\n" +
+            "      : null\n" +
+            "    subClassMap:\n" +
+            "      '5':\n" +
+            "        primInt: 510\n" +
+            "        string: '5'\n" +
+            "        list:\n" +
+            "        - '55'\n" +
+            "        set: !!set\n" +
+            "          '55': null\n" +
+            "        map:\n" +
+            "          '55': 510\n" +
+            "  '6':\n" +
+            "    primInt: 6\n" +
+            "    string: '6'\n" +
+            "    list:\n" +
+            "    - '6'\n" +
+            "    set: !!set\n" +
+            "      '6': null\n" +
+            "    map:\n" +
+            "      '6': 6\n" +
+            "    testSubSubClass:\n" +
+            "      primInt: 6\n" +
+            "      string: '6'\n" +
+            "      list:\n" +
+            "      - '66'\n" +
+            "      set: !!set\n" +
+            "        '66': null\n" +
+            "      map:\n" +
+            "        '66': 6\n" +
+            "    subClassList:\n" +
+            "    - primInt: 600\n" +
+            "      string: '6'\n" +
+            "      list:\n" +
+            "      - '66'\n" +
+            "      set: !!set\n" +
+            "        '66': null\n" +
+            "      map:\n" +
+            "        '66': 600\n" +
+            "    subClassSet: !!set\n" +
+            "      ? primInt: 606\n" +
+            "        string: '6'\n" +
+            "        list:\n" +
+            "        - '66'\n" +
+            "        set: !!set\n" +
+            "          '66': null\n" +
+            "        map:\n" +
+            "          '66': 606\n" +
+            "      : null\n" +
+            "    subClassMap:\n" +
+            "      '6':\n" +
+            "        primInt: 612\n" +
+            "        string: '6'\n" +
+            "        list:\n" +
+            "        - '66'\n" +
+            "        set: !!set\n" +
+            "          '66': null\n" +
+            "        map:\n" +
+            "          '66': 612\n" +
             "listsList:\n" +
             "- - 1\n" +
             "  - 2\n" +
@@ -319,33 +644,297 @@ class YamlConfigurationTest {
             "  2:\n" +
             "    '2': 2\n" +
             "subClassListsList:\n" +
-            "- - primInt: 1\n" +
-            "    string: '1'\n" +
-            "  - primInt: 2\n" +
-            "    string: '2'\n" +
+            "- - primInt: 7\n" +
+            "    string: '7'\n" +
+            "    list:\n" +
+            "    - '7'\n" +
+            "    set: !!set\n" +
+            "      '7': null\n" +
+            "    map:\n" +
+            "      '7': 7\n" +
+            "    testSubSubClass:\n" +
+            "      primInt: 7\n" +
+            "      string: '7'\n" +
+            "      list:\n" +
+            "      - '77'\n" +
+            "      set: !!set\n" +
+            "        '77': null\n" +
+            "      map:\n" +
+            "        '77': 7\n" +
+            "    subClassList:\n" +
+            "    - primInt: 700\n" +
+            "      string: '7'\n" +
+            "      list:\n" +
+            "      - '77'\n" +
+            "      set: !!set\n" +
+            "        '77': null\n" +
+            "      map:\n" +
+            "        '77': 700\n" +
+            "    subClassSet: !!set\n" +
+            "      ? primInt: 707\n" +
+            "        string: '7'\n" +
+            "        list:\n" +
+            "        - '77'\n" +
+            "        set: !!set\n" +
+            "          '77': null\n" +
+            "        map:\n" +
+            "          '77': 707\n" +
+            "      : null\n" +
+            "    subClassMap:\n" +
+            "      '7':\n" +
+            "        primInt: 714\n" +
+            "        string: '7'\n" +
+            "        list:\n" +
+            "        - '77'\n" +
+            "        set: !!set\n" +
+            "          '77': null\n" +
+            "        map:\n" +
+            "          '77': 714\n" +
+            "  - primInt: 8\n" +
+            "    string: '8'\n" +
+            "    list:\n" +
+            "    - '8'\n" +
+            "    set: !!set\n" +
+            "      '8': null\n" +
+            "    map:\n" +
+            "      '8': 8\n" +
+            "    testSubSubClass:\n" +
+            "      primInt: 8\n" +
+            "      string: '8'\n" +
+            "      list:\n" +
+            "      - '88'\n" +
+            "      set: !!set\n" +
+            "        '88': null\n" +
+            "      map:\n" +
+            "        '88': 8\n" +
+            "    subClassList:\n" +
+            "    - primInt: 800\n" +
+            "      string: '8'\n" +
+            "      list:\n" +
+            "      - '88'\n" +
+            "      set: !!set\n" +
+            "        '88': null\n" +
+            "      map:\n" +
+            "        '88': 800\n" +
+            "    subClassSet: !!set\n" +
+            "      ? primInt: 808\n" +
+            "        string: '8'\n" +
+            "        list:\n" +
+            "        - '88'\n" +
+            "        set: !!set\n" +
+            "          '88': null\n" +
+            "        map:\n" +
+            "          '88': 808\n" +
+            "      : null\n" +
+            "    subClassMap:\n" +
+            "      '8':\n" +
+            "        primInt: 816\n" +
+            "        string: '8'\n" +
+            "        list:\n" +
+            "        - '88'\n" +
+            "        set: !!set\n" +
+            "          '88': null\n" +
+            "        map:\n" +
+            "          '88': 816\n" +
             "subClassSetsSet: !!set\n" +
             "  ? !!set\n" +
-            "    ? primInt: 1\n" +
-            "      string: '1'\n" +
+            "    ? primInt: 10\n" +
+            "      string: '10'\n" +
+            "      list:\n" +
+            "      - '10'\n" +
+            "      set: !!set\n" +
+            "        '10': null\n" +
+            "      map:\n" +
+            "        '10': 10\n" +
+            "      testSubSubClass:\n" +
+            "        primInt: 10\n" +
+            "        string: '10'\n" +
+            "        list:\n" +
+            "        - '1010'\n" +
+            "        set: !!set\n" +
+            "          '1010': null\n" +
+            "        map:\n" +
+            "          '1010': 10\n" +
+            "      subClassList:\n" +
+            "      - primInt: 1000\n" +
+            "        string: '10'\n" +
+            "        list:\n" +
+            "        - '1010'\n" +
+            "        set: !!set\n" +
+            "          '1010': null\n" +
+            "        map:\n" +
+            "          '1010': 1000\n" +
+            "      subClassSet: !!set\n" +
+            "        ? primInt: 1010\n" +
+            "          string: '10'\n" +
+            "          list:\n" +
+            "          - '1010'\n" +
+            "          set: !!set\n" +
+            "            '1010': null\n" +
+            "          map:\n" +
+            "            '1010': 1010\n" +
+            "        : null\n" +
+            "      subClassMap:\n" +
+            "        '10':\n" +
+            "          primInt: 1020\n" +
+            "          string: '10'\n" +
+            "          list:\n" +
+            "          - '1010'\n" +
+            "          set: !!set\n" +
+            "            '1010': null\n" +
+            "          map:\n" +
+            "            '1010': 1020\n" +
             "    : null\n" +
-            "    ? primInt: 2\n" +
-            "      string: '2'\n" +
+            "    ? primInt: 9\n" +
+            "      string: '9'\n" +
+            "      list:\n" +
+            "      - '9'\n" +
+            "      set: !!set\n" +
+            "        '9': null\n" +
+            "      map:\n" +
+            "        '9': 9\n" +
+            "      testSubSubClass:\n" +
+            "        primInt: 9\n" +
+            "        string: '9'\n" +
+            "        list:\n" +
+            "        - '99'\n" +
+            "        set: !!set\n" +
+            "          '99': null\n" +
+            "        map:\n" +
+            "          '99': 9\n" +
+            "      subClassList:\n" +
+            "      - primInt: 900\n" +
+            "        string: '9'\n" +
+            "        list:\n" +
+            "        - '99'\n" +
+            "        set: !!set\n" +
+            "          '99': null\n" +
+            "        map:\n" +
+            "          '99': 900\n" +
+            "      subClassSet: !!set\n" +
+            "        ? primInt: 909\n" +
+            "          string: '9'\n" +
+            "          list:\n" +
+            "          - '99'\n" +
+            "          set: !!set\n" +
+            "            '99': null\n" +
+            "          map:\n" +
+            "            '99': 909\n" +
+            "        : null\n" +
+            "      subClassMap:\n" +
+            "        '9':\n" +
+            "          primInt: 918\n" +
+            "          string: '9'\n" +
+            "          list:\n" +
+            "          - '99'\n" +
+            "          set: !!set\n" +
+            "            '99': null\n" +
+            "          map:\n" +
+            "            '99': 918\n" +
             "    : null\n" +
             "  : null\n" +
             "subClassMapsMap:\n" +
             "  1:\n" +
             "    '1':\n" +
-            "      primInt: 1\n" +
-            "      string: '2'\n" +
+            "      primInt: 11\n" +
+            "      string: '11'\n" +
+            "      list:\n" +
+            "      - '11'\n" +
+            "      set: !!set\n" +
+            "        '11': null\n" +
+            "      map:\n" +
+            "        '11': 11\n" +
+            "      testSubSubClass:\n" +
+            "        primInt: 11\n" +
+            "        string: '11'\n" +
+            "        list:\n" +
+            "        - '1111'\n" +
+            "        set: !!set\n" +
+            "          '1111': null\n" +
+            "        map:\n" +
+            "          '1111': 11\n" +
+            "      subClassList:\n" +
+            "      - primInt: 1100\n" +
+            "        string: '11'\n" +
+            "        list:\n" +
+            "        - '1111'\n" +
+            "        set: !!set\n" +
+            "          '1111': null\n" +
+            "        map:\n" +
+            "          '1111': 1100\n" +
+            "      subClassSet: !!set\n" +
+            "        ? primInt: 1111\n" +
+            "          string: '11'\n" +
+            "          list:\n" +
+            "          - '1111'\n" +
+            "          set: !!set\n" +
+            "            '1111': null\n" +
+            "          map:\n" +
+            "            '1111': 1111\n" +
+            "        : null\n" +
+            "      subClassMap:\n" +
+            "        '11':\n" +
+            "          primInt: 1122\n" +
+            "          string: '11'\n" +
+            "          list:\n" +
+            "          - '1111'\n" +
+            "          set: !!set\n" +
+            "            '1111': null\n" +
+            "          map:\n" +
+            "            '1111': 1122\n" +
             "  2:\n" +
             "    '2':\n" +
-            "      primInt: 2\n" +
-            "      string: '2'\n" +
+            "      primInt: 12\n" +
+            "      string: '12'\n" +
+            "      list:\n" +
+            "      - '12'\n" +
+            "      set: !!set\n" +
+            "        '12': null\n" +
+            "      map:\n" +
+            "        '12': 12\n" +
+            "      testSubSubClass:\n" +
+            "        primInt: 12\n" +
+            "        string: '12'\n" +
+            "        list:\n" +
+            "        - '1212'\n" +
+            "        set: !!set\n" +
+            "          '1212': null\n" +
+            "        map:\n" +
+            "          '1212': 12\n" +
+            "      subClassList:\n" +
+            "      - primInt: 1200\n" +
+            "        string: '12'\n" +
+            "        list:\n" +
+            "        - '1212'\n" +
+            "        set: !!set\n" +
+            "          '1212': null\n" +
+            "        map:\n" +
+            "          '1212': 1200\n" +
+            "      subClassSet: !!set\n" +
+            "        ? primInt: 1212\n" +
+            "          string: '12'\n" +
+            "          list:\n" +
+            "          - '1212'\n" +
+            "          set: !!set\n" +
+            "            '1212': null\n" +
+            "          map:\n" +
+            "            '1212': 1212\n" +
+            "        : null\n" +
+            "      subClassMap:\n" +
+            "        '12':\n" +
+            "          primInt: 1224\n" +
+            "          string: '12'\n" +
+            "          list:\n" +
+            "          - '1212'\n" +
+            "          set: !!set\n" +
+            "            '1212': null\n" +
+            "          map:\n" +
+            "            '1212': 1224\n" +
             "e1: NON_DEFAULT\n" +
             "enums:\n" +
             "- DEFAULT\n" +
             "- NON_DEFAULT\n" +
-            "converterSubClass: '2:2'\n" +
+            "converterSubClass: '13:13'\n" +
             "excludedClass: !!de.exlll.configlib.classes.TestExcludedClass\n" +
             "  primInt: 1\n" +
             "  string: string";

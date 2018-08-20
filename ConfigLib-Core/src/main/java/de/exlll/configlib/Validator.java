@@ -315,6 +315,37 @@ final class Validator {
         }
     }
 
+    static void checkNestingLevel(Object element, ConversionInfo info) {
+        if (!Reflect.isContainerType(element.getClass())) {
+            if (info.getNestingLevel() != info.getCurrentNestingLevel()) {
+                String msg = "Field '" + info.getFieldName() + "' of class " +
+                        "'" + getClsName(info.getInstance().getClass()) + "' " +
+                        "has a nesting level of " + info.getNestingLevel() +
+                        " but the first object of type '" +
+                        getClsName(info.getElementType()) + "' was found on " +
+                        "level " + info.getCurrentNestingLevel() + ".";
+                throw new ConfigurationException(msg);
+            }
+        }
+    }
+
+    static void checkCurrentLevelSameAsExpectedRequiresMapOrString(
+            boolean currentLevelSameAsExpected,
+            Object element, ConversionInfo info
+    ) {
+        boolean isMapOrString = (element instanceof Map<?, ?>) ||
+                (element instanceof String);
+        if (currentLevelSameAsExpected && !isMapOrString) {
+            Class<?> cls = info.getInstance().getClass();
+            String msg = "Field '" + info.getFieldName() + "' of class '" +
+                    getClsName(cls) + "' has a nesting level" +
+                    " of " + info.getNestingLevel() + " but element '" + element +
+                    "' of type '" + getClsName(element.getClass()) + "' cannot be " +
+                    "converted to '" + getClsName(info.getElementType()) + "'.";
+            throw new ConfigurationException(msg);
+        }
+    }
+
     static void checkElementTypeIsEnumType(Class<?> type, ConversionInfo info) {
         if (!Reflect.isEnumType(type)) {
             String msg = "Element type '" + getClsName(type) + "' of field " +
