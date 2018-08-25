@@ -325,6 +325,24 @@ YamlProperties properties = YamlProperties.builder()
 
 Note: Changing the configuration style may break adding comments using the `@Comment` annotation.
 
+##### Adding field filters
+If your configuration has a lot of fields and you want to exclude some of these fields without
+making them final, static or transient, you can configure your properties object to use additional
+`FieldFilter`s. A `FieldFilter` filters the fields of a configuration class by a specified criterion.
+
+For example, if you only want to include fields whose names don't start with _ignore_, you would add
+the following filter:
+
+```java
+YamlProperties properties = YamlProperties.builder()
+                .addFilter(field -> !field.getName().startsWith("ignore"))
+                // ...
+                .build();
+```
+
+Note: A filter is not evaluated for a field if the field has already been filtered or by some
+other `FieldFilter`.
+
 #### Adding custom converters
 Any field can be converted using a custom converter. This can be useful if you don't like the default
 conversion mechanism or if you have classes that cannot be annotated as `ConfigurationElement`s
@@ -447,14 +465,14 @@ public final class DatabasePlugin extends JavaPlugin {
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>2.0.3</version>
+    <version>2.1.0</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>2.0.3</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 #### Gradle
@@ -466,9 +484,9 @@ repositories {
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.0.3'
+    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.1.0'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.0.3'
+    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.1.0'
 }
 ```

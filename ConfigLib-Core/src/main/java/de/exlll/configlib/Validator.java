@@ -266,9 +266,9 @@ final class Validator {
         }
     }
 
-    static void checkConverterHasNoArgsConstructor(Class<?> convClass, String fn) {
-        if (!Reflect.hasNoArgConstructor(convClass)) {
-            String msg = "Converter '" + convClass.getSimpleName() + "' used " +
+    static void checkConverterHasNoArgsConstructor(Class<?> converterClass, String fn) {
+        if (!Reflect.hasNoArgConstructor(converterClass)) {
+            String msg = "Converter '" + converterClass.getSimpleName() + "' used " +
                     "on field '" + fn + "' doesn't have a no-args constructor.";
             throw new ConfigurationException(msg);
         }
@@ -282,14 +282,6 @@ final class Validator {
                     "requires a string but '" + val + "' is of type '" + sn + "'.";
             throw new ConfigurationException(msg);
         }
-    }
-
-    static boolean isTypeMap(Map<?, ?> map) {
-        return map.entrySet().stream().allMatch(entry -> {
-            Class<?> keyCls = entry.getKey().getClass();
-            Class<?> valCls = entry.getValue().getClass();
-            return (String.class == keyCls) && Reflect.isSimpleType(valCls);
-        });
     }
 
     static void checkFieldTypeAssignableFrom(Class<?> type, ConversionInfo info) {

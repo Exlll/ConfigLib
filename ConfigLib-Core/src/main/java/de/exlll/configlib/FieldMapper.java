@@ -1,18 +1,14 @@
 package de.exlll.configlib;
 
 import de.exlll.configlib.Converter.ConversionInfo;
+import de.exlll.configlib.filter.FieldFilter;
 import de.exlll.configlib.format.FieldNameFormatter;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import static de.exlll.configlib.Validator.*;
-import static java.util.stream.Collectors.toList;
 
 enum FieldMapper {
     ;
@@ -21,7 +17,8 @@ enum FieldMapper {
             Object inst, Configuration.Properties props
     ) {
         Map<String, Object> map = new LinkedHashMap<>();
-        for (Field field : FieldFilter.filterFields(inst.getClass())) {
+        FieldFilter filter = props.getFilter();
+        for (Field field : filter.filterDeclaredFieldsOf(inst.getClass())) {
             Object val = toConvertibleObject(field, inst, props);
             FieldNameFormatter fnf = props.getFormatter();
             String fn = fnf.fromFieldName(field.getName());
@@ -45,7 +42,8 @@ enum FieldMapper {
             Object inst, Map<String, Object> instMap,
             Configuration.Properties props
     ) {
-        for (Field field : FieldFilter.filterFields(inst.getClass())) {
+        FieldFilter filter = props.getFilter();
+        for (Field field : filter.filterDeclaredFieldsOf(inst.getClass())) {
             FieldNameFormatter fnf = props.getFormatter();
             String fn = fnf.fromFieldName(field.getName());
             Object mapValue = instMap.get(fn);
@@ -78,28 +76,5 @@ enum FieldMapper {
     private static void checkDefaultValueNull(Field field, Object instance) {
         Object val = Reflect.getValue(field, instance);
         checkNotNull(val, field.getName());
-    }
-
-    enum FieldFilter implements Predicate<Field> {
-        DEFAULT;
-
-        static List<Field> filterFields(Class<?> cls) {
-            Field[] fields = cls.getDeclaredFields();
-            return Arrays.stream(fields)
-                    .filter(DEFAULT)
-                    .collect(toList());
-        }
-
-        @Override
-        public boolean test(Field field) {
-            if (field.isSynthetic()) {
-                return false;
-            }
-
-            int mods = field.getModifiers();
-            return !(Modifier.isFinal(mods) ||
-                    Modifier.isStatic(mods) ||
-                    Modifier.isTransient(mods));
-        }
     }
 }

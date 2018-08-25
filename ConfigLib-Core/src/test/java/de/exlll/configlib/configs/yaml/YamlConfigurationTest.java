@@ -40,7 +40,7 @@ class YamlConfigurationTest {
     }
 
     @Test
-    void loadAndSaveExecutesPostLoadHook() throws IOException {
+    void loadAndSaveExecutesPostLoadHook() {
         class A extends YamlConfiguration {
             int i = 0;
 
@@ -58,7 +58,7 @@ class YamlConfigurationTest {
     }
 
     @Test
-    void loadAndSaveSavesConfiguration() throws IOException {
+    void loadAndSaveSavesConfiguration() {
         YamlConfiguration configuration = new TestClass(
                 configPath, TestClass.TEST_VALUES
         );
@@ -71,7 +71,7 @@ class YamlConfigurationTest {
     }
 
     @Test
-    void loadAndSaveLoadsConfiguration() throws IOException {
+    void loadAndSaveLoadsConfiguration() {
         new TestClass(configPath, TestClass.TEST_VALUES).save();
 
         YamlConfiguration configuration = new TestClass(configPath);
@@ -81,7 +81,7 @@ class YamlConfigurationTest {
     }
 
     @Test
-    void loadLoadsConfig() throws IOException {
+    void loadLoadsConfig() {
         setupConfigPath();
         Configuration configuration = new TestClass(configPath);
         assertThat(configuration, is(not(TestClass.TEST_VALUES)));
@@ -89,7 +89,7 @@ class YamlConfigurationTest {
         assertThat(configuration, is((TestClass.TEST_VALUES)));
     }
 
-    private void setupConfigPath() throws IOException {
+    private void setupConfigPath() {
         Configuration configuration = new TestClass(
                 configPath, TestClass.TEST_VALUES
         );
@@ -97,14 +97,14 @@ class YamlConfigurationTest {
     }
 
     @Test
-    void loadThrowsExceptionIfTypesDontMatch() throws IOException {
+    void loadThrowsExceptionIfTypesDoNotMatch() {
         Configuration configuration = new TestClass(configPath);
         configuration.save();
         assertThrows(IllegalArgumentException.class, configuration::load);
     }
 
     @Test
-    void saveCreatesConfig() throws IOException {
+    void saveCreatesConfig() {
         assertThat(Files.exists(testPath), is(false));
         Configuration configuration = new TestClass(testPath);
         configuration.save();

@@ -1,6 +1,5 @@
 package de.exlll.configlib;
 
-import de.exlll.configlib.FieldMapperHelpers.*;
 import de.exlll.configlib.annotation.ConfigurationElement;
 import de.exlll.configlib.annotation.ElementType;
 import de.exlll.configlib.classes.TestSubClass;

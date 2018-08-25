@@ -99,34 +99,6 @@ public final class TestSubClass {
         return string;
     }
 
-    public List<String> getList() {
-        return list;
-    }
-
-    public Set<String> getSet() {
-        return set;
-    }
-
-    public Map<String, Integer> getMap() {
-        return map;
-    }
-
-    public TestSubSubClass getTestSubSubClass() {
-        return testSubSubClass;
-    }
-
-    public List<TestSubSubClass> getSubClassList() {
-        return subClassList;
-    }
-
-    public Set<TestSubSubClass> getSubClassSet() {
-        return subClassSet;
-    }
-
-    public Map<String, TestSubSubClass> getSubClassMap() {
-        return subClassMap;
-    }
-
     @Override
     public String toString() {
         return "TestSubClass{" +

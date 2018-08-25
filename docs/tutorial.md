@@ -1,5 +1,3 @@
-## Tutorial
-
 This tutorial is intended to show most of the features of this library, so let's say that
 we want to create the following configuration file for some kind of game:
 
@@ -220,9 +218,8 @@ public final class GameConfig extends BukkitYamlConfiguration {
 }
 ```
 
-`ConfigurationElement`s must have a no-args constructor which is to create
-instances of a given element. If the no-args constructor is a valid constructor
-for your program, it must initialize the fields to some non-`null` value.
+`ConfigurationElement`s must have a no-args constructor which is used to create
+instances of a given element.
 
 #### 7. Add `usersByName`
 
@@ -298,7 +295,7 @@ public final class GameConfig extends BukkitYamlConfiguration {
 The `arenaHeight` can simply be represented by an `int` field. The `arenaCenter`
 is of type `Location`. We could again use the `@NoConvert` annotation but this
 would result in a different representation. Instead, we are going to implement our
-`Converter`.
+own `Converter`.
 
 First we have to create a class that implements `Converter<Location, String>`:
 
@@ -351,8 +348,8 @@ public final class GameConfig extends BukkitYamlConfiguration {
 
 Before we can use our new configuration, we have to instantiate it by passing
 a `Path` and a `BukkitYamlProperties` object to its constructor. In this case
-the `BukkitYamlProperties` is used to change the formatting and to append
-additional text to the created configuration file.
+the `BukkitYamlProperties` is used to change the formatting of field names,
+to append text to the configuration file and to add an additional field filter.
 
 ```java
 public final class GamePlugin extends JavaPlugin {
@@ -362,12 +359,12 @@ public final class GamePlugin extends JavaPlugin {
         Path configPath = new File(getDataFolder(), "config.yml").toPath();
 
         BukkitYamlProperties properties = BukkitYamlProperties.builder()
+                .addFilter(field -> !field.getName().startsWith("ignore"))
                 .setFormatter(FieldNameFormatters.LOWER_UNDERSCORE)
                 .setAppendedComments(Arrays.asList(
                         "", "Remember to play fair!"
                 ))
                 .build();
-
         GameConfig config = new GameConfig(configPath, properties);
         config.loadAndSave();
     }
@@ -403,6 +400,7 @@ public final class GamePlugin extends JavaPlugin {
         Path configPath = new File(getDataFolder(), "config.yml").toPath();
 
         BukkitYamlProperties properties = BukkitYamlProperties.builder()
+                .addFilter(field -> !field.getName().startsWith("ignore"))
                 .setFormatter(FieldNameFormatters.LOWER_UNDERSCORE)
                 .setAppendedComments(Arrays.asList(
                         "", "Remember to play fair!"
@@ -442,6 +440,8 @@ final class GameConfig extends BukkitYamlConfiguration {
     private Location arenaCenter = new Location(
             Bukkit.getWorld("world"), 0, 128, 0
     );
+    private String ignoreMe = "1";
+    private String ignoreMeToo = "2";
 
     public GameConfig(Path path, BukkitYamlProperties properties) {
         super(path, properties);
@@ -503,6 +503,14 @@ final class User {
         this.credentials = new Credentials(username, password);
         this.email = email;
     }
+
+    public Credentials getCredentials() {
+        return credentials;
+    }
+
+    public String getEmail() {
+        return email;
+    }
 }
 
 @ConfigurationElement
@@ -516,6 +524,14 @@ final class Credentials {
     public Credentials(String username, String password) {
         this.username = username;
         this.password = password;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }
 ```

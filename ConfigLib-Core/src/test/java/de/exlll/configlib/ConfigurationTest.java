@@ -3,8 +3,6 @@ package de.exlll.configlib;
 import de.exlll.configlib.configs.mem.InSharedMemoryConfiguration;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -14,7 +12,7 @@ class ConfigurationTest {
     }
 
     @Test
-    void configExecutesPreSaveHook() throws IOException {
+    void configExecutesPreSaveHook() {
         class A extends TestHook {
             int i = 0;
 
@@ -31,7 +29,7 @@ class ConfigurationTest {
     }
 
     @Test
-    void configExecutesPostLoadHook() throws IOException {
+    void configExecutesPostLoadHook() {
         class A extends TestHook {
             int i = 0;
 

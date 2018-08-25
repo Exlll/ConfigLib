@@ -46,26 +46,6 @@ public final class TestSubSubClass {
         return asMap;
     }
 
-    public int getPrimInt() {
-        return primInt;
-    }
-
-    public String getString() {
-        return string;
-    }
-
-    public List<String> getList() {
-        return list;
-    }
-
-    public Set<String> getSet() {
-        return set;
-    }
-
-    public Map<String, Integer> getMap() {
-        return map;
-    }
-
     @Override
     public String toString() {
         return "TestSubSubClass{" +

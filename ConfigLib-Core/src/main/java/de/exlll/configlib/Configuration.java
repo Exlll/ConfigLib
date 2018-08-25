@@ -1,10 +1,13 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.filter.FieldFilter;
+import de.exlll.configlib.filter.FieldFilters;
 import de.exlll.configlib.format.FieldNameFormatter;
 import de.exlll.configlib.format.FieldNameFormatters;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Parent class of all configurations.
@@ -103,6 +106,7 @@ public abstract class Configuration<C extends Configuration<C>> {
      */
     protected static class Properties {
         private final FieldNameFormatter formatter;
+        private final FieldFilter filter;
 
         /**
          * Constructs a new {@code Properties} object.
@@ -112,6 +116,7 @@ public abstract class Configuration<C extends Configuration<C>> {
          */
         protected Properties(Builder<?> builder) {
             this.formatter = builder.formatter;
+            this.filter = builder.filter;
         }
 
         static Builder<?> builder() {
@@ -133,12 +138,22 @@ public abstract class Configuration<C extends Configuration<C>> {
         }
 
         /**
+         * Returns the {@code FieldFilter} of a configuration
+         *
+         * @return {@code FieldFilter} of a configuration
+         */
+        public final FieldFilter getFilter() {
+            return filter;
+        }
+
+        /**
          * Builder classes are used for constructing {@code Properties}.
          *
          * @param <B> type of the builder
          */
         protected static abstract class Builder<B extends Builder<B>> {
             private FieldNameFormatter formatter = FieldNameFormatters.IDENTITY;
+            private FieldFilter filter = FieldFilters.DEFAULT;
 
             protected Builder() {}
 
@@ -154,10 +169,27 @@ public abstract class Configuration<C extends Configuration<C>> {
              *
              * @param formatter formatter for configuration
              * @return this {@code Builder}
-             * @throws NullPointerException if {@code formatter ist null}
+             * @throws NullPointerException if {@code formatter} is null
              */
             public final B setFormatter(FieldNameFormatter formatter) {
                 this.formatter = Objects.requireNonNull(formatter);
+                return getThis();
+            }
+
+            /**
+             * Composes the given {@link FieldFilter} with the
+             * {@code FieldFilters.DEFAULT} instance and any other
+             * previously added filters.
+             * <p>
+             * The added filter is not evaluated for a field if the field has
+             * already been filtered or by some other {@code FieldFilter}.
+             *
+             * @param filter field filter that is added
+             * @return this {@code Builder}
+             * @throws NullPointerException if {@code filter} is null
+             */
+            public final B addFilter(FieldFilter filter) {
+                this.filter = this.filter.and(filter);
                 return getThis();
             }
 

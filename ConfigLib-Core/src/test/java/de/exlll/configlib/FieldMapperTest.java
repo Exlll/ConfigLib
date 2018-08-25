@@ -1,7 +1,6 @@
 package de.exlll.configlib;
 
 import de.exlll.configlib.Converter.ConversionInfo;
-import de.exlll.configlib.FieldMapper.FieldFilter;
 import de.exlll.configlib.annotation.ElementType;
 import de.exlll.configlib.annotation.NoConvert;
 import de.exlll.configlib.classes.TestClass;
@@ -12,13 +11,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import static de.exlll.configlib.Converters.ENUM_CONVERTER;
 import static de.exlll.configlib.Converters.SIMPLE_TYPE_CONVERTER;
@@ -32,9 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings({"unused", "ThrowableNotThrown"})
 class FieldMapperTest {
-    private static final Class<ClassWithFinalStaticTransientField> CWFSTF =
-            ClassWithFinalStaticTransientField.class;
-    private static final Predicate<Field> filter = FieldFilter.DEFAULT;
     private static final TestClass t = TestClass.TEST_VALUES;
     private static final Configuration.Properties DEFAULT =
             Configuration.Properties.builder().build();
@@ -374,45 +368,6 @@ class FieldMapperTest {
         assertThat(instanceToMap(new Object()), instanceOf(LinkedHashMap.class));
     }
 
-    @Test
-    void filteredFieldsFiltersFields() throws NoSuchFieldException {
-        List<Field> fields = FieldFilter.filterFields(CWFSTF);
-        assertThat(fields.size(), is(0));
-
-        class A {
-            private int i;
-            private final int j = 0;
-            private transient int k;
-        }
-        fields = FieldFilter.filterFields(A.class);
-        assertThat(fields.size(), is(1));
-        assertThat(fields.get(0), is(A.class.getDeclaredField("i")));
-    }
-
-    @Test
-    void defaultFilterFiltersSyntheticFields() {
-        for (Field field : ClassWithSyntheticField.class.getDeclaredFields()) {
-            assertThat(field.isSynthetic(), is(true));
-            assertThat(filter.test(field), is(false));
-        }
-    }
-
-    @Test
-    void defaultFilterFiltersFinalStaticTransientFields()
-            throws NoSuchFieldException {
-        Field field = CWFSTF.getDeclaredField("i");
-        assertThat(Modifier.isFinal(field.getModifiers()), is(true));
-        assertThat(filter.test(field), is(false));
-
-        field = CWFSTF.getDeclaredField("j");
-        assertThat(Modifier.isStatic(field.getModifiers()), is(true));
-        assertThat(filter.test(field), is(false));
-
-        field = CWFSTF.getDeclaredField("k");
-        assertThat(Modifier.isTransient(field.getModifiers()), is(true));
-        assertThat(filter.test(field), is(false));
-    }
-
     private static Converter<Object, Object> converter = SIMPLE_TYPE_CONVERTER;
 
     private static ConversionInfo newInfo(String fieldName, Object o) {
@@ -479,8 +434,8 @@ class FieldMapperTest {
         for (String cls : classes) {
             for (Number number : numbers) {
                 ConversionInfo info = newInfo(cls);
-                Object conv = converter.convertFrom(number, info);
-                assertThat(conv, instanceOf(info.getFieldType()));
+                Object converted = converter.convertFrom(number, info);
+                assertThat(converted, instanceOf(info.getFieldType()));
             }
         }
     }
@@ -521,11 +476,30 @@ class FieldMapperTest {
         assertThat(a.ex, sameInstance(cls));
     }
 
-    private static final class ClassWithFinalStaticTransientField {
-        private final int i = 0;
-        private static int j;
-        private transient int k;
-    }
+    @Test
+    void fieldMapperUsesFiltersAdded() {
+        class A {
+            private int a = 1;
+            private int b = 2;
+            private int c = 3;
+            private transient int d = 4;
+            private final int e = 5;
+        }
+        Configuration.Properties props = Configuration.Properties.builder()
+                .addFilter(field -> !field.getName().equals("a"))
+                .addFilter(field -> !field.getName().equals("c"))
+                .build();
 
-    private final class ClassWithSyntheticField {}
+        Map<String, Object> map = instanceToMap(new A(), props);
+        assertThat(map.size(), is(1));
+        assertThat(map, is(mapOf("b", 2)));
+
+        map = mapOf("a", -1, "b", -2, "c", -3, "d", -4, "e", -5);
+        A a = instanceFromMap(new A(), map, props);
+        assertThat(a.a, is(1));
+        assertThat(a.b, is(-2));
+        assertThat(a.c, is(3));
+        assertThat(a.d, is(4));
+        assertThat(a.e, is(5));
+    }
 }
