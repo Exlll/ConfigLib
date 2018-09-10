@@ -31,5 +31,25 @@ public enum FieldNameFormatters implements FieldNameFormatter {
             }
             return builder.toString();
         }
+    },
+    /**
+     * Represents a {@code FieldNameFormatter} that transforms <i>camelCase</i> to
+     * <i>UPPER_UNDERSCORE</i>.
+     * <p>
+     * For example, <i>myPrivateField</i> becomes <i>MY_PRIVATE_FIELD</i>.
+     */
+    UPPER_UNDERSCORE {
+        @Override
+        public String fromFieldName(String fieldName) {
+            StringBuilder builder = new StringBuilder(fieldName.length());
+            for (char c : fieldName.toCharArray()) {
+                if (Character.isLowerCase(c)) {
+                    builder.append(Character.toUpperCase(c));
+                } else if (Character.isUpperCase(c)) {
+                    builder.append('_').append(c);
+                }
+            }
+            return builder.toString();
+        }
     }
 }

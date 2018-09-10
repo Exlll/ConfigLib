@@ -21,4 +21,11 @@ class FieldNameFormattersTest {
 
         assertThat(formatter.fromFieldName("fieldNameFormat"), is("field_name_format"));
     }
+
+    @Test
+    void upperUnderscoreConvertsFromAndToCamelCase() {
+        FieldNameFormatter formatter = FieldNameFormatters.UPPER_UNDERSCORE;
+
+        assertThat(formatter.fromFieldName("fieldNameFormat"), is("FIELD_NAME_FORMAT"));
+    }
 }

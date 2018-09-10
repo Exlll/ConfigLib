@@ -1,11 +1,16 @@
 package de.exlll.configlib;
 
 import de.exlll.configlib.Converter.ConversionInfo;
+import de.exlll.configlib.FieldMapper.MappingInfo;
 import de.exlll.configlib.annotation.ElementType;
+import de.exlll.configlib.annotation.Format;
 import de.exlll.configlib.annotation.NoConvert;
 import de.exlll.configlib.classes.TestClass;
 import de.exlll.configlib.classes.TestSubClass;
 import de.exlll.configlib.classes.TestSubClassConverter;
+import de.exlll.configlib.configs.mem.InSharedMemoryConfiguration;
+import de.exlll.configlib.configs.yaml.YamlConfiguration.YamlProperties;
+import de.exlll.configlib.format.FieldNameFormatter;
 import de.exlll.configlib.format.FieldNameFormatters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +37,10 @@ class FieldMapperTest {
     private static final TestClass t = TestClass.TEST_VALUES;
     private static final Configuration.Properties DEFAULT =
             Configuration.Properties.builder().build();
+    private static final YamlProperties WITH_UPPER_FORMATTER = YamlProperties
+            .builder()
+            .setFormatter(FieldNameFormatters.UPPER_UNDERSCORE)
+            .build();
     private static final Map<String, Object> map = instanceToMap(
             TestClass.TEST_VALUES, DEFAULT
     );
@@ -41,7 +50,8 @@ class FieldMapperTest {
     @BeforeEach
     void setUp() {
         tmp = new TestClass();
-        FieldMapper.instanceFromMap(tmp, map, DEFAULT);
+        MappingInfo mappingInfo = MappingInfo.from(tmp);
+        FieldMapper.instanceFromMap(tmp, map, mappingInfo);
     }
 
     @Test
@@ -377,7 +387,8 @@ class FieldMapperTest {
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
         }
-        return ConversionInfo.of(field, o, null, null);
+        MappingInfo mappingInfo = new MappingInfo(null, WITH_UPPER_FORMATTER);
+        return ConversionInfo.from(field, o, mappingInfo);
     }
 
     private static ConversionInfo newInfo(String fieldName) {
@@ -501,5 +512,81 @@ class FieldMapperTest {
         assertThat(a.c, is(3));
         assertThat(a.d, is(4));
         assertThat(a.e, is(5));
+    }
+
+    @Test
+    void selectFieldNameFormatterReturnsPropertiesIfNoFormatAnnotation() {
+        class A extends InSharedMemoryConfiguration {
+            protected A() { super(WITH_UPPER_FORMATTER); }
+        }
+        A a = new A();
+        FieldNameFormatter fnf = FieldMapper.selectFormatter(MappingInfo.from(a));
+        assertThat(fnf, sameInstance(FieldNameFormatters.UPPER_UNDERSCORE));
+    }
+
+    @Test
+    void selectFieldNameFormatterReturnsIfFormatAnnotation() {
+        @Format(FieldNameFormatters.LOWER_UNDERSCORE)
+        class A extends InSharedMemoryConfiguration {
+            protected A() { super(WITH_UPPER_FORMATTER); }
+        }
+        @Format(formatterClass = MyFormatter.class)
+        class B extends InSharedMemoryConfiguration {
+            protected B() { super(WITH_UPPER_FORMATTER); }
+        }
+        A a = new A();
+        FieldNameFormatter fnf = FieldMapper.selectFormatter(MappingInfo.from(a));
+        assertThat(fnf, sameInstance(FieldNameFormatters.LOWER_UNDERSCORE));
+
+        B b = new B();
+        fnf = FieldMapper.selectFormatter(MappingInfo.from(b));
+        assertThat(fnf, instanceOf(MyFormatter.class));
+    }
+
+    @Test
+    void formatterClassTakesPrecedence() {
+        @Format(
+                value = FieldNameFormatters.LOWER_UNDERSCORE,
+                formatterClass = MyFormatter.class
+        )
+        class A extends InSharedMemoryConfiguration {
+            protected A() { super(WITH_UPPER_FORMATTER); }
+        }
+        A a = new A();
+        FieldNameFormatter fnf = FieldMapper.selectFormatter(MappingInfo.from(a));
+        assertThat(fnf, instanceOf(MyFormatter.class));
+    }
+
+    private static final class MyFormatter implements FieldNameFormatter {
+        @Override
+        public String fromFieldName(String fieldName) {
+            return fieldName;
+        }
+    }
+
+    @Test
+    void fieldMapperUsesSelectFieldNameFormatter() {
+        @Format(FieldNameFormatters.LOWER_UNDERSCORE)
+        class A extends InSharedMemoryConfiguration {
+            private int abc = 1;
+            private int eFg = 2;
+            private int hIJ = 3;
+
+            protected A() { super(WITH_UPPER_FORMATTER); }
+        }
+
+        A a = new A();
+        MappingInfo mappingInfo = MappingInfo.from(a);
+        Map<String, Object> map = FieldMapper.instanceToMap(a, mappingInfo);
+
+        assertThat(map.get("abc"), is(1));
+        assertThat(map.get("e_fg"), is(2));
+        assertThat(map.get("h_i_j"), is(3));
+
+        map = mapOf("abc", 4, "e_fg", 5, "h_i_j", 6);
+        FieldMapper.instanceFromMap(a, map, mappingInfo);
+        assertThat(a.abc, is(4));
+        assertThat(a.eFg, is(5));
+        assertThat(a.hIJ, is(6));
     }
 }

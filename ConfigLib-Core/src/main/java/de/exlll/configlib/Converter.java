@@ -1,5 +1,6 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.FieldMapper.MappingInfo;
 import de.exlll.configlib.annotation.ElementType;
 
 import java.lang.reflect.Field;
@@ -10,21 +11,21 @@ import java.lang.reflect.Field;
  * <p>
  * Implementations must have a no-args constructor.
  *
- * @param <F> the type of the field value
- * @param <T> the type of the converted value
+ * @param <S> the source type
+ * @param <T> the target type
  */
-public interface Converter<F, T> {
+public interface Converter<S, T> {
     /**
      * Converts a field value to an object that can be stored by a
      * {@code ConfigurationSource}.
      * <p>
-     * If this method returns null, a {@code ConfigurationException} will be thrown.
+     * If this method returns null, a {@code ConfigurationException} is thrown.
      *
      * @param element field value that is converted
      * @param info    information about the current conversion step
      * @return converted field value
      */
-    T convertTo(F element, ConversionInfo info);
+    T convertTo(S element, ConversionInfo info);
 
     /**
      * Executes some action before the field value is converted.
@@ -43,7 +44,7 @@ public interface Converter<F, T> {
      * @param info    information about the current conversion step
      * @return the element's original representation
      */
-    F convertFrom(T element, ConversionInfo info);
+    S convertFrom(T element, ConversionInfo info);
 
     /**
      * Executes some action before the converted field value is converted back
@@ -58,6 +59,7 @@ public interface Converter<F, T> {
      * configuration, configuration element, and the conversion step.
      */
     final class ConversionInfo {
+        private final MappingInfo mappingInfo;
         private final Field field;
         private final Object instance;
         private final Object value;
@@ -70,8 +72,11 @@ public interface Converter<F, T> {
         private final int nestingLevel;
         private int currentNestingLevel;
 
-        private ConversionInfo(Field field, Object instance, Object mapValue,
-                               Configuration.Properties props) {
+        private ConversionInfo(
+                Field field, Object instance, Object mapValue,
+                MappingInfo mappingInfo
+        ) {
+            this.mappingInfo = mappingInfo;
             this.field = field;
             this.instance = instance;
             this.value = Reflect.getValue(field, instance);
@@ -79,7 +84,7 @@ public interface Converter<F, T> {
             this.fieldType = field.getType();
             this.valueType = value.getClass();
             this.fieldName = field.getName();
-            this.props = props;
+            this.props = mappingInfo.getProperties();
             this.elementType = elementType(field);
             this.nestingLevel = nestingLevel(field);
         }
@@ -100,14 +105,17 @@ public interface Converter<F, T> {
             return -1;
         }
 
-        static ConversionInfo of(Field field, Object instance,
-                                 Configuration.Properties props) {
-            return new ConversionInfo(field, instance, null, props);
+        static ConversionInfo from(
+                Field field, Object instance, MappingInfo mappingInfo
+        ) {
+            return new ConversionInfo(field, instance, null, mappingInfo);
         }
 
-        static ConversionInfo of(Field field, Object instance, Object mapValue,
-                                 Configuration.Properties props) {
-            return new ConversionInfo(field, instance, mapValue, props);
+        static ConversionInfo from(
+                Field field, Object instance, Object mapValue,
+                MappingInfo mappingInfo
+        ) {
+            return new ConversionInfo(field, instance, mapValue, mappingInfo);
         }
 
         /**
@@ -214,6 +222,10 @@ public interface Converter<F, T> {
 
         void incCurrentNestingLevel() {
             currentNestingLevel++;
+        }
+
+        MappingInfo getMappingInfo() {
+            return this.mappingInfo;
         }
     }
 }

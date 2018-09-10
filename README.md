@@ -293,6 +293,16 @@ YamlProperties properties = YamlProperties.builder()
                 .build();
 ```
 
+Alternatively, you can annotate your `Configuration` class with the `@Format` annotation. The `FieldNameFormatter`
+returned by this annotation takes precedence over the `FieldNameFormatter` returned by a `Properties` object.
+
+```java
+@Format(FieldNameFormatters.UPPER_UNDERSCORE)
+class MyConfiguration extends YamlConfiguration {
+   // ...
+}
+```
+
 Note: You should neither remove nor replace a formatter with one that has a different formatting style because this
 could break existing configurations.
 
@@ -465,14 +475,14 @@ public final class DatabasePlugin extends JavaPlugin {
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
 </dependency>
 ```
 #### Gradle
@@ -484,9 +494,9 @@ repositories {
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.1.0'
+    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.2.0'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.1.0'
+    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.2.0'
 }
 ```

@@ -24,7 +24,17 @@ import java.lang.annotation.Target;
 @Target(java.lang.annotation.ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ElementType {
+    /**
+     * Returns the type of elements a {@code Collection} or {@code Map} contains.
+     *
+     * @return type of elements.
+     */
     Class<?> value();
 
+    /**
+     * Returns the nesting level
+     *
+     * @return nesting level
+     */
     int nestingLevel() default 0;
 }

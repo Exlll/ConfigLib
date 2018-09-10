@@ -1,5 +1,6 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.FieldMapper.MappingInfo;
 import de.exlll.configlib.annotation.ConfigurationElement;
 
 import java.util.Map;
@@ -72,7 +73,8 @@ public class FieldMapperHelpers {
     public static Map<String, Object> instanceToMap(
             Object o, Configuration.Properties props
     ) {
-        return FieldMapper.instanceToMap(o, props);
+        MappingInfo mappingInfo = new MappingInfo(null, props);
+        return FieldMapper.instanceToMap(o, mappingInfo);
     }
 
     public static <T> T instanceFromMap(T o, Map<String, Object> map) {
@@ -82,7 +84,8 @@ public class FieldMapperHelpers {
     public static <T> T instanceFromMap(
             T o, Map<String, Object> map, Configuration.Properties props
     ) {
-        FieldMapper.instanceFromMap(o, map, props);
+        MappingInfo mappingInfo = new MappingInfo(null, props);
+        FieldMapper.instanceFromMap(o, map, mappingInfo);
         return o;
     }
 }

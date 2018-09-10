@@ -2,6 +2,7 @@ package de.exlll.configlib;
 
 import de.exlll.configlib.annotation.ConfigurationElement;
 import de.exlll.configlib.annotation.Convert;
+import de.exlll.configlib.annotation.Format;
 import de.exlll.configlib.annotation.NoConvert;
 
 import java.lang.reflect.Constructor;
@@ -37,22 +38,12 @@ enum Reflect {
         return cls.isEnum();
     }
 
-    static boolean hasConverter(Field field) {
-        return field.isAnnotationPresent(Convert.class);
-    }
-
-    static boolean hasNoConvert(Field field) {
-        return field.isAnnotationPresent(NoConvert.class);
-    }
-
     static <T> T newInstance(Class<T> cls) {
         try {
             Constructor<T> constructor = cls.getDeclaredConstructor();
             constructor.setAccessible(true);
             return constructor.newInstance();
         } catch (NoSuchMethodException e) {
-            /* This exception should not be thrown because we check
-             * the presence of a no-args constructor elsewhere. */
             String msg = "Class " + cls.getSimpleName() + " doesn't have a " +
                     "no-args constructor.";
             throw new ConfigurationException(msg, e);
@@ -63,8 +54,6 @@ enum Reflect {
                     " not accessible.";
             throw new ConfigurationException(msg, e);
         } catch (InstantiationException e) {
-            /* This exception should not be thrown because
-             * we call this method only for concrete types. */
             String msg = "Class " + cls.getSimpleName() + " not instantiable.";
             throw new ConfigurationException(msg, e);
         } catch (InvocationTargetException e) {
@@ -96,6 +85,18 @@ enum Reflect {
                     "on object " + inst + ".";
             throw new ConfigurationException(msg, e);
         }
+    }
+
+    static boolean hasConverter(Field field) {
+        return field.isAnnotationPresent(Convert.class);
+    }
+
+    static boolean hasNoConvert(Field field) {
+        return field.isAnnotationPresent(NoConvert.class);
+    }
+
+    static boolean hasFormatter(Class<?> cls) {
+        return cls.isAnnotationPresent(Format.class);
     }
 
     static boolean isConfigurationElement(Class<?> cls) {

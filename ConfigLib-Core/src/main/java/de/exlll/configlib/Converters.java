@@ -366,7 +366,7 @@ final class Converters {
             return o -> {
                 Map<String, Object> map = toTypeMap(o, null);
                 Object inst = Reflect.newInstance(info.getElementType());
-                FieldMapper.instanceFromMap(inst, map, info.getProperties());
+                FieldMapper.instanceFromMap(inst, map, info.getMappingInfo());
                 return inst;
             };
         } else if ((element instanceof String) && currentLevelSameAsExpected) {
@@ -524,7 +524,7 @@ final class Converters {
 
         @Override
         public Object convertTo(Object element, ConversionInfo info) {
-            return FieldMapper.instanceToMap(element, info.getProperties());
+            return FieldMapper.instanceToMap(element, info.getMappingInfo());
         }
 
         @Override
@@ -538,7 +538,7 @@ final class Converters {
             checkElementIsConvertibleToConfigurationElement(element, info);
             Object newInstance = Reflect.newInstance(info.getValueType());
             Map<String, Object> typeMap = toTypeMap(element, info.getFieldName());
-            FieldMapper.instanceFromMap(newInstance, typeMap, info.getProperties());
+            FieldMapper.instanceFromMap(newInstance, typeMap, info.getMappingInfo());
             return newInstance;
         }
 

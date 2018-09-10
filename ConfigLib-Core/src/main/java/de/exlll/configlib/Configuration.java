@@ -1,5 +1,6 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.FieldMapper.MappingInfo;
 import de.exlll.configlib.filter.FieldFilter;
 import de.exlll.configlib.filter.FieldFilters;
 import de.exlll.configlib.format.FieldNameFormatter;
@@ -45,7 +46,9 @@ public abstract class Configuration<C extends Configuration<C>> {
     public final void save() {
         try {
             preSave();
-            Map<String, Object> map = FieldMapper.instanceToMap(this, props);
+            MappingInfo mappingInfo = MappingInfo.from(this);
+            Map<String, Object> map = FieldMapper
+                    .instanceToMap(this, mappingInfo);
             getSource().saveConfiguration(getThis(), map);
         } catch (IOException e) {
             throw new ConfigurationStoreException(e);
@@ -63,7 +66,8 @@ public abstract class Configuration<C extends Configuration<C>> {
     public final void load() {
         try {
             Map<String, Object> map = getSource().loadConfiguration(getThis());
-            FieldMapper.instanceFromMap(this, map, props);
+            MappingInfo mappingInfo = MappingInfo.from(this);
+            FieldMapper.instanceFromMap(this, map, mappingInfo);
             postLoad();
         } catch (IOException e) {
             throw new ConfigurationStoreException(e);
@@ -99,6 +103,10 @@ public abstract class Configuration<C extends Configuration<C>> {
      * The default implementation of this method does nothing.
      */
     protected void postLoad() {}
+
+    Properties getProperties() {
+        return props;
+    }
 
     /**
      * Instances of a {@code Properties} class are used to configure different
