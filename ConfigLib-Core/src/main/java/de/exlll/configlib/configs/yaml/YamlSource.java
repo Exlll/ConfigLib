@@ -139,10 +139,12 @@ final class YamlSource implements ConfigurationSource<YamlConfiguration> {
                 if (dumpLine.startsWith(prefix) || (lData.startsWith(splitPrefix[0]) && dumpLineWithTrim.startsWith(splitPrefix[splitPrefix.length - 1]))) {
                     String newDumpLine = dumpLine.replaceAll("^\\s+", "");
                     int count = dumpLine.length() - newDumpLine.length();
-                    for (int i = 0; i < count; i++) {
-                        builder.append(" ");
+                    String[] valueSplit = entry.getValue().split("\n");
+                    for (String val : valueSplit) {
+                        int updateCount = val.length() + count;
+                        char fill = ' ';
+                        builder.append(new String(new char[updateCount - val.length()]).replace('\0', fill)).append(val).append("\n");
                     }
-                    builder.append(entry.getValue()).append('\n');
                     break;
                 }
             }
