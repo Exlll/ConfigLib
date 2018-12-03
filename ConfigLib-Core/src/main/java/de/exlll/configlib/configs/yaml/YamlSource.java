@@ -126,6 +126,9 @@ final class YamlSource implements ConfigurationSource<YamlConfiguration> {
             Matcher spacesMatch = SPACES_PATTERN.matcher(dumpLine);
             String value = matcher.group(2);
             if (value.equals("") || value.isEmpty()) {
+                if (!spacesMatch.matches()) {
+                    data = new StringBuilder();
+                }
                 data.append(matcher.group(1)).append(".");
             } else {
                 if (!spacesMatch.matches()) {
