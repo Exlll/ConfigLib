@@ -8,10 +8,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,7 +58,8 @@ final class YamlSource implements ConfigurationSource<YamlConfiguration> {
     }
 
     private static final class CommentAdder {
-        private static final Pattern PREFIX_PATTERN = Pattern.compile("^\\w+:.*");
+        private static final Pattern PREFIX_PATTERN = Pattern.compile("(^\\w+):(.*)");
+        private static final Pattern SPACES_PATTERN = Pattern.compile("^[ \\s\\n]+.*");
         private final String dump;
         private final Comments comments;
         private final YamlComments yamlComments;
@@ -113,26 +111,50 @@ final class YamlSource implements ConfigurationSource<YamlConfiguration> {
 
         private void addDumpLines(List<String> dumpLines) {
             for (String dumpLine : dumpLines) {
-                Matcher m = PREFIX_PATTERN.matcher(dumpLine);
+                Matcher m = PREFIX_PATTERN.matcher(trimStart(dumpLine));
                 if (m.matches()) {
-                    addFieldComment(dumpLine);
+                    addFieldComment(dumpLine, trimStart(dumpLine), m);
                 }
                 builder.append(dumpLine).append('\n');
             }
         }
 
-        private void addFieldComment(String dumpLine) {
-            Map<String, String> map = yamlComments.fieldCommentAsStrings(
-                    props.getFormatter()
-            );
+        private StringBuilder data = new StringBuilder();
+
+        private void addFieldComment(String dumpLine, String dumpLineWithTrim, Matcher matcher) {
+            Map<String, String> map = yamlComments.fieldCommentAsStrings(props.getFormatter());
+            Matcher spacesMatch = SPACES_PATTERN.matcher(dumpLine);
+            String value = matcher.group(2);
+            if (value.equals("") || value.isEmpty()) {
+                if (!spacesMatch.matches()) {
+                    data = new StringBuilder();
+                }
+                data.append(matcher.group(1)).append(".");
+            } else {
+                if (!spacesMatch.matches()) {
+                    data = new StringBuilder();
+                }
+            }
             for (Map.Entry<String, String> entry : map.entrySet()) {
                 String prefix = entry.getKey() + ":";
-                if (dumpLine.startsWith(prefix)) {
-                    builder.append(entry.getValue()).append('\n');
+                String lData = data.toString().replaceFirst("[.]$", "");
+                String[] splitPrefix = prefix.split("\\.");
+                if (dumpLine.startsWith(prefix) || (lData.startsWith(splitPrefix[0]) && dumpLineWithTrim.startsWith(splitPrefix[splitPrefix.length - 1]))) {
+                    String newDumpLine = dumpLine.replaceAll("^\\s+", "");
+                    int count = dumpLine.length() - newDumpLine.length();
+                    String[] valueSplit = entry.getValue().split("\n");
+                    for (String val : valueSplit) {
+                        int updateCount = val.length() + count;
+                        char fill = ' ';
+                        builder.append(new String(new char[updateCount - val.length()]).replace('\0', fill)).append(val).append("\n");
+                    }
                     break;
                 }
             }
+        }
 
+        private String trimStart(String value) {
+            return value.replaceFirst("^\\s+", "");
         }
     }
 }
