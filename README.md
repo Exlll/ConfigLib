@@ -2,6 +2,8 @@
 
 **A Bukkit and BungeeCord library for storing and loading configurations**
 
+> This is a continuation of the original [Exlll/ConfigLib](https://github.com/Exlll/ConfigLib). All original source code credits go to @Exlll.
+
 This library facilitates creating, saving and loading configurations by reflectively converting configuration
 instances to serializable `Map`s which can be transformed to different representations (e.g. YAML) before being
 stored to files or other storage systems.
