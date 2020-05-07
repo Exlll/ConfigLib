@@ -32,7 +32,6 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId = group
-            artifactId = packageName
             from components.java
         }
     }
