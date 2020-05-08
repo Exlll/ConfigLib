@@ -4,8 +4,10 @@ import com.google.common.jimfs.Jimfs;
 import de.exlll.configlib.Configuration;
 import de.exlll.configlib.annotation.Comment;
 import de.exlll.configlib.classes.TestClass;
+import de.exlll.configlib.classes.TestInheritedClass;
 import de.exlll.configlib.configs.yaml.YamlConfiguration.YamlProperties;
 import de.exlll.configlib.format.FieldNameFormatters;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,9 +31,15 @@ class YamlConfigurationTest {
 
     @BeforeEach
     void setUp() {
-        fileSystem = Jimfs.newFileSystem();
-        testPath = fileSystem.getPath("/a/b/test.yml");
-        configPath = fileSystem.getPath("/a/b/config.yml");
+        if (SystemUtils.IS_OS_WINDOWS) {
+            fileSystem = Jimfs.newFileSystem(com.google.common.jimfs.Configuration.windows());
+            testPath = fileSystem.getPath("C:\\a\\b\\test.yml");
+            configPath = fileSystem.getPath("C:\\a\\b\\config.yml");
+        } else {
+            fileSystem = Jimfs.newFileSystem();
+            testPath = fileSystem.getPath("/a/b/test.yml");
+            configPath = fileSystem.getPath("/a/b/config.yml");
+        }
     }
 
     @AfterEach

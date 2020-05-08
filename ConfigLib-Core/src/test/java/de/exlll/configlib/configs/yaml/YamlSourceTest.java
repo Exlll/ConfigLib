@@ -3,6 +3,7 @@ package de.exlll.configlib.configs.yaml;
 import com.google.common.jimfs.Jimfs;
 import de.exlll.configlib.classes.TestClass;
 import de.exlll.configlib.configs.yaml.YamlConfiguration.YamlProperties;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,8 +23,13 @@ class YamlSourceTest {
 
     @BeforeEach
     void setUp() {
-        fileSystem = Jimfs.newFileSystem();
-        configPath = fileSystem.getPath("/a/b/config.yml");
+        if (SystemUtils.IS_OS_WINDOWS) {
+            fileSystem = Jimfs.newFileSystem(com.google.common.jimfs.Configuration.windows());
+            configPath = fileSystem.getPath("C:\\a\\b\\test.yml");
+        } else {
+            fileSystem = Jimfs.newFileSystem();
+            configPath = fileSystem.getPath("/a/b/test.yml");
+        }
     }
 
     @AfterEach
