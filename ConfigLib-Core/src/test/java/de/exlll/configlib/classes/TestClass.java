@@ -14,76 +14,81 @@ import static de.exlll.configlib.util.CollectionFactory.*;
 
 @SuppressWarnings("FieldCanBeLocal")
 @Comment({"A", "", "B", "C"})
-public final class TestClass extends YamlConfiguration {
+public class TestClass extends YamlConfiguration {
     public static final TestClass TEST_VALUES;
 
     public enum TestEnum {
         DEFAULT, NON_DEFAULT
     }
 
-    static {
-        TEST_VALUES = new TestClass();
-        TEST_VALUES.primBool = true;
-        TEST_VALUES.refBool = true;
-        TEST_VALUES.primByte = 1;
-        TEST_VALUES.refByte = 2;
-        TEST_VALUES.primChar = 'c';
-        TEST_VALUES.refChar = 'd';
-        TEST_VALUES.primShort = 3;
-        TEST_VALUES.refShort = 4;
-        TEST_VALUES.primInt = 5;
-        TEST_VALUES.refInt = 6;
-        TEST_VALUES.primLong = 7;
-        TEST_VALUES.refLong = 8L;
-        TEST_VALUES.primFloat = 9.0f;
-        TEST_VALUES.refFloat = 10.0f;
-        TEST_VALUES.primDouble = 11.0;
-        TEST_VALUES.refDouble = 12.0;
-        TEST_VALUES.string = "string";
+    public static final TestClass initTestClass(TestClass testClass) {
+        testClass.primBool = true;
+        testClass.refBool = true;
+        testClass.primByte = 1;
+        testClass.refByte = 2;
+        testClass.primChar = 'c';
+        testClass.refChar = 'd';
+        testClass.primShort = 3;
+        testClass.refShort = 4;
+        testClass.primInt = 5;
+        testClass.refInt = 6;
+        testClass.primLong = 7;
+        testClass.refLong = 8L;
+        testClass.primFloat = 9.0f;
+        testClass.refFloat = 10.0f;
+        testClass.primDouble = 11.0;
+        testClass.refDouble = 12.0;
+        testClass.string = "string";
         /* other types */
-        TEST_VALUES.subClass = TestSubClass.TEST_VALUES;
+        testClass.subClass = TestSubClass.TEST_VALUES;
         /* containers of simple types */
-        TEST_VALUES.ints = setOf(1, 2, 3);
-        TEST_VALUES.strings = listOf("a", "b", "c");
-        TEST_VALUES.doubleByBool = mapOf(true, 1.0, false, 2.0);
+        testClass.ints = setOf(1, 2, 3);
+        testClass.strings = listOf("a", "b", "c");
+        testClass.doubleByBool = mapOf(true, 1.0, false, 2.0);
         /* containers of other types */
-        TEST_VALUES.subClassSet = setOf(
+        testClass.subClassSet = setOf(
                 TestSubClass.of(1, "1"),
                 TestSubClass.of(2, "2")
         );
-        TEST_VALUES.subClassList = listOf(
+        testClass.subClassList = listOf(
                 TestSubClass.of(3, "3"),
                 TestSubClass.of(4, "4")
         );
-        TEST_VALUES.subClassMap = mapOf(
+        testClass.subClassMap = mapOf(
                 "5", TestSubClass.of(5, "5"),
                 "6", TestSubClass.of(6, "6")
         );
         /* nested containers of simple types */
-        TEST_VALUES.listsList = listOf(
+        testClass.listsList = listOf(
                 listOf(1, 2), listOf(3, 4)
         );
-        TEST_VALUES.setsSet = setOf(
+        testClass.setsSet = setOf(
                 setOf("a", "b"), setOf("c", "d")
         );
-        TEST_VALUES.mapsMap = mapOf(
+        testClass.mapsMap = mapOf(
                 1, mapOf("1", 1), 2, mapOf("2", 2)
         );
         /* nested containers of custom types */
-        TEST_VALUES.subClassListsList = listOf(
+        testClass.subClassListsList = listOf(
                 listOf(TestSubClass.of(7, "7"), TestSubClass.of(8, "8"))
         );
-        TEST_VALUES.subClassSetsSet = setOf(setOf(
+        testClass.subClassSetsSet = setOf(setOf(
                 TestSubClass.of(9, "9"), TestSubClass.of(10, "10")
         ));
-        TEST_VALUES.subClassMapsMap = mapOf(
+        testClass.subClassMapsMap = mapOf(
                 1, mapOf("1", TestSubClass.of(11, "11")),
                 2, mapOf("2", TestSubClass.of(12, "12"))
         );
-        TEST_VALUES.e1 = TestEnum.NON_DEFAULT;
-        TEST_VALUES.enums = listOf(TestEnum.DEFAULT, TestEnum.NON_DEFAULT);
-        TEST_VALUES.converterSubClass = TestSubClass.of(13, "13");
-        TEST_VALUES.excludedClass = TestExcludedClass.TEST_VALUES;
+        testClass.e1 = TestEnum.NON_DEFAULT;
+        testClass.enums = listOf(TestEnum.DEFAULT, TestEnum.NON_DEFAULT);
+        testClass.converterSubClass = TestSubClass.of(13, "13");
+        testClass.excludedClass = TestExcludedClass.TEST_VALUES;
+
+        return testClass;
+    }
+
+    static {
+        TEST_VALUES = initTestClass(new TestClass());
     }
 
     /* not converted */
