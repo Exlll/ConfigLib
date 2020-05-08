@@ -3,8 +3,8 @@ package de.exlll.configlib;
 import de.exlll.configlib.configs.mem.InSharedMemoryConfiguration;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 class ConfigurationTest {
     private static class TestHook extends InSharedMemoryConfiguration {

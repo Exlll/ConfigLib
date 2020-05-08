@@ -4,7 +4,6 @@ import de.exlll.configlib.annotation.Convert;
 import de.exlll.configlib.annotation.ElementType;
 import de.exlll.configlib.classes.TestSubClass;
 import de.exlll.configlib.classes.TestSubClassConverter;
-import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -15,8 +14,8 @@ import static de.exlll.configlib.FieldMapperHelpers.*;
 import static de.exlll.configlib.util.CollectionFactory.listOf;
 import static de.exlll.configlib.util.CollectionFactory.mapOf;
 import static de.exlll.configlib.util.CollectionFactory.setOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 @SuppressWarnings({"unused", "ThrowableNotThrown"})
 public class FieldMapperConverterTest {
@@ -353,7 +352,7 @@ public class FieldMapperConverterTest {
 
         String msg = "Cannot initialize an enum element of list 'l' because there " +
                 "is no enum constant 'Q'.\nValid constants are: [S, T]";
-        MatcherAssert.assertThat(cause.getMessage(), is(msg));
+        assertThat(cause.getMessage(), is(msg));
     }
 
     @Test
@@ -370,7 +369,7 @@ public class FieldMapperConverterTest {
 
         String msg = "Cannot initialize an enum element of set 's' because there " +
                 "is no enum constant 'Q'.\nValid constants are: [S, T]";
-        MatcherAssert.assertThat(cause.getMessage(), is(msg));
+        assertThat(cause.getMessage(), is(msg));
     }
 
     @Test
@@ -387,6 +386,6 @@ public class FieldMapperConverterTest {
 
         String msg = "Cannot initialize an enum element of map 'm' because there " +
                 "is no enum constant 'Q'.\nValid constants are: [S, T]";
-        MatcherAssert.assertThat(cause.getMessage(), is(msg));
+        assertThat(cause.getMessage(), is(msg));
     }
 }

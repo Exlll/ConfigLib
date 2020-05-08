@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 
 import static de.exlll.configlib.util.CollectionFactory.listOf;
 import static de.exlll.configlib.util.CollectionFactory.mapOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class CommentsTest {
 

@@ -6,8 +6,8 @@ import de.exlll.configlib.annotation.ConfigurationElement;
 import java.util.Map;
 
 import static de.exlll.configlib.configs.yaml.YamlConfiguration.YamlProperties.DEFAULT;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FieldMapperHelpers {

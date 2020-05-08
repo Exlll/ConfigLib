@@ -17,9 +17,9 @@ import java.nio.file.Path;
 
 import static de.exlll.configlib.util.CollectionFactory.listOf;
 import static java.util.stream.Collectors.joining;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings("unused")
