@@ -56,7 +56,7 @@ jobs:
       - uses: actions/cache@v1
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
@@ -74,9 +74,7 @@ jobs:
 
       - name: Release
         run: |
-          npm install
-          npm run semantic-release
+          yarn install
+          yarn semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ORG_GRADLE_PROJECT_artifactory_user: ${{ secrets.ARTIFACTORY_USER }}
-          ORG_GRADLE_PROJECT_artifactory_password: ${{ secrets.ARTIFACTORY_PASSWORD }}

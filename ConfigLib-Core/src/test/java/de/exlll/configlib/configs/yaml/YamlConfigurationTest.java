@@ -97,6 +97,15 @@ class YamlConfigurationTest {
         assertThat(configuration, is((TestClass.TEST_VALUES)));
     }
 
+    @Test
+    void loadLoadsInheritedConfig() {
+        setupConfigPath();
+        Configuration configuration = new TestInheritedClass(configPath);
+        assertThat(configuration, is(not(TestInheritedClass.TEST_VALUES)));
+        configuration.load();
+        assertThat(configuration, is((TestInheritedClass.TEST_VALUES)));
+    }
+
     private void setupConfigPath() {
         Configuration configuration = new TestClass(
                 configPath, TestClass.TEST_VALUES

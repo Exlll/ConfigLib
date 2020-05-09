@@ -37,16 +37,11 @@ publishing {
     }
     repositories {
         maven {
-            def releasesRepoUrl = "${artifactory_contextUrl}/libs-release-local"
-            def snapshotsRepoUrl = "${artifactory_contextUrl}/libs-snapshot-local"
-            if (version.endsWith('SNAPSHOT')) {
-                url = snapshotsRepoUrl
-            } else {
-                url = releasesRepoUrl
-            }
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/${project.findProperty("GITHUB_REPOSITORY")?: System.getenv("GITHUB_REPOSITORY")}")
             credentials {
-                username = "${artifactory_user}"
-                password = "${artifactory_password}"
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
             }
         }
     }
