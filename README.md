@@ -1,8 +1,12 @@
+[![Build Status](https://github.com/Exlll/ConfigLib/workflows/Build/badge.svg)](https://github.com/Exlll/ConfigLib/actions?query=workflow%3ABuild)
+[![codecov](https://codecov.io/gh/Exlll/ConfigLib/branch/master/graph/badge.svg)](https://codecov.io/gh/Exlll/ConfigLib)
+[![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/Exlll/ConfigLib?include_prereleases&label=release)](https://github.com/Exlll/ConfigLib/releases)
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+
 # ConfigLib v2
 
 **A Bukkit and BungeeCord library for storing and loading configurations**
-
-> This is a continuation of the original [Exlll/ConfigLib](https://github.com/Exlll/ConfigLib). All original source code credits go to @Exlll.
 
 This library facilitates creating, saving and loading configurations by reflectively converting configuration
 instances to serializable `Map`s which can be transformed to different representations (e.g. YAML) before being
@@ -469,36 +473,36 @@ public final class DatabasePlugin extends JavaPlugin {
 #### Maven
 ```xml
 <repository>
-    <id>net.silthus</id>
-    <url>https://artifactory.silthus.net/artifactory/releases/</url>
+    <id>de.exlll</id>
+    <url>https://maven.pkg.github.com/Exlll/ConfigLib</url>
 </repository>
 
 <!-- for Bukkit plugins -->
 <dependency>
-    <groupId>net.silthus</groupId>
+    <groupId>de.exlll</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>2.3.1</version>
+    <version>2.4.0</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
-    <groupId>net.silthus</groupId>
+    <groupId>de.exlll</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>2.3.1</version>
+    <version>2.4.0</version>
 </dependency>
 ```
 #### Gradle
 ```groovy
 repositories {
     maven {
-        url 'https://artifactory.silthus.net/artifactory/releases/'
+        url 'https://maven.pkg.github.com/Exlll/ConfigLib'
     }
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'net.silthus', name: 'configlib-bukkit', version: '2.3.1'
+    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.4.0'
 
     // for Bungee plugins
-    compile group: 'net.silthus', name: 'configlib-bungee', version: '2.3.1'
+    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.4.0'
 }
 ```
