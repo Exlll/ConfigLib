@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/Silthus/ConfigLib/compare/v2.3.1...v2.4.0) (2020-05-09)
+
+
+### Features
+
+* **release:** publish to github packages ([3d84a9f](https://github.com/Silthus/ConfigLib/commit/3d84a9f0b886ae0c63cf56f3e64f87caef27e758))
+
 ## [2.3.1](https://github.com/mcSilthus/ConfigLib/compare/v2.3.0...v2.3.1) (2020-05-07)
 
 
