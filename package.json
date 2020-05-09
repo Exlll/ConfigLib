@@ -18,7 +18,6 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "./gradlew spotlessApply && lint-staged",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },

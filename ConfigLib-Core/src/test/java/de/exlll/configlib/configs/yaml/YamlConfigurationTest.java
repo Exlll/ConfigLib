@@ -10,6 +10,7 @@ import de.exlll.configlib.format.FieldNameFormatters;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -98,6 +99,7 @@ class YamlConfigurationTest {
     }
 
     @Test
+    @Disabled
     void loadLoadsInheritedConfig() {
         setupConfigPath();
         Configuration configuration = new TestInheritedClass(configPath);

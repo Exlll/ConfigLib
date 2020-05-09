@@ -469,36 +469,36 @@ public final class DatabasePlugin extends JavaPlugin {
 #### Maven
 ```xml
 <repository>
-    <id>de.exlll</id>
-    <url>http://exlll.de:8081/artifactory/releases/</url>
+    <id>net.silthus</id>
+    <url>https://artifactory.silthus.net/artifactory/releases/</url>
 </repository>
 
 <!-- for Bukkit plugins -->
 <dependency>
-    <groupId>de.exlll</groupId>
+    <groupId>net.silthus</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>2.2.0</version>
+    <version>2.3.1</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
-    <groupId>de.exlll</groupId>
+    <groupId>net.silthus</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>2.2.0</version>
+    <version>2.3.1</version>
 </dependency>
 ```
 #### Gradle
 ```groovy
 repositories {
     maven {
-        url 'http://exlll.de:8081/artifactory/releases/'
+        url 'https://artifactory.silthus.net/artifactory/releases/'
     }
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.2.0'
+    compile group: 'net.silthus', name: 'configlib-bukkit', version: '2.3.1'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.2.0'
+    compile group: 'net.silthus', name: 'configlib-bungee', version: '2.3.1'
 }
 ```
