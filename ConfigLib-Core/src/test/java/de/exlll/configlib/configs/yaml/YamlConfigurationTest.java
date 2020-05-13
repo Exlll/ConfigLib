@@ -3,6 +3,7 @@ package de.exlll.configlib.configs.yaml;
 import com.google.common.jimfs.Jimfs;
 import de.exlll.configlib.Configuration;
 import de.exlll.configlib.annotation.Comment;
+import de.exlll.configlib.annotation.Ignore;
 import de.exlll.configlib.classes.TestClass;
 import de.exlll.configlib.classes.TestInheritedClass;
 import de.exlll.configlib.configs.yaml.YamlConfiguration.YamlProperties;
@@ -212,6 +213,20 @@ class YamlConfigurationTest {
         assertThat(readConfig(testPath), is(FORMATTED_FIELD_COMMENTS_YML));
     }
 
+    @Test
+    void doesNotSaveIgnoredField() throws IOException {
+        class A extends YamlConfiguration {
+
+            @Ignore
+            private String a = "";
+            private int b = 2;
+
+            protected A() { super (testPath); }
+        }
+        new A().save();
+        assertThat(readConfig(testPath), is(IGNORED_FIELD_YAML));
+    }
+
     private String readConfig(Path path) throws IOException {
         return Files.lines(path).collect(joining("\n"));
     }
@@ -240,6 +255,8 @@ class YamlConfigurationTest {
             "# cD\n" +
             "# dC\n" +
             "c_d: 2";
+
+    private static final String IGNORED_FIELD_YAML = "b: 2";
 
     private static final String CLASS_COMMENTS_YML = "# 1\n" +
             "\n" +
