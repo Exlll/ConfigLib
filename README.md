@@ -49,6 +49,8 @@ For fields whose types are not any of the above, you have two other options:
 This library does _not_ support `null` values. All non-primitive fields (e.g. `Integer`, `String`, `List`, `Enum`s)
 must be assigned non-null default values.
 
+> This rule does not apply to fields that are ignored with the `@Ignore` annotation.
+
 #### Adding or removing configuration options
 This library supports adding or removing configuration options by simply adding new fields to or removing old fields
 from the configuration class. The next time the `save` or `loadAndSave` method is called, the changes will be saved.
@@ -340,6 +342,23 @@ YamlProperties properties = YamlProperties.builder()
 ```
 
 Note: Changing the configuration style may break adding comments using the `@Comment` annotation.
+
+##### Exluding fields from mapping
+
+If you have some fields in your config that you don't want to load or save you can use the `@Ignore` annotation.
+This will prevent those fields from being mapped allowing you to use them internally without saving to the config.
+
+> Ignoring a field allows it to be null.
+
+```java
+class MyConfiguration extends YamlConfiguration {
+   
+    // this field will not be saved or loaded
+    // it can also be null or any other normally not allowed value
+    @Ignore
+    private String myIgnoredField; 
+}
+```
 
 ##### Adding field filters
 If your configuration has a lot of fields and you want to exclude some of these fields without
