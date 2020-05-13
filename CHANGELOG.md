@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/Silthus/ConfigLib/compare/v2.4.0...v2.5.0) (2020-05-13)
+
+
+### Features
+
+* **filter:** add `@Ignore` annotation that can filter fields ([996cecf](https://github.com/Silthus/ConfigLib/commit/996cecf8a0944f1111ec48af85e498623e631eeb)), closes [#11](https://github.com/Silthus/ConfigLib/issues/11)
+
 # [2.4.0](https://github.com/Silthus/ConfigLib/compare/v2.3.1...v2.4.0) (2020-05-09)
 
 
