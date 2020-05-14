@@ -41,6 +41,16 @@ subprojects {
 
 }
 
+buildscript {
+    if (project.hasProperty("local_script")) {
+        apply from: file(local_script + "/buildscript.local.gradle"), to: buildscript
+    }
+}
+
+if (project.hasProperty("local_script")) {
+    apply from: file(local_script + "/build.local.gradle")
+}
+
 project(':configlib-core') {
     dependencies { compile group: 'org.yaml', name: 'snakeyaml', version: '1.20' }
 }
