@@ -60,7 +60,10 @@
         {
           "assets": [
             "gradle.properties",
-            "CHANGELOG.md"
+            "CHANGELOG.md",
+            "README.md",
+            "ConfigLib-Bukkit/src/main/resources/plugin.yml",
+            "ConfigLib-Bungee/src/main/resources/plugin.yml"
           ]
         }
       ]

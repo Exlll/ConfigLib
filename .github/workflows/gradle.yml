@@ -72,6 +72,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Grant execute permission for update-versions.sh
+        run: chmod +x update-versions.sh
+
       - name: Release
         run: |
           yarn install
