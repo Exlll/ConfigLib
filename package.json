@@ -1,0 +1,75 @@
+{
+  "devDependencies": {
+    "@semantic-release/changelog": "5.0.1",
+    "@semantic-release/commit-analyzer": "8.0.1",
+    "@semantic-release/exec": "^5.0.0",
+    "@semantic-release/git": "9.0.0",
+    "@semantic-release/github": "7.0.5",
+    "@semantic-release/release-notes-generator": "9.0.1",
+    "commitlint": "8.3.5",
+    "conventional-changelog-conventionalcommits": "4.2.3",
+    "husky": "4.2.5",
+    "lint-staged": "10.2.2",
+    "prettier": "2.0.5",
+    "gradle-semantic-release-plugin": "1.4.1",
+    "semantic-release": "17.0.7",
+    "semantic-release-conventional-commits": "^2.0.1"
+  },
+  "scripts": {
+    "semantic-release": "npx semantic-release"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "lint-staged": {
+    "*.{md,json}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.{gradle,java}": [
+      "git add"
+    ]
+  },
+  "release": {
+    "analyzeCommits": "semantic-release-conventional-commits",
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      [
+        "@semantic-release/exec",
+        {
+          "prepareCmd": "./update-versions.sh ${nextRelease.version}"
+        }
+      ],
+      "gradle-semantic-release-plugin",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            {
+              "path": "**/build/libs/*.jar"
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "gradle.properties",
+            "CHANGELOG.md",
+            "README.md",
+            "ConfigLib-Bukkit/src/main/resources/plugin.yml",
+            "ConfigLib-Bungee/src/main/resources/plugin.yml"
+          ]
+        }
+      ]
+    ]
+  },
+  "engines": {
+    "node": ">=12.14"
+  }
+}

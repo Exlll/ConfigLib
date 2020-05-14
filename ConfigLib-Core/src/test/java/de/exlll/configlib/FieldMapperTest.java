@@ -4,6 +4,7 @@ import de.exlll.configlib.Converter.ConversionInfo;
 import de.exlll.configlib.FieldMapper.MappingInfo;
 import de.exlll.configlib.annotation.ElementType;
 import de.exlll.configlib.annotation.Format;
+import de.exlll.configlib.annotation.Ignore;
 import de.exlll.configlib.annotation.NoConvert;
 import de.exlll.configlib.classes.TestClass;
 import de.exlll.configlib.classes.TestSubClass;
@@ -495,6 +496,10 @@ class FieldMapperTest {
             private int c = 3;
             private transient int d = 4;
             private final int e = 5;
+            @Ignore
+            private int f = 6;
+            @Ignore
+            private String g;
         }
         Configuration.Properties props = Configuration.Properties.builder()
                 .addFilter(field -> !field.getName().equals("a"))
@@ -505,13 +510,15 @@ class FieldMapperTest {
         assertThat(map.size(), is(1));
         assertThat(map, is(mapOf("b", 2)));
 
-        map = mapOf("a", -1, "b", -2, "c", -3, "d", -4, "e", -5);
+        map = mapOf("a", -1, "b", -2, "c", -3, "d", -4, "e", -5, "f", -6, "g", "g");
         A a = instanceFromMap(new A(), map, props);
         assertThat(a.a, is(1));
         assertThat(a.b, is(-2));
         assertThat(a.c, is(3));
         assertThat(a.d, is(4));
         assertThat(a.e, is(5));
+        assertThat(a.f, is(6));
+        assertThat(a.g, isEmptyOrNullString());
     }
 
     @Test

@@ -1,3 +1,9 @@
+[![Build Status](https://github.com/Exlll/ConfigLib/workflows/Build/badge.svg)](https://github.com/Exlll/ConfigLib/actions?query=workflow%3ABuild)
+[![codecov](https://codecov.io/gh/Exlll/ConfigLib/branch/master/graph/badge.svg)](https://codecov.io/gh/Exlll/ConfigLib)
+[![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/Exlll/ConfigLib?include_prereleases&label=release)](https://github.com/Exlll/ConfigLib/releases)
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+
 # ConfigLib v2
 
 **A Bukkit and BungeeCord library for storing and loading configurations**
@@ -42,6 +48,8 @@ For fields whose types are not any of the above, you have two other options:
 #### Null values
 This library does _not_ support `null` values. All non-primitive fields (e.g. `Integer`, `String`, `List`, `Enum`s)
 must be assigned non-null default values.
+
+> This rule does not apply to fields that are ignored with the `@Ignore` annotation.
 
 #### Adding or removing configuration options
 This library supports adding or removing configuration options by simply adding new fields to or removing old fields
@@ -335,6 +343,23 @@ YamlProperties properties = YamlProperties.builder()
 
 Note: Changing the configuration style may break adding comments using the `@Comment` annotation.
 
+##### Exluding fields from mapping
+
+If you have some fields in your config that you don't want to load or save you can use the `@Ignore` annotation.
+This will prevent those fields from being mapped allowing you to use them internally without saving to the config.
+
+> Ignoring a field allows it to be null.
+
+```java
+class MyConfiguration extends YamlConfiguration {
+   
+    // this field will not be saved or loaded
+    // it can also be null or any other normally not allowed value
+    @Ignore
+    private String myIgnoredField; 
+}
+```
+
 ##### Adding field filters
 If your configuration has a lot of fields and you want to exclude some of these fields without
 making them final, static or transient, you can configure your properties object to use additional
@@ -468,35 +493,35 @@ public final class DatabasePlugin extends JavaPlugin {
 ```xml
 <repository>
     <id>de.exlll</id>
-    <url>http://exlll.de:8081/artifactory/releases/</url>
+    <url>https://maven.pkg.github.com/Exlll/ConfigLib</url>
 </repository>
 
 <!-- for Bukkit plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bukkit</artifactId>
-    <version>2.2.0</version>
+    <version>2.6.0</version>
 </dependency>
 
 <!-- for Bungee plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-bungee</artifactId>
-    <version>2.2.0</version>
+    <version>2.6.0</version>
 </dependency>
 ```
 #### Gradle
 ```groovy
 repositories {
     maven {
-        url 'http://exlll.de:8081/artifactory/releases/'
+        url 'https://maven.pkg.github.com/Exlll/ConfigLib'
     }
 }
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.2.0'
+    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.6.0'
 
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.2.0'
+    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.6.0'
 }
 ```

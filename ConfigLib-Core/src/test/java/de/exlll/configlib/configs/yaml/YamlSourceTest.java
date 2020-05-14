@@ -3,6 +3,7 @@ package de.exlll.configlib.configs.yaml;
 import com.google.common.jimfs.Jimfs;
 import de.exlll.configlib.classes.TestClass;
 import de.exlll.configlib.configs.yaml.YamlConfiguration.YamlProperties;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static de.exlll.configlib.util.CollectionFactory.mapOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 class YamlSourceTest {
     private FileSystem fileSystem;
@@ -22,8 +23,13 @@ class YamlSourceTest {
 
     @BeforeEach
     void setUp() {
-        fileSystem = Jimfs.newFileSystem();
-        configPath = fileSystem.getPath("/a/b/config.yml");
+        if (SystemUtils.IS_OS_WINDOWS) {
+            fileSystem = Jimfs.newFileSystem(com.google.common.jimfs.Configuration.windows());
+            configPath = fileSystem.getPath("C:\\a\\b\\test.yml");
+        } else {
+            fileSystem = Jimfs.newFileSystem();
+            configPath = fileSystem.getPath("/a/b/test.yml");
+        }
     }
 
     @AfterEach

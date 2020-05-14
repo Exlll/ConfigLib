@@ -3,11 +3,15 @@ package de.exlll.configlib.configs.yaml;
 import com.google.common.jimfs.Jimfs;
 import de.exlll.configlib.Configuration;
 import de.exlll.configlib.annotation.Comment;
+import de.exlll.configlib.annotation.Ignore;
 import de.exlll.configlib.classes.TestClass;
+import de.exlll.configlib.classes.TestInheritedClass;
 import de.exlll.configlib.configs.yaml.YamlConfiguration.YamlProperties;
 import de.exlll.configlib.format.FieldNameFormatters;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -17,9 +21,9 @@ import java.nio.file.Path;
 
 import static de.exlll.configlib.util.CollectionFactory.listOf;
 import static java.util.stream.Collectors.joining;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings("unused")
@@ -29,9 +33,15 @@ class YamlConfigurationTest {
 
     @BeforeEach
     void setUp() {
-        fileSystem = Jimfs.newFileSystem();
-        testPath = fileSystem.getPath("/a/b/test.yml");
-        configPath = fileSystem.getPath("/a/b/config.yml");
+        if (SystemUtils.IS_OS_WINDOWS) {
+            fileSystem = Jimfs.newFileSystem(com.google.common.jimfs.Configuration.windows());
+            testPath = fileSystem.getPath("C:\\a\\b\\test.yml");
+            configPath = fileSystem.getPath("C:\\a\\b\\config.yml");
+        } else {
+            fileSystem = Jimfs.newFileSystem();
+            testPath = fileSystem.getPath("/a/b/test.yml");
+            configPath = fileSystem.getPath("/a/b/config.yml");
+        }
     }
 
     @AfterEach
@@ -87,6 +97,16 @@ class YamlConfigurationTest {
         assertThat(configuration, is(not(TestClass.TEST_VALUES)));
         configuration.load();
         assertThat(configuration, is((TestClass.TEST_VALUES)));
+    }
+
+    @Test
+    @Disabled
+    void loadLoadsInheritedConfig() {
+        setupConfigPath();
+        Configuration configuration = new TestInheritedClass(configPath);
+        assertThat(configuration, is(not(TestInheritedClass.TEST_VALUES)));
+        configuration.load();
+        assertThat(configuration, is((TestInheritedClass.TEST_VALUES)));
     }
 
     private void setupConfigPath() {
@@ -193,6 +213,20 @@ class YamlConfigurationTest {
         assertThat(readConfig(testPath), is(FORMATTED_FIELD_COMMENTS_YML));
     }
 
+    @Test
+    void doesNotSaveIgnoredField() throws IOException {
+        class A extends YamlConfiguration {
+
+            @Ignore
+            private String a = "";
+            private int b = 2;
+
+            protected A() { super (testPath); }
+        }
+        new A().save();
+        assertThat(readConfig(testPath), is(IGNORED_FIELD_YAML));
+    }
+
     private String readConfig(Path path) throws IOException {
         return Files.lines(path).collect(joining("\n"));
     }
@@ -221,6 +255,8 @@ class YamlConfigurationTest {
             "# cD\n" +
             "# dC\n" +
             "c_d: 2";
+
+    private static final String IGNORED_FIELD_YAML = "b: 2";
 
     private static final String CLASS_COMMENTS_YML = "# 1\n" +
             "\n" +
