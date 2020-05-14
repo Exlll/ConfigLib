@@ -1,3 +1,5 @@
+# [2.6.0](https://github.com/Silthus/ConfigLib/compare/v2.5.1...v2.6.0) (2020-05-14)
+
 ## [2.5.1](https://github.com/Silthus/ConfigLib/compare/v2.5.0...v2.5.1) (2020-05-14)
 
 
