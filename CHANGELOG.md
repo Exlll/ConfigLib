@@ -1,3 +1,11 @@
+## [2.5.1](https://github.com/Silthus/ConfigLib/compare/v2.5.0...v2.5.1) (2020-05-14)
+
+
+### Bug Fixes
+
+* **build:** auto increment version in readme and plugin.yml ([b4c7549](https://github.com/Silthus/ConfigLib/commit/b4c7549e77cc60faf4c231405ef148ffc7157727))
+* **release:** grant execute to update-versions.sh ([107678f](https://github.com/Silthus/ConfigLib/commit/107678f720e87559d1a955b49e486cb735f17f21))
+
 # [2.5.0](https://github.com/Silthus/ConfigLib/compare/v2.4.0...v2.5.0) (2020-05-13)
 
 
