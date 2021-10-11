@@ -1,0 +1,29 @@
+name: test-on-pr-or-dev-push
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**/README.md'
+  push:
+    branches: [ dev ]
+    paths-ignore:
+      - '**/README.md'
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 16
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '16'
+      - name: Check with Gradle
+        run: ./gradlew test
+      - name: Archive test reports
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-reports
+          path: |
+            build/reports/**/*
