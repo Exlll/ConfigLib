@@ -468,7 +468,7 @@ public final class DatabasePlugin extends JavaPlugin {
 ```xml
 <repository>
     <id>de.exlll</id>
-    <url>http://exlll.de:8081/artifactory/releases/</url>
+    <url>https://maven.pkg.github.com/Exlll/ConfigLib</url>
 </repository>
 
 <!-- for Bukkit plugins -->
@@ -487,16 +487,23 @@ public final class DatabasePlugin extends JavaPlugin {
 ```
 #### Gradle
 ```groovy
-repositories {
-    maven {
-        url 'http://exlll.de:8081/artifactory/releases/'
-    }
-}
+repositories { maven { url 'https://maven.pkg.github.com/Exlll/ConfigLib' } }
+
 dependencies {
     // for Bukkit plugins
-    compile group: 'de.exlll', name: 'configlib-bukkit', version: '2.2.0'
-
+    implementation group: 'de.exlll', name: 'configlib-bukkit', version: '2.2.0'
     // for Bungee plugins
-    compile group: 'de.exlll', name: 'configlib-bungee', version: '2.2.0'
+    implementation group: 'de.exlll', name: 'configlib-bungee', version: '2.2.0'
+}
+```
+
+```kotlin
+repositories { maven { url = uri("https://maven.pkg.github.com/Exlll/ConfigLib") } }
+
+dependencies {
+    // for Bukkit plugins
+    implementation("de.exlll:configlib-bukkit:2.2.0")
+    // for Bungee plugins
+    implementation("de.exlll:configlib-bungee:2.2.0")
 }
 ```
