@@ -1,0 +1,32 @@
+name: publish-on-master-push
+
+on:
+  push:
+    branches: [ dev ] # TODO: change to master
+    paths-ignore:
+      - '**/README.md'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 16
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '16'
+      - name: Build with Gradle
+        run: ./gradlew build
+      - name: Archive test reports
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-reports
+          path: |
+            build/reports/**/*
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
