@@ -3,3 +3,7 @@
 **/build
 
 **/.gradle
+
+.data
+TODO.txt
+TMP.txt

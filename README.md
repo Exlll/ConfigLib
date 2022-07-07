@@ -1,509 +1,585 @@
-# ConfigLib v2
+# ConfigLib
 
-**A Bukkit and BungeeCord library for storing and loading configurations**
+**A Minecraft library for mapping objects to YAML configuration files.**
 
-This library facilitates creating, saving and loading configurations by reflectively converting configuration
-instances to serializable `Map`s which can be transformed to different representations (e.g. YAML) before being
-stored to files or other storage systems.
-
-Currently this library only supports storing configurations as YAML. However, users may provide their own
-storage systems.
-
-For a step-by-step tutorial see: [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial)
+This library facilitates creating, saving, loading, updating, and documenting YAML configuration
+files. It does so by automatically mapping instances of configuration classes to serializable maps
+which are then transformed into YAML and saved to some specified file.
 
 ## Features
-* automatic creation, saving, loading and updating of configurations
-    * (_YAML_) automatic creation of files and directories
-* support for all primitive types, their wrapper types and `String`s
-* support for (nested) `List`s, `Set`s and `Map`s
-* support for `Enum`s and POJOs
-* option to add explanatory comments by annotating classes and their fields
-* option to provide custom configuration sources
-* option to exclude fields from being converted
-* option to provide custom conversion mechanisms
-* option to format field names before conversion
-* option to execute action before/after loading/saving the configuration
-* (_YAML_) option to change the style of the configuration file
-* (_YAML_) option to prepend/append text (e.g. color codes)
+
+* Automatic creation, saving, loading, and updating of configuration files
+* Support for all primitive types, their wrapper types, and Strings
+* Support for `BigInteger`, `BigDecimal`, `LocalDate`, `LocalTime`, and `LocalDateTime`
+* Support for (nested) lists, sets, arrays, and maps
+* Support for enums and POJOs (+ inheritance!)
+* Option to exclude fields from being converted
+* Option to add explanatory comments by annotating fields
+* Option to format field names before conversion
+* Option to customize null handling
+* Option to provide custom serializers
+* ...and a few more!
+
+## Usage example
+
+This section contains a short usage example to get you started. The whole range of features is
+discussed in the following sections. Information on how to import this library is located at the end
+of this documentation.
+
+```java
+public final class Example {
+    // To create a configuration annotate the class with @Configuration and make sure that
+    // it has a no-args constructor. That's it! Now you can add fields to it which can all
+    // be private; setters are not required!
+    @Configuration
+    public static class BaseConfiguration {
+        private String host = "127.0.0.1";
+        private int port = 1234;
+        // The library supports lists, sets, and maps.
+        private Set<String> blockedAddresses = Set.of();
+        // Fields can be ignored by making them final, transient, static or by
+        // annotating them with @Ignore.
+        private final double ignoreMe = 3.14;
+    }
+
+    // This class does not need to be annotated with @Configuration because it
+    // extends a class which already is!
+    public static final class UserConfiguration extends BaseConfiguration {
+        // You can add comments with the @Comment annotation. Each string in the comment
+        // array is written (as a comment) on a new line.
+        @Comment({"The admin user has full access.", "Choose a proper password!"})
+        User admin = new User("root", "toor"); // The User class is a @Configuration!
+        List<User> blockedUsers = List.of(
+                new User("user1", null), // null values are supported
+                new User("user2", null)
+        );
+    }
+
+    @Configuration
+    public static final class User {
+        private String username;
+        @Comment("Please choose a strong password.")
+        private String password;
+
+        // Configuration classes require a no-args constructor.
+        // The constructor can be private though.
+        private User() {}
+
+        public User(String username, String password) {/* initialize */}
+    }
+
+    public static void main(String[] args) {
+        final var props = YamlConfigurationProperties.newBuilder().build();
+        final var store = new YamlConfigurationStore<>(UserConfiguration.class, props);
+        final var configFile = Paths.get("/tmp/config.yml");
+
+        // Save a new instance to the configuration file
+        store.save(new UserConfiguration(), configFile);
+
+        // Load a new instance from the configuration file
+        UserConfiguration configuration = store.load(configFile);
+        System.out.println(configuration.admin.username);
+        System.out.println(configuration.blockedUsers);
+
+        // Modify and save the configuration file
+        configuration.blockedUsers.add(new User("user3", "pass3"));
+        store.save(configuration, configFile);
+    }
+}
+```
+
+By running the above code, a new YAML configuration is created at `/tmp/config.yml`. Its content
+looks like this:
+
+```yaml
+host: 127.0.0.1
+port: 1234
+blockedAddresses: [ ]
+# The admin user has full access.
+# Choose a proper password!
+admin:
+  username: root
+  # Please choose a strong password.
+  password: toor
+blockedUsers:
+  - username: user1
+  - username: user2
+  - username: user3
+    password: pass3
+```
+
+Two things are noticeable here:
+
+1. Not every user in the `blockedUsers` list has a `password` mapping. This is because null values
+   are not output by default. That behavior can be changed by the builder.
+2. The password of the user with username `user3` that has no comment. This is due to limitations of
+   the YAML library. Configurations in lists, sets, or maps cannot have their comments printed.
 
 ## General information
-#### Supported types
-By default, the following types are converted automatically:
-- simple types, i.e. primitive types, their wrapper types and `String`s
-- `Enum`s
-- any type that is annotated as a `ConfigurationElement`
-- (nested) `List`s, `Set`s and `Map`s of all the above (e.g. `List<SomeType>`, `Map<String, List<SomeEnum>>`)
-  - only simple types can be `Map` keys
 
-For fields whose types are not any of the above, you have two other options:
-* Add a custom `Converter` that converts the field's value to any of the above types and back from it.
-* If the underlying storage system can handle the type, exclude the field from being converted.
+In the following sections the term _configuration type_ refers to any non-generic class that is
+directly or indirectly (i.e. through subclassing) annotated with
+`@de.exlll.configlib.Configuration`. Accordingly, the term _configuration_ refers to an instance of
+such a type.
 
-#### Null values
-This library does _not_ support `null` values. All non-primitive fields (e.g. `Integer`, `String`, `List`, `Enum`s)
-must be assigned non-null default values.
+### Declaring configuration types
 
-#### Adding or removing configuration options
-This library supports adding or removing configuration options by simply adding new fields to or removing old fields
-from the configuration class. The next time the `save` or `loadAndSave` method is called, the changes will be saved.
+To declare a configuration type, annotate a class with `@Configuration` and make sure that it has a
+no-args constructor. The no-args constructor can be set `private`. Inner classes (i.e. the ones that
+are nested but not `static`) have an implicit synthetic constructor with at least one argument and
+are therefore not supported.
 
-#### Changing the type of configuration options
-Changing the type of configuration options is **_not_** supported. **Don't do that.** This may lead to
-`ClassCastException`s when loading or accessing the field. This is especially important for generic fields.
-For example, you should never change a `List<String>` to a `List<Integer>`.
+Add fields to your class whose type is any of the supported types listed in the next section. You
+should initialize all fields of reference types with non-null default values, though you can leave
+them null. Handling of null values is discussed in one of the sections further below.
 
-If you need the type of an option to change, add a new field with a different name and the desired type and then
-remove the old one.
+### Supported types
 
-#### Subclassing configurations
-Currently, subclassing configurations is not supported. If you have an instance of class `B` where `B` is a
-subclass of `A` and `A` is a subclass of `YamlConfiguration` and you save or load that instance, then only the
-fields of class `B` will be saved or loaded, respectively.
+A configuration type may only contain fields of the following types:
 
-## How-to (_YAML_)
+| Type class             | Types                                                              |
+|------------------------|--------------------------------------------------------------------|
+| Boolean types          | `boolean`, and `Boolean`                                           |
+| Integer types          | `byte`, `short`, `int`, `long`, and their respective wrapper types |
+| Floating point types   | `float`, `double`, and their respective wrapper types              |
+| Characters and strings | `char`, `Character`, `String`                                      |
+| Big numeric types      | `BigInteger`, `BigDecimal`                                         |
+| Time related types     | `LocalTime`, `LocalDate`, `LocalDateTime`                          |
+| Enums                  | Any Java enum                                                      |
+| Configurations         | Any configuration type                                             |
+| Collections            | (Nested) Lists, sets, maps*, or arrays of previously listed types  |
 
-For a step-by-step tutorial see: [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial)
+(*) Map keys cannot be in the `Configurations` or `Collections` type class.
 
-#### Creating configurations
-To create a YAML configuration, create a new class and extend `YamlConfiguration`. If you write a Bukkit plugin, 
-you can alternatively extend `BukkitYamlConfiguration` which is a subclass of `YamlConfiguration` and can 
-properly convert Bukkit classes like `Inventory` and `ItemStack` to YAML.
 
-#### Instantiating configurations
-* To instantiate a `YamlConfiguration`, you need to pass a `Path` and optionally a `YamlConfiguration.YamlProperties`
-object to its constructor.
-* To instantiate a `BukkitYamlConfiguration`, you need to pass a `Path` and optionally a
-`BukkitYamlConfiguration.BukkitYamlProperties` object to its constructor.
+<details>
+ <summary>Examples of supported types</summary>
 
-If you don't pass a `(Bukkit-)YamlProperties` object, the `(Bukkit-)YamlProperties.DEFAULT` instance will be used.
+The following class contains examples of types that this library supports:
 
-#### Instantiating (Bukkit-)YamlProperties
-To instantiate a new `(Bukkit-)YamlProperties` object, call `(Bukkit-)YamlProperties.builder()`,
-configure the builder and then call its `build()` method.
-
-Note: The `BukkitYamlProperties` is a subclass of `YamlProperties` but doesn't add any new methods to it. 
-Its sole purpose is to provide more appropriate defaults to the underlying YAML parser.
-
-#### Saving and loading configurations
-Instances of your configuration class have a `load`, `save` and `loadAndSave` method:
-- `load` first tries to load the configuration file and then updates the values of all fields of the configuration
-instance with the values it read from the file. 
-   * If the file contains an entry that doesn't have a corresponding field, the entry is ignored.
-   * If the instance contains a field for which no entry was found, the default value you assigned to that field is kept.
-- `save` first converts the configuration instance with its current values to YAML and then tries to dump that YAML
-to a configuration file.
-   * The configuration file is completely overwritten. This means any entries it contains are lost afterwards.
-- `loadAndSave` is a convenience method that first calls `load` and then `save`.
-   * If the file doesn't exist, the configuration instance keeps its default values. Otherwise, the values are
-   updated with the values read from the file.
-   * Subsequently the instance is saved so that the values of any newly added fields are also added
-   to configuration file.
-
-#### Adding and removing fields
-Adding and removing fields is supported. However, changing the type of field is not.
-
-For example, you can change the following `YamlConfiguration`
 ```java
-class MyConfiguration extends YamlConfiguration {
-    private String s = "1";
-    private double d = 4.2;
-    // ...
-}
-```
-to this:
-```java
-class MyConfiguration extends YamlConfiguration {
-    private String s = "2";
-    private int i = 1;
-    // ...
-}
-```
-But you are not allowed to change the type of the variable `d` to `int` (or any other type).
-
-#### Simple, enum and custom types
-The following types are simple types (remember that `null` values are not allowed):
- 
-```java
-class MyConfiguration extends YamlConfiguration {
-    private boolean primBool;
-    private Boolean refBool = false;
-    private byte primByte;
-    private Byte refByte = 0;
-    private char primChar;
-    private Character refChar = '\0';
-    private short primShort;
-    private Short refShort = 0;
-    private int primInt;
-    private Integer refInt = 0;
-    private long primLong;
-    private Long refLong = 0L;
-    private float primFloat;
-    private Float refFloat = 0F;
-    private double primDouble;
-    private Double refDouble = 0.0;
-    private String string = "";
-    // ...
+public final class SupportedTypes {
+    boolean supported;
+    Character supported;
+    ExampleEnum supported;    // where 'ExampleEnum' is some Java enum type
+    ExampleConf supported;    // where 'ExampleConf' is another configuration type
+    java.awt.Point supported; // only if a custom serializer is registered
+    /* collection types */
+    List<BigInteger> supported;
+    Set<Double> supported;
+    LocalDate[] supported;
+    Map<ExampleEnum, ExampleConf> supported;
+    /* nested collection types */
+    List<Map<ExampleEnum, LocalDate>> supported;
+    int[][] supported;
+    Map<Integer, List<Map<Short, Set<ExampleConf>>>> supported;
 }
 ```
 
-Enums are supported:
+</details>
+
+<details>
+ <summary>Examples of unsupported types</summary>
+
+The following class contains examples of types that this library does (and will) not support:
 
 ```java
-class MyConfiguration extends YamlConfiguration {
-    private Material material = Material.AIR;
-    //...
+public final class UnsupportedTypes<T> {
+    Map<Point, String> unsupported;        // invalid map key
+    Map<List<String>, String> unsupported; // invalid map key
+    Box<String> unsupported;               // custom parameterized type
+    List<? extends String> unsupported;    // wildcard type
+    List<?> unsupported;                   // wildcard type
+    List<?>[] unsupported;                 // wildcard type
+    T unsupported;                         // type variable
+    List unsupported;                      // raw type
+    List[] unsupported;                    // raw type
+    List<String>[] unsupported;            // generic array type
+    Set<Integer>[] unsupported;            // generic array type
+    Map<Byte, Byte>[] unsupported;         // generic array type
 }
 ```
 
-Custom classes are supported if they are annotated as `ConfigurationElement`s and if they have a no-args constructor.
-Custom classes can have fields whose values are also instances of custom classes.
+</details>
 
-```java
-@ConfigurationElement
-class MyCustomClass1 {/* fields etc.*/}
+### Loading and saving configurations
 
-@ConfigurationElement
-class MyCustomClass2 {
-    private MyCustomClass1 cls1 = new MyCustomClass1();
-    // ...
-}
+There are two ways to load and save configurations. Which way you choose depends on your liking.
+Both ways have three methods in common:
 
-class MyConfiguration extends YamlConfiguration {
-    private MyCustomClass2 cls2 = new MyCustomClass2();
-    // ...
-}
-```
+* `save` saves a configuration to a file
+* `load` creates a new configuration instance and populates it with values taken from a file
+* `update` is a combination of `load` and `save` and the method you'd usually want to use: it takes
+  care of creating the configuration file if it does not exist and updates it otherwise to reflect
+  changes to (the fields of) the configuration type.
 
-#### `List`s, `Set`s, `Map`s
-Lists, sets and maps of simple types can be used as is and don't need any special treatment.
-```java
-class MyConfiguration extends YamlConfiguration {
-    private Set<Integer> ints = new HashSet<>();
-    private List<String> strings = new ArrayList<>();
-    private Map<Boolean, Double> doubleByBool = new HashMap<>();
-    // ...
+<details>
+ <summary>Example of <code>update</code> behavior when configuration file exists</summary>
+
+Let's say you have the following configuration type:
+
+```java 
+@Configuration 
+public final class C {
+    int i = 10; 
+    int j = 11; 
 }
 ```
 
-Note: Even though sets are supported, their YAML-representation is 'pretty ugly', so it's better to use lists instead.
-If you need set behavior, you can internally use lists and convert them to sets using the `preSave/postLoad`-hooks.
+... and a YAML configuration file that contains:
 
-Lists, sets and maps that contain other types (e.g. custom types or enums) must use the `@ElementType` annotation.
-Only simple types can be used as map keys.
+```yaml
+i: 20
+k: 30
+```
 
-```java
-@ConfigurationElement
-class MyCustomClass {/* fields etc.*/}
+Now, when you use one of the methods below to call `update` for that configuration type and file,
+the configuration instance that `update` returns will have its `i` variable initialized to `20`
+and its `j` variable will have its default of `11`. After the operation, the configuration file will
+contain:
 
-class MyConfiguration extends YamlConfiguration {
-    @ElementType(Material.class)
-    private List<Material> materials = new ArrayList<>();
+```yaml
+i: 20
+j: 11
+```
 
-    @ElementType(MyCustomClass.class)
-    private Set<MyCustomClass> customClasses = new HashSet<>();
-    
-    @ElementType(MyCustomClass.class)
-    private Map<String, MyCustomClass> customClassesMap = new HashMap<>();
-    // ...
+</details>
+
+To exemplify the usage of these three methods we assume for the following sections that you have
+implemented the configuration type below and have access to some regular `java.nio.file.Path`
+object `configurationFile`.
+
+```java 
+@Configuration
+public final class Config { /* some fields */ }
+```
+
+#### Way 1
+
+The first way is to create a configuration store and use it directly to save, load, or update
+configurations.
+
+```java 
+YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder().build();
+YamlConfigurationStore<Config> store = new YamlConfigurationStore<>(Config.class, properties);
+
+Config config1 = store.load(configurationFile);
+store.save(config1, configurationFile);
+Config config2 = store.update(configurationFile);
+```
+
+#### Way 2
+
+The second way is to use the static methods from the `Configurations` class.
+
+```java 
+Config config1 = Configurations.loadYamlConfiguration(configurationFile, Config.class);
+Configurations.saveYamlConfiguration(configurationFile, Config.class, config1);
+Config config2 = Configurations.updateYamlConfiguration(configurationFile, Config.class);
+```
+
+Each of these methods has two additional overloads: One that takes a properties object and another
+that lets you configure a properties object builder. For example, the overloads for the
+`loadYamlConfiguration` method are:
+
+```java 
+// overload 1
+YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
+    .inputNulls(true)
+    .outputNulls(false)
+    .build();
+Config c1 = Configurations.loadYamlConfiguration(configurationFile, Config.class, properties);
+
+// overload 2
+Config c2 = Configurations.loadYamlConfiguration(
+    configurationFile,
+    Config.class,
+    builder -> builder.inputNulls(true).outputNulls(false)
+); 
+```
+
+#### Configuration properties
+
+Instances of the `ConfigurationProperties` class allow customization of how configurations are
+stored and loaded. To create such an instance, instantiate a new builder using
+the `YamlConfigurationProperties.newBuilder()` method, configure it, and finally call its `build()`
+method. Check out the several methods of the builder to see which configuration options are
+available.
+
+#### Ignoring and filtering fields
+
+Fields that are `final`, `static`, `transient` or annotated with `@Ignore` are neither serialized
+nor updated during deserialization. You can filter out additional fields by providing an instance of
+`FieldFilter` to the configuration properties.
+
+#### Handling of `null` values
+
+Configuration properties let you configure how `null` values are handled when serializing and
+deserializing a configuration:
+
+* By setting `outputNulls` to false, fields and collection elements that are null are not output.
+  Any comments that belong to such fields are also not written.
+* By setting `inputNulls` to false, fields and collection elements that are null are not input. That
+  means that fields will keep their default values.
+
+<details>
+ <summary>Example <code>null</code> handling configuration</summary>
+
+The following code forbids null values to be output but allows null values to be input. By default,
+both are forbidden which makes the call to `outputNulls` in this case redundant.
+
+```java 
+YamlConfigurationProperties.newBuilder()
+        .outputNulls(false)
+        .inputNulls(true)
+        .build();
+```
+
+</details>
+
+#### Field formatting
+
+You can define how fields are formatted by configuring the configuration properties with a custom
+formatter. Field formatters are implementations of the `FieldFormatter` interface. You can implement
+this interface yourself or use one of the several formatters this library provides. These
+pre-defined formatters can be found in the `FieldFormatters` class.
+
+<details>
+ <summary>Example <code>FieldFormatter</code> configuration</summary>
+
+The following code formats fields using the `IDENTITY` formatter (which is the default).
+
+```java 
+YamlConfigurationProperties.newBuilder()
+        .setFieldFormatter(FieldFormatters.IDENTITY)
+        .build();
+```
+
+</details>
+
+### Subclassing
+
+Subclassing of configurations types is supported. Subclasses of configuration types don't need to be
+annotated with `@Configuration`. When a configuration is written, the fields of parent classes
+are written before the fields of the child in a top to bottom manner. Parent configurations can
+be `abstract`.
+
+#### Shadowing of fields
+
+Shadowing of fields refers to the situation where a subclass of configuration has a field that has
+the same name as a field in one of its super classes. Shadowing of fields is currently not
+supported. (This restriction might easily be lifted. If you need this feature, please open an issue
+and describe how to handle name clashes.)
+
+### Comments
+
+The fields of a configuration can be annotated with the `@Comment` annotation. This annotation takes
+an array of strings. Each of these strings is written onto a new line as a comment. Empty strings
+are written as newlines.
+
+<details>
+ <summary>Example of <code>@Comment</code> usage </summary>
+
+Serializing the following configuration as YAML ...
+
+```java 
+@Configuration
+public final class ExampleConfiguration {
+    @Comment({"Hello", "", " ", "World"})
+    private String commentedField = "commented field";
 }
 ```
 
-Lists, sets and maps can be nested. If nested collections contain custom types, you must specify the
-nesting level using the `@ElementType` annotation. Examples:
+... results in the YAML file shown below:
 
-* `List<T>` requires a nesting level of 0, which is the default value, so you don't have to set it
-* `List<List<T>>` requires a nesting level of 1
-* `List<List<List<T>>>` requires a nesting level of 2
-* `List<Map<String, T>>` requires a nesting level of 1
-* `List<Map<String, Map<String, T>>>` requires a nesting level of 2
+```yaml
+ # Hello
 
-```java
-@ConfigurationElement
-class MyCustomClass {/* fields etc.*/}
-
-class MyConfiguration extends YamlConfiguration {
-    private List<List<Integer>> listsList = new ArrayList<>();
-    private Set<Set<String>> setsSet = new HashSet<>();
-    private Map<Integer, Map<String, Integer>> mapsMap = new HashMap<>();
-    
-    @ElementType(value = MyCustomClass.class, nestingLevel = 1)
-    private List<List<MyCustomClass>> customClassListsList = new ArrayList<>();
-    
-    @ElementType(value = MyCustomClass.class, nestingLevel = 1)
-    private Set<Set<MyCustomClass>> customClassSetsSet = new HashSet<>();
-    
-    @ElementType(value = MyCustomClass.class, nestingLevel = 1)
-    private Map<Integer, Map<String, MyCustomClass>> customClassMapsMap = new HashMap<>();
-    // ...
-}
+ #  
+ # World
+ commentedField: commented field
 ```
-#### Adding comments
-You can add comments to a configuration class or a its field by using the `@Comment` annotation.
-Class comments are saved at the beginning of a configuration file.
+
+</details>
+
+If a configuration type _C_ that defines comments is used (as a field) within another configuration
+type, the comments of _C_ are written with the proper indentation. However, if instances of _C_ are
+stored inside a collection, their comments are not printed when the collection is written.
+
+### Recursive type definitions
+
+Recursive type definitions are currently not allowed but might be supported in a future version if
+this feature is requested.
+
+<details>
+ <summary>Examples of recursive type definitions</summary>
+
+Neither direct nor indirect recursive type definitions are supported.
 
 ```java
-@Comment({"A", "", "B"})
-class MyConfiguration extends YamlConfiguration {
-    @Comment("the x")
-    private int x;
-    @Comment({"", "the y"})
-    private int y;
-    // ...
-}
-```
-Empty strings are represented as newlines (i.e. lines that don't start with '# ').
+public final class RecursiveTypDefinitions {
+    // Direct recursive definition
+    @Configuration
+    static final class R {
+        R r;
+    }
 
-#### Executing pre-save and post-load actions
-To execute pre-save and post-load actions, override `preSave()` and `postLoad()`, respectively.
-```java
-class MyConfiguration extends YamlConfiguration {
-   @Override
-   protected void preSave(){ /* do something ... */}
-   
-   @Override
-   protected void postLoad(){ /* do something ... */}
-   // ...
+    // Indirect recursive definition
+    @Configuration
+    static final class R1 {
+        R2 r2;
+    }
+
+    @Configuration
+    static final class R2 {
+        R1 r1;
+    }
 }
 ```
 
-#### Excluding fields from being converted
-To exclude fields from being converted, annotate them with the `@NoConvert` annotation. This may be useful if the
-configuration knows how to (de-)serialize instances of that type. For example, a `BukkitYamlConfiguration` knows how
-to serialize `ItemStack` instances.
+</details>
+
+### Type conversion and custom serializers
+
+Before instances of the types listed in the [supported types](#supported-types) section can be
+stored, they need to be converted into serializable types (i.e. into types the underlying YAML
+library knows how to handle). The conversion happens according to the following table:
+
+| Source type            | Target type      |
+|------------------------|------------------|
+| Boolean types          | `Boolean`        |
+| Integer types          | `Long`           |
+| Floating point types   | `Double`         |
+| Characters and strings | `String`         |
+| Big numeric types      | `String`         |
+| Time related types     | `String`         |
+| Enums                  | `String`         |
+| Configurations         | `Map<String, ?>` |
+| `Set<S>`               | `List<T>`*       |
+| `List<S>`              | `List<T>`        |
+| `S[]`                  | `List<T>`        |
+| `Map<S1, S2>`          | `Map<T1, T2>`    |
+
+(*) By default, sets are serialized as lists. This can be changed through the configuration
+properties. This also means that `Set`s are valid target types.
+
+#### Serializer selection
+
+To convert the value of a field `F` with (source) type `S` into a serializable value of some
+target type, a serializer has to be selected. Serializers are instances of
+the `de.exlll.configlib.Serializer` interface and are selected based on `S`. Put differently,
+serializers are always selected based on the compile-time type of `F` and never on the runtime type
+of its value.
+
+This distinction makes a difference (and might lead to confusion) when you have fields whose type is
+a configuration type or a collection of some configuration type, and you extend that configuration
+type. Concretely, assume you have and written two configuration types `A` and `B`
+where `B extends A`. Then, if you use `A a = new B()` in your main configuration, only the fields of
+a `A` will be stored when you save your main configuration. That is because the serializer of
+field `a` was selected based on the compile-time type of `a` which is `A` and not `B`. The same
+happens if you have a `List<A>` and put instances of `B` (or some other subclass of `A`) in it.
+
+#### Custom serializers
+
+If you want to add support for a type whose class is not annotated with `@Configuration`, you can
+register a custom serializer. Serializers are instances of the `de.exlll.configlib.Serializer`
+interface. When implementing that interface you have to make sure that you convert your source type
+into one of the valid target types listed in the table above. The serializer then has to be
+registered through a `ConfigurationProperties` object.
+
+<details>
+ <summary>Example <code>Serializer</code> implementation</summary>
+
+The following `Serializer` serializes instances of `java.awt.Point` into strings.
 
 ```java
-class MyConfiguration extends BukkitYamlConfiguration {
-   @NoConvert
-   private ItemStack itemStack = new ItemStack(Material.STONE, 1);
-   // ...
-}
-```
-
-#### Changing configuration properties
-To change the properties of a configuration, use the properties builder object. 
-
-##### Formatting field names
-To format field names before conversion, configure the properties builder to use a custom `FieldNameFormatter`.
-You can either define your own `FieldNameFormatter` or use one from the `FieldNameFormatters` enum.
-
-```java
-YamlProperties properties = YamlProperties.builder()
-                .setFormatter(FieldNameFormatters.LOWER_UNDERSCORE)
-                // ...
-                .build();
-```
-
-Alternatively, you can annotate your `Configuration` class with the `@Format` annotation. The `FieldNameFormatter`
-returned by this annotation takes precedence over the `FieldNameFormatter` returned by a `Properties` object.
-
-```java
-@Format(FieldNameFormatters.UPPER_UNDERSCORE)
-class MyConfiguration extends YamlConfiguration {
-   // ...
-}
-```
-
-Note: You should neither remove nor replace a formatter with one that has a different formatting style because this
-could break existing configurations.
-
-##### (_YAML_) Prepending/appending text
-To prepend or append comments to a configuration file, use the `setPrependedComments` and `setAppendedComments` methods,
-respectively.
-
-```java
-YamlProperties properties = YamlProperties.builder()
-                .setPrependedComments(Arrays.asList("A", "B"))
-                .setAppendedComments(Arrays.asList("C", "D"))
-                // ...
-                .build();
-```
-
-##### (_YAML_) Changing the style of the configuration file
-To change the configuration style, use the `setConstructor`, `setRepresenter`, `setOptions` and `setResolver` methods.
-These methods change the behavior of the underlying YAML-parser.
-See [snakeyaml-Documentation](https://bitbucket.org/asomov/snakeyaml/wiki/Documentation).
-
-```java
-YamlProperties properties = YamlProperties.builder()
-                .setConstructor(...)
-                .setRepresenter(/* */)
-                .setOptions(/* */)
-                .setResolver(/* */)
-                // ...
-                .build();
-```
-
-Note: Changing the configuration style may break adding comments using the `@Comment` annotation.
-
-##### Adding field filters
-If your configuration has a lot of fields and you want to exclude some of these fields without
-making them final, static or transient, you can configure your properties object to use additional
-`FieldFilter`s. A `FieldFilter` filters the fields of a configuration class by a specified criterion.
-
-For example, if you only want to include fields whose names don't start with _ignore_, you would add
-the following filter:
-
-```java
-YamlProperties properties = YamlProperties.builder()
-                .addFilter(field -> !field.getName().startsWith("ignore"))
-                // ...
-                .build();
-```
-
-Note: A filter is not evaluated for a field if the field has already been filtered or by some
-other `FieldFilter`.
-
-#### Adding custom converters
-Any field can be converted using a custom converter. This can be useful if you don't like the default
-conversion mechanism or if you have classes that cannot be annotated as `ConfigurationElement`s
-(e.g. because they are not under your control).
-
-To create a new converter, you have to implement the `Converter<F, T>` interface where `F` represents
-the type of the field and `T` represents the type of the value to which the field value is converted.
-
-```java
-import java.awt.Point;
-
-class PointStringConverter implements Converter<Point, String> {
+public final class PointSerializer implements Serializer<Point, String> {
     @Override
-    public String convertTo(Point element, ConversionInfo info) {
+    public String serialize(Point element) {
         return element.x + ":" + element.y;
     }
 
     @Override
-    public Point convertFrom(String element, ConversionInfo info) {
-        String[] coordinates = element.split(":");
-        int x = Integer.parseInt(coordinates[0]);
-        int y = Integer.parseInt(coordinates[1]);
+    public Point deserialize(String element) {
+        String[] parts = element.split(":");
+        int x = Integer.parseInt(parts[0]);
+        int y = Integer.parseInt(parts[1]);
         return new Point(x, y);
     }
 }
 ```
 
-To use your custom converter, pass its class to the `@Convert` annotation.
-```java
-class MyConfiguration extends YamlConfiguration {
-    @Convert(PointStringConverter.class)
-    private Point point = new Point(2, 3);
-    //...
-}
-```
+</details>
 
-Note: Only a single converter instance is created which is cached.
+Custom serializers takes precedence over the serializers provided by this library.
 
-## Example
+### Changing the type of fields
 
-For a step-by-step tutorial of a more complex example see:
-[Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial)
+Changing the type of fields is not supported. If you change the type of one of your fields but your
+configuration file still contains a value of the old type, a type mismatch will occur when reading
+that file. Instead, remove the old field and add a new one with a different name.
 
-```java
-import de.exlll.configlib.annotation.Comment;
-import de.exlll.configlib.annotation.ConfigurationElement;
-import de.exlll.configlib.configs.yaml.BukkitYamlConfiguration;
-import de.exlll.configlib.configs.yaml.BukkitYamlConfiguration.BukkitYamlProperties;
-import de.exlll.configlib.format.FieldNameFormatters;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-
-@ConfigurationElement
-class Credentials {
-    private String username;
-    private String password;
-
-    // ConfigurationElements must have a no-args constructor
-    Credentials() {
-        this("", ""); // default values must be non-null
-    }
-
-    Credentials(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
-
-    String getUsername() { return username; }
-}
-
-@Comment("MAIN-DB CONFIG")
-class DatabaseConfig extends BukkitYamlConfiguration {
-    private String host = "localhost";
-    @Comment("must be greater than 1024")
-    private int port = 3306;
-    private Credentials adminAccount = new Credentials("admin", "123");
-    private List<String> blockedUsers = Arrays.asList("root", "john");
-
-    /* You can use the other constructor instead which uses the
-     * BukkitYamlProperties.DEFAULT instance. */
-    DatabaseConfig(Path path, BukkitYamlProperties properties) {
-        super(path, properties);
-    }
-
-    Credentials getAdminAccount() { return adminAccount; }
-}
-
-public final class DatabasePlugin extends JavaPlugin {
-    @Override
-    public void onEnable() {
-        /* Creating a properties object is not necessary if the other
-         * DatabaseConfig constructor is used. */
-        BukkitYamlProperties props = BukkitYamlProperties.builder()
-                .setPrependedComments(Arrays.asList("Author: Pete", "Version: 1.0"))
-                .setFormatter(FieldNameFormatters.LOWER_UNDERSCORE)
-                .build();
-
-        Path configPath = new File(getDataFolder(), "config.yml").toPath();
-
-        DatabaseConfig config = new DatabaseConfig(configPath, props);
-        config.loadAndSave();
-
-        System.out.println(config.getAdminAccount().getUsername());
-    }
-}
-```
 ## Import
+
+**INFO:** I'm currently looking for an easier way for you to import this library that does not
+require authentication with GitHub. Please check
+this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have authentication problems.
+
+To use this library, import it into your project with either Maven or Gradle as shown in the two
+sections below. This library has additional dependencies (namely, a YAML parser) which are not
+included in the artifact you import.
+
+This repository provides plugin versions of this library which bundle all its dependencies, so you
+don't have to worry about them. Also, these versions make it easier for you to update this library
+if you have written multiple plugins that use it.
+
+The plugin versions can be downloaded from
+the [releases page](https://github.com/Exlll/ConfigLib/releases) where you can identify them by
+their `-paper-`, `-waterfall-`, and `-velocity-` infix and `-all` suffix. Other than that, the
+plugin versions currently don't add any additional functionality. If you use these versions, don't
+forget to add them as a dependency in the `plugin.yml` (for Paper and Waterfall) or to the
+dependencies array (for Velocity) of your own plugin.
+
+Alternatively, if you don't want to use an extra plugin, you can shade the `-core` version and the
+YAML parser yourself.
+
 #### Maven
-```xml
+
+```xml 
 <repository>
     <id>de.exlll</id>
     <url>https://maven.pkg.github.com/Exlll/ConfigLib</url>
 </repository>
 
-<!-- for Bukkit plugins -->
 <dependency>
     <groupId>de.exlll</groupId>
-    <artifactId>configlib-bukkit</artifactId>
-    <version>2.2.0</version>
-</dependency>
-
-<!-- for Bungee plugins -->
-<dependency>
-    <groupId>de.exlll</groupId>
-    <artifactId>configlib-bungee</artifactId>
-    <version>2.2.0</version>
+    <artifactId>configlib-core</artifactId>
+    <version>3.0.0</version>
 </dependency>
 ```
+
 #### Gradle
+
 ```groovy
 repositories { maven { url 'https://maven.pkg.github.com/Exlll/ConfigLib' } }
 
-dependencies {
-    // for Bukkit plugins
-    implementation group: 'de.exlll', name: 'configlib-bukkit', version: '2.2.0'
-    // for Bungee plugins
-    implementation group: 'de.exlll', name: 'configlib-bungee', version: '2.2.0'
-}
+dependencies { implementation 'de.exlll:configlib-core:3.0.0' }
 ```
 
 ```kotlin
 repositories { maven { url = uri("https://maven.pkg.github.com/Exlll/ConfigLib") } }
 
-dependencies {
-    // for Bukkit plugins
-    implementation("de.exlll:configlib-bukkit:2.2.0")
-    // for Bungee plugins
-    implementation("de.exlll:configlib-bungee:2.2.0")
-}
+dependencies { implementation("de.exlll:configlib-core:3.0.0") }
 ```
+
+## Future work
+
+This section contains ideas for upcoming features. If you want any of these to happen any time soon,
+please [open an issue](https://github.com/Exlll/ConfigLib/issues/new) where we can discuss the
+details.
+
+- Optional fields
+- Post load / pre save hooks
+- TOML support
+- Change the order of fields in parent/child class scenarios
+- Recursive definitions

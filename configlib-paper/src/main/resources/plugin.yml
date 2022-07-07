@@ -1,0 +1,7 @@
+name: ConfigLib
+version: 3.0.0
+website: https://github.com/Exlll/ConfigLib
+description: A library for working with YAML configurations.
+author: Exlll
+main: de.exlll.configlib.ConfigLib
+api-version: 1.19
