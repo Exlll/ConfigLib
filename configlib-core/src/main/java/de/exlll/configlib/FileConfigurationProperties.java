@@ -31,7 +31,15 @@ public class FileConfigurationProperties extends ConfigurationProperties {
         return new BuilderImpl();
     }
 
+    public Builder<?> toBuilder() {
+        return new BuilderImpl(this);
+    }
+
     private static final class BuilderImpl extends Builder<BuilderImpl> {
+        private BuilderImpl() {}
+
+        private BuilderImpl(FileConfigurationProperties properties) {super(properties);}
+
         @Override
         protected BuilderImpl getThis() {return this;}
 
@@ -51,9 +59,22 @@ public class FileConfigurationProperties extends ConfigurationProperties {
         private boolean createParentDirectories = true;
 
         /**
-         * A constructor that can be overridden by subclasses.
+         * The default constructor.
          */
         protected Builder() {}
+
+        /**
+         * A constructor that initializes this builder with values taken from the properties object.
+         *
+         * @param properties the properties object the values are taken from
+         * @throws NullPointerException if {@code properties} is null
+         */
+        protected Builder(FileConfigurationProperties properties) {
+            super(properties);
+            this.header = properties.header;
+            this.footer = properties.footer;
+            this.createParentDirectories = properties.createParentDirectories;
+        }
 
         /**
          * Sets the header. The header is written as a comment before the actual configuration.

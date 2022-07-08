@@ -40,7 +40,20 @@ class ConfigurationProperties {
         return new BuilderImpl();
     }
 
+    /**
+     * Creates a new builder and initializes it with values taken from this properties object.
+     *
+     * @return new builder
+     */
+    public Builder<?> toBuilder() {
+        return new BuilderImpl(this);
+    }
+
     private static final class BuilderImpl extends Builder<BuilderImpl> {
+        private BuilderImpl() {}
+
+        private BuilderImpl(ConfigurationProperties properties) {super(properties);}
+
         @Override
         protected BuilderImpl getThis() {return this;}
 
@@ -63,6 +76,15 @@ class ConfigurationProperties {
         private boolean serializeSetsAsLists = true;
 
         protected Builder() {}
+
+        protected Builder(ConfigurationProperties properties) {
+            this.serializersByType.putAll(properties.serializersByType);
+            this.formatter = properties.formatter;
+            this.filter = properties.filter;
+            this.outputNulls = properties.outputNulls;
+            this.inputNulls = properties.inputNulls;
+            this.serializeSetsAsLists = properties.serializeSetsAsLists;
+        }
 
         /**
          * Sets the field filter. The given filter is applied in addition to and

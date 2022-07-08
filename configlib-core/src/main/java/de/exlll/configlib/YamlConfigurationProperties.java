@@ -24,7 +24,15 @@ public final class YamlConfigurationProperties extends FileConfigurationProperti
         return new BuilderImpl();
     }
 
+    public Builder<?> toBuilder() {
+        return new BuilderImpl(this);
+    }
+
     private static final class BuilderImpl extends Builder<BuilderImpl> {
+        private BuilderImpl() {}
+
+        private BuilderImpl(YamlConfigurationProperties properties) {super(properties);}
+
         @Override
         protected BuilderImpl getThis() {return this;}
 
@@ -41,9 +49,19 @@ public final class YamlConfigurationProperties extends FileConfigurationProperti
             extends FileConfigurationProperties.Builder<B> {
 
         /**
-         * A constructor that can be overridden by subclasses.
+         * The default constructor.
          */
         protected Builder() {}
+
+        /**
+         * A constructor that initializes this builder with values taken from the properties object.
+         *
+         * @param properties the properties object the values are taken from
+         * @throws NullPointerException if {@code properties} is null
+         */
+        protected Builder(YamlConfigurationProperties properties) {
+            super(properties);
+        }
 
         /**
          * Builds a {@code ConfigurationProperties} instance.

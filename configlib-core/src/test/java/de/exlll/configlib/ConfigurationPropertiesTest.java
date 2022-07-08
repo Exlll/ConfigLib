@@ -49,6 +49,31 @@ class ConfigurationPropertiesTest {
     }
 
     @Test
+    void builderCtorCopiesValues() {
+        FieldFormatter formatter = field -> field.getName().toLowerCase(Locale.ROOT);
+        FieldFilter filter = field -> field.getName().startsWith("f");
+        TestUtils.PointSerializer serializer = new TestUtils.PointSerializer();
+
+        ConfigurationProperties properties = ConfigurationProperties.newBuilder()
+                .addSerializer(Point.class, serializer)
+                .setFieldFormatter(formatter)
+                .setFieldFilter(filter)
+                .outputNulls(true)
+                .inputNulls(true)
+                .serializeSetsAsLists(false)
+                .build()
+                .toBuilder()
+                .build();
+
+        assertThat(properties.getSerializers(), is(Map.of(Point.class, serializer)));
+        assertThat(properties.outputNulls(), is(true));
+        assertThat(properties.inputNulls(), is(true));
+        assertThat(properties.serializeSetsAsLists(), is(false));
+        assertThat(properties.getFieldFormatter(), sameInstance(formatter));
+        assertThat(properties.getFieldFilter(), sameInstance(filter));
+    }
+
+    @Test
     void builderSerializersUnmodifiable() {
         ConfigurationProperties properties = ConfigurationProperties.newBuilder().build();
         Map<Class<?>, Serializer<?, ?>> map = properties.getSerializers();
