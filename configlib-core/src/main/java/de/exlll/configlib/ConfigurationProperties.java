@@ -1,7 +1,8 @@
 package de.exlll.configlib;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.Type;
+import java.util.*;
+import java.util.function.Predicate;
 
 import static de.exlll.configlib.Validator.requireNonNull;
 
@@ -10,6 +11,7 @@ import static de.exlll.configlib.Validator.requireNonNull;
  */
 class ConfigurationProperties {
     private final Map<Class<?>, Serializer<?, ?>> serializersByType;
+    private final Map<Predicate<? super Type>, Serializer<?, ?>> serializersByCondition;
     private final FieldFormatter formatter;
     private final FieldFilter filter;
     private final boolean outputNulls;
@@ -24,6 +26,9 @@ class ConfigurationProperties {
      */
     protected ConfigurationProperties(Builder<?> builder) {
         this.serializersByType = Map.copyOf(builder.serializersByType);
+        this.serializersByCondition = Collections.unmodifiableMap(new LinkedHashMap<>(
+                builder.serializersByCondition
+        ));
         this.formatter = requireNonNull(builder.formatter, "field formatter");
         this.filter = requireNonNull(builder.filter, "field filter");
         this.outputNulls = builder.outputNulls;
@@ -68,7 +73,8 @@ class ConfigurationProperties {
      */
     public static abstract class Builder<B extends Builder<B>> {
         private final Map<Class<?>, Serializer<?, ?>> serializersByType = new HashMap<>();
-        /* change setter JavaDoc if default values are changed */
+        private final Map<Predicate<? super Type>, Serializer<?, ?>> serializersByCondition =
+                new LinkedHashMap<>();
         private FieldFormatter formatter = FieldFormatters.IDENTITY;
         private FieldFilter filter = FieldFilters.DEFAULT;
         private boolean outputNulls = false;
@@ -79,6 +85,7 @@ class ConfigurationProperties {
 
         protected Builder(ConfigurationProperties properties) {
             this.serializersByType.putAll(properties.serializersByType);
+            this.serializersByCondition.putAll(properties.serializersByCondition);
             this.formatter = properties.formatter;
             this.filter = properties.filter;
             this.outputNulls = properties.outputNulls;
@@ -128,6 +135,29 @@ class ConfigurationProperties {
             requireNonNull(serializedType, "serialized type");
             requireNonNull(serializer, "serializer");
             serializersByType.put(serializedType, serializer);
+            return getThis();
+        }
+
+        /**
+         * Adds a serializer for the condition. The serializer is selected when the condition
+         * evaluates to true. The {@code test} method of the condition object is invoked with
+         * the type of a field. Serializers added by this method take precedence over all other
+         * serializers expect the ones that were added for a specific type by the
+         * {@link #addSerializer(Class, Serializer)} method. The conditions are checked in the order
+         * in which they were added.
+         *
+         * @param condition  the condition
+         * @param serializer the serializer
+         * @return this builder
+         * @throws NullPointerException if any argument is null
+         */
+        final B addSerializerByCondition(
+                Predicate<? super Type> condition,
+                Serializer<?, ?> serializer
+        ) {
+            requireNonNull(condition, "condition");
+            requireNonNull(serializer, "serializer");
+            serializersByCondition.put(condition, serializer);
             return getThis();
         }
 
@@ -214,6 +244,18 @@ class ConfigurationProperties {
     public final Map<Class<?>, Serializer<?, ?>> getSerializers() {
         return serializersByType;
     }
+
+    /**
+     * Returns an unmodifiable map of serializers by condition. The serializers returned by this
+     * method take precedence over any default serializers provided by this library expect the ones
+     * that were added for a specific type.
+     *
+     * @return serializers by condition
+     */
+    final Map<Predicate<? super Type>, Serializer<?, ?>> getSerializersByCondition() {
+        return serializersByCondition;
+    }
+
 
     /**
      * Returns whether null values should be output.

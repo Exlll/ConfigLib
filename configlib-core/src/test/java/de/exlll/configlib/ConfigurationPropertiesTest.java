@@ -1,10 +1,13 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.Serializers.StringSerializer;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Point;
+import java.lang.reflect.Type;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static de.exlll.configlib.TestUtils.assertThrowsNullPointerException;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,6 +24,7 @@ class ConfigurationPropertiesTest {
         assertThat(properties.outputNulls(), is(false));
         assertThat(properties.inputNulls(), is(false));
         assertThat(properties.getSerializers().entrySet(), empty());
+        assertThat(properties.getSerializersByCondition().entrySet(), empty());
         assertThat(properties.getFieldFormatter(), is(FieldFormatters.IDENTITY));
         assertThat(properties.getFieldFilter(), is(FieldFilters.DEFAULT));
     }
@@ -30,9 +34,11 @@ class ConfigurationPropertiesTest {
         FieldFormatter formatter = field -> field.getName().toLowerCase(Locale.ROOT);
         FieldFilter filter = field -> field.getName().startsWith("f");
         TestUtils.PointSerializer serializer = new TestUtils.PointSerializer();
+        Predicate<? super Type> predicate = type -> true;
 
         ConfigurationProperties properties = ConfigurationProperties.newBuilder()
                 .addSerializer(Point.class, serializer)
+                .addSerializerByCondition(predicate, serializer)
                 .setFieldFormatter(formatter)
                 .setFieldFilter(filter)
                 .outputNulls(true)
@@ -41,6 +47,7 @@ class ConfigurationPropertiesTest {
                 .build();
 
         assertThat(properties.getSerializers(), is(Map.of(Point.class, serializer)));
+        assertThat(properties.getSerializersByCondition(), is(Map.of(predicate, serializer)));
         assertThat(properties.outputNulls(), is(true));
         assertThat(properties.inputNulls(), is(true));
         assertThat(properties.serializeSetsAsLists(), is(false));
@@ -53,9 +60,11 @@ class ConfigurationPropertiesTest {
         FieldFormatter formatter = field -> field.getName().toLowerCase(Locale.ROOT);
         FieldFilter filter = field -> field.getName().startsWith("f");
         TestUtils.PointSerializer serializer = new TestUtils.PointSerializer();
+        Predicate<? super Type> predicate = type -> true;
 
         ConfigurationProperties properties = ConfigurationProperties.newBuilder()
                 .addSerializer(Point.class, serializer)
+                .addSerializerByCondition(predicate, serializer)
                 .setFieldFormatter(formatter)
                 .setFieldFilter(filter)
                 .outputNulls(true)
@@ -66,6 +75,7 @@ class ConfigurationPropertiesTest {
                 .build();
 
         assertThat(properties.getSerializers(), is(Map.of(Point.class, serializer)));
+        assertThat(properties.getSerializersByCondition(), is(Map.of(predicate, serializer)));
         assertThat(properties.outputNulls(), is(true));
         assertThat(properties.inputNulls(), is(true));
         assertThat(properties.serializeSetsAsLists(), is(false));
@@ -76,11 +86,16 @@ class ConfigurationPropertiesTest {
     @Test
     void builderSerializersUnmodifiable() {
         ConfigurationProperties properties = ConfigurationProperties.newBuilder().build();
-        Map<Class<?>, Serializer<?, ?>> map = properties.getSerializers();
+        var serializersByType = properties.getSerializers();
+        var serializersByCondition = properties.getSerializersByCondition();
 
         assertThrows(
                 UnsupportedOperationException.class,
-                () -> map.put(Point.class, new TestUtils.PointSerializer())
+                () -> serializersByType.put(Point.class, new TestUtils.PointSerializer())
+        );
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> serializersByCondition.put(t -> true, new TestUtils.PointSerializer())
         );
     }
 
@@ -104,14 +119,27 @@ class ConfigurationPropertiesTest {
         }
 
         @Test
-        void addSerializerRequiresNonNull() {
+        void addSerializerByTypeRequiresNonNull() {
             assertThrowsNullPointerException(
-                    () -> builder.addSerializer(null, new Serializers.StringSerializer()),
+                    () -> builder.addSerializer(null, new StringSerializer()),
                     "serialized type"
             );
 
             assertThrowsNullPointerException(
                     () -> builder.addSerializer(String.class, null),
+                    "serializer"
+            );
+        }
+
+        @Test
+        void addSerializerByConditionRequiresNonNull() {
+            assertThrowsNullPointerException(
+                    () -> builder.addSerializerByCondition(null, new StringSerializer()),
+                    "condition"
+            );
+
+            assertThrowsNullPointerException(
+                    () -> builder.addSerializerByCondition(type -> true, null),
                     "serializer"
             );
         }

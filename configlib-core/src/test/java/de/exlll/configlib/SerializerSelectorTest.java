@@ -178,7 +178,7 @@ class SerializerSelectorTest {
     }
 
     @Test
-    void selectSerializerCustomType() {
+    void selectSerializerByCustomType() {
         var properties = ConfigurationProperties.newBuilder()
                 .addSerializer(Point.class, POINT_SERIALIZER)
                 .build();
@@ -188,7 +188,7 @@ class SerializerSelectorTest {
     }
 
     @Test
-    void selectSerializerCustomSerializerTakesPrecedence() {
+    void selectSerializerByCustomTypeTakesPrecedence() {
         var properties = ConfigurationProperties.newBuilder()
                 .addSerializer(BigInteger.class, CUSTOM_BIG_INTEGER_SERIALIZER)
                 .build();
@@ -196,6 +196,41 @@ class SerializerSelectorTest {
         var bigIntegerSerializer = selector.select(BigInteger.class);
         assertThat(bigIntegerSerializer, instanceOf(TestUtils.CustomBigIntegerSerializer.class));
         assertThat(bigIntegerSerializer, sameInstance(CUSTOM_BIG_INTEGER_SERIALIZER));
+    }
+
+    @Test
+    void selectSerializerByCondition() {
+        var properties = ConfigurationProperties.newBuilder()
+                .addSerializerByCondition(t -> t == Point.class, POINT_SERIALIZER)
+                .build();
+        SerializerSelector selector = new SerializerSelector(properties);
+        var pointSerializer = selector.select(Point.class);
+        assertThat(pointSerializer, sameInstance(POINT_SERIALIZER));
+    }
+
+    @Test
+    void selectSerializerByConditionTakesPrecedence() {
+        var properties = ConfigurationProperties.newBuilder()
+                .addSerializerByCondition(t -> t == BigInteger.class, CUSTOM_BIG_INTEGER_SERIALIZER)
+                .build();
+        SerializerSelector selector = new SerializerSelector(properties);
+        var bigIntegerSerializer = selector.select(BigInteger.class);
+        assertThat(bigIntegerSerializer, instanceOf(TestUtils.CustomBigIntegerSerializer.class));
+        assertThat(bigIntegerSerializer, sameInstance(CUSTOM_BIG_INTEGER_SERIALIZER));
+    }
+
+    @Test
+    void selectSerializerByCustomTypeTakesPrecedenceOverCustomType() {
+        var serializer1 = IdentifiableSerializer.of(1);
+        var serializer2 = IdentifiableSerializer.of(2);
+        var properties = ConfigurationProperties.newBuilder()
+                .addSerializerByCondition(t -> t == int.class, serializer1)
+                .addSerializer(int.class, serializer2)
+                .build();
+        SerializerSelector selector = new SerializerSelector(properties);
+        var serializer = selector.select(int.class);
+        assertThat(serializer, instanceOf(IdentifiableSerializer.class));
+        assertThat(serializer, sameInstance(serializer2));
     }
 
     @Test

@@ -42,6 +42,9 @@ final class SerializerSelector {
     }
 
     public Serializer<?, ?> select(Type type) {
+        final Serializer<?, ?> custom = selectCustomSerializer(type);
+        if (custom != null)
+            return custom;
         if (type instanceof Class<?> cls) {
             return selectForClass(cls);
         } else if (type instanceof ParameterizedType pType) {
@@ -60,9 +63,19 @@ final class SerializerSelector {
         throw new ConfigurationException(baseExceptionMessage(type));
     }
 
+    private Serializer<?, ?> selectCustomSerializer(Type type) {
+        if (type instanceof Class<?> cls) {
+            if (properties.getSerializers().containsKey(cls)) // TODO move check out
+                return properties.getSerializers().get(cls);
+        }
+        for (var entry : properties.getSerializersByCondition().entrySet()) {
+            if (entry.getKey().test(type))
+                return entry.getValue();
+        }
+        return null;
+    }
+
     private Serializer<?, ?> selectForClass(Class<?> cls) {
-        if (properties.getSerializers().containsKey(cls))
-            return properties.getSerializers().get(cls);
         if (DEFAULT_SERIALIZERS.containsKey(cls))
             return DEFAULT_SERIALIZERS.get(cls);
         if (Reflect.isEnumType(cls)) {

@@ -94,6 +94,28 @@ public final class TestUtils {
         }
     }
 
+    public static final class IdentifiableSerializer<S, T> implements Serializer<S, T> {
+        public int identifier;
+
+        public IdentifiableSerializer(int identifier) {
+            this.identifier = identifier;
+        }
+
+        public static IdentifiableSerializer<Integer, Integer> of(int identifier) {
+            return new IdentifiableSerializer<>(identifier);
+        }
+
+        @Override
+        public T serialize(S element) {
+            return null;
+        }
+
+        @Override
+        public S deserialize(T element) {
+            return null;
+        }
+    }
+
     public static final class PointIdentitySerializer implements Serializer<Point, Point> {
         @Override
         public Point serialize(Point element) {
