@@ -12,6 +12,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
 @Configuration
@@ -55,6 +56,7 @@ public class ExampleConfigurationA1 {
     private LocalDate a1_localDate;
     private LocalTime a1_localTime;
     private LocalDateTime a1_localDateTime;
+    private UUID a1_uuid;
     private ExampleEnum a1_Enm;
 
     /* OTHER CONFIGURATIONS */
@@ -76,6 +78,7 @@ public class ExampleConfigurationA1 {
     private List<LocalDate> a1_listLocalDate;
     private List<LocalTime> a1_listLocalTime;
     private List<LocalDateTime> a1_listLocalDateTime;
+    private List<UUID> a1_listUuid;
     private List<ExampleEnum> a1_listEnm;
     private List<ExampleConfigurationB1> a1_listB1;
     private List<ExampleConfigurationB2> a1_listB2;
@@ -103,6 +106,7 @@ public class ExampleConfigurationA1 {
     private LocalDate[] a1_arrayLocalDate;
     private LocalTime[] a1_arrayLocalTime;
     private LocalDateTime[] a1_arrayLocalDateTime;
+    private UUID[] a1_arrayUuid;
     private ExampleEnum[] a1_arrayEnm;
     private ExampleConfigurationB1[] a1_arrayB1;
     private ExampleConfigurationB2[] a1_arrayB2;
@@ -122,6 +126,7 @@ public class ExampleConfigurationA1 {
     private Set<LocalDate> a1_setLocalDate;
     private Set<LocalTime> a1_setLocalTime;
     private Set<LocalDateTime> a1_setLocalDateTime;
+    private Set<UUID> a1_setUuid;
     private Set<ExampleEnum> a1_setEnm;
     private Set<ExampleConfigurationB1> a1_setB1;
     private Set<ExampleConfigurationB2> a1_setB2;
@@ -141,6 +146,7 @@ public class ExampleConfigurationA1 {
     private Map<LocalDate, LocalDate> a1_mapLocalDateLocalDate;
     private Map<LocalTime, LocalTime> a1_mapLocalTimeLocalTime;
     private Map<LocalDateTime, LocalDateTime> a1_mapLocalDateTimeLocalDateTime;
+    private Map<UUID, UUID> a1_mapUuidUuid;
     private Map<ExampleEnum, ExampleEnum> a1_mapEnmEnm;
 
     private Map<Integer, ExampleConfigurationB1> a1_mapIntegerB1;
@@ -193,6 +199,7 @@ public class ExampleConfigurationA1 {
     private LocalDate[][] a1_arrayArrayLocalDate;
     private LocalTime[][] a1_arrayArrayLocalTime;
     private LocalDateTime[][] a1_arrayArrayLocalDateTime;
+    private UUID[][] a1_arrayArrayUuid;
     private ExampleEnum[][] a1_arrayArrayEnm;
     private ExampleConfigurationB1[][] a1_arrayArrayB1;
     private ExampleConfigurationB2[][] a1_arrayArrayB2;
@@ -1414,5 +1421,53 @@ public class ExampleConfigurationA1 {
 
     public void setA1_mapEnmListPoint(Map<ExampleEnum, List<Point>> a1_mapEnmListPoint) {
         this.a1_mapEnmListPoint = a1_mapEnmListPoint;
+    }
+
+    public UUID getA1_uuid() {
+        return a1_uuid;
+    }
+
+    public void setA1_uuid(UUID a1_uuid) {
+        this.a1_uuid = a1_uuid;
+    }
+
+    public List<UUID> getA1_listUuid() {
+        return a1_listUuid;
+    }
+
+    public void setA1_listUuid(List<UUID> a1_listUuid) {
+        this.a1_listUuid = a1_listUuid;
+    }
+
+    public UUID[] getA1_arrayUuid() {
+        return a1_arrayUuid;
+    }
+
+    public void setA1_arrayUuid(UUID[] a1_arrayUuid) {
+        this.a1_arrayUuid = a1_arrayUuid;
+    }
+
+    public Set<UUID> getA1_setUuid() {
+        return a1_setUuid;
+    }
+
+    public void setA1_setUuid(Set<UUID> a1_setUuid) {
+        this.a1_setUuid = a1_setUuid;
+    }
+
+    public Map<UUID, UUID> getA1_mapUuidUuid() {
+        return a1_mapUuidUuid;
+    }
+
+    public void setA1_mapUuidUuid(Map<UUID, UUID> a1_mapUuidUuid) {
+        this.a1_mapUuidUuid = a1_mapUuidUuid;
+    }
+
+    public UUID[][] getA1_arrayArrayUuid() {
+        return a1_arrayArrayUuid;
+    }
+
+    public void setA1_arrayArrayUuid(UUID[][] a1_arrayArrayUuid) {
+        this.a1_arrayArrayUuid = a1_arrayArrayUuid;
     }
 }

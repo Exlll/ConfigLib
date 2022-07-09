@@ -241,6 +241,18 @@ final class Serializers {
         }
     }
 
+    static final class UuidSerializer implements Serializer<UUID, String> {
+        @Override
+        public String serialize(UUID element) {
+            return element.toString();
+        }
+
+        @Override
+        public UUID deserialize(String element) {
+            return UUID.fromString(element);
+        }
+    }
+
     static final class EnumSerializer implements Serializer<Enum<?>, String> {
         private final Class<? extends Enum<?>> cls;
 

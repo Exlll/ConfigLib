@@ -11,6 +11,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
 public final class ExampleConfigurationA2 extends ExampleConfigurationA1 {
@@ -53,6 +54,7 @@ public final class ExampleConfigurationA2 extends ExampleConfigurationA1 {
     private LocalDate a2_localDate;
     private LocalTime a2_localTime;
     private LocalDateTime a2_localDateTime;
+    private UUID a2_uuid;
     private ExampleEnum a2_Enm;
 
     /* OTHER CONFIGURATIONS */
@@ -74,6 +76,7 @@ public final class ExampleConfigurationA2 extends ExampleConfigurationA1 {
     private List<LocalDate> a2_listLocalDate;
     private List<LocalTime> a2_listLocalTime;
     private List<LocalDateTime> a2_listLocalDateTime;
+    private List<UUID> a2_listUuid;
     private List<ExampleEnum> a2_listEnm;
     private List<ExampleConfigurationB1> a2_listB1;
     private List<ExampleConfigurationB2> a2_listB2;
@@ -101,6 +104,7 @@ public final class ExampleConfigurationA2 extends ExampleConfigurationA1 {
     private LocalDate[] a2_arrayLocalDate;
     private LocalTime[] a2_arrayLocalTime;
     private LocalDateTime[] a2_arrayLocalDateTime;
+    private UUID[] a2_arrayUuid;
     private ExampleEnum[] a2_arrayEnm;
     private ExampleConfigurationB1[] a2_arrayB1;
     private ExampleConfigurationB2[] a2_arrayB2;
@@ -120,6 +124,7 @@ public final class ExampleConfigurationA2 extends ExampleConfigurationA1 {
     private Set<LocalDate> a2_setLocalDate;
     private Set<LocalTime> a2_setLocalTime;
     private Set<LocalDateTime> a2_setLocalDateTime;
+    private Set<UUID> a2_setUuid;
     private Set<ExampleEnum> a2_setEnm;
     private Set<ExampleConfigurationB1> a2_setB1;
     private Set<ExampleConfigurationB2> a2_setB2;
@@ -139,6 +144,7 @@ public final class ExampleConfigurationA2 extends ExampleConfigurationA1 {
     private Map<LocalDate, LocalDate> a2_mapLocalDateLocalDate;
     private Map<LocalTime, LocalTime> a2_mapLocalTimeLocalTime;
     private Map<LocalDateTime, LocalDateTime> a2_mapLocalDateTimeLocalDateTime;
+    private Map<UUID, UUID> a2_mapUuidUuid;
     private Map<ExampleEnum, ExampleEnum> a2_mapEnmEnm;
 
     private Map<Integer, ExampleConfigurationB1> a2_mapIntegerB1;
@@ -191,6 +197,7 @@ public final class ExampleConfigurationA2 extends ExampleConfigurationA1 {
     private LocalDate[][] a2_arrayArrayLocalDate;
     private LocalTime[][] a2_arrayArrayLocalTime;
     private LocalDateTime[][] a2_arrayArrayLocalDateTime;
+    private UUID[][] a2_arrayArrayUuid;
     private ExampleEnum[][] a2_arrayArrayEnm;
     private ExampleConfigurationB1[][] a2_arrayArrayB1;
     private ExampleConfigurationB2[][] a2_arrayArrayB2;
@@ -1446,5 +1453,53 @@ public final class ExampleConfigurationA2 extends ExampleConfigurationA1 {
 
     public void setA2_mapEnmListPoint(Map<ExampleEnum, List<Point>> a2_mapEnmListPoint) {
         this.a2_mapEnmListPoint = a2_mapEnmListPoint;
+    }
+
+    public UUID getA2_uuid() {
+        return a2_uuid;
+    }
+
+    public void setA2_uuid(UUID a2_uuid) {
+        this.a2_uuid = a2_uuid;
+    }
+
+    public List<UUID> getA2_listUuid() {
+        return a2_listUuid;
+    }
+
+    public void setA2_listUuid(List<UUID> a2_listUuid) {
+        this.a2_listUuid = a2_listUuid;
+    }
+
+    public UUID[] getA2_arrayUuid() {
+        return a2_arrayUuid;
+    }
+
+    public void setA2_arrayUuid(UUID[] a2_arrayUuid) {
+        this.a2_arrayUuid = a2_arrayUuid;
+    }
+
+    public Set<UUID> getA2_setUuid() {
+        return a2_setUuid;
+    }
+
+    public void setA2_setUuid(Set<UUID> a2_setUuid) {
+        this.a2_setUuid = a2_setUuid;
+    }
+
+    public Map<UUID, UUID> getA2_mapUuidUuid() {
+        return a2_mapUuidUuid;
+    }
+
+    public void setA2_mapUuidUuid(Map<UUID, UUID> a2_mapUuidUuid) {
+        this.a2_mapUuidUuid = a2_mapUuidUuid;
+    }
+
+    public UUID[][] getA2_arrayArrayUuid() {
+        return a2_arrayArrayUuid;
+    }
+
+    public void setA2_arrayArrayUuid(UUID[][] a2_arrayArrayUuid) {
+        this.a2_arrayArrayUuid = a2_arrayArrayUuid;
     }
 }

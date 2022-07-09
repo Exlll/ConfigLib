@@ -14,7 +14,7 @@ the [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial) page on the wik
 * Automatic creation, saving, loading, and updating of configuration files
 * Support for comments through annotations
 * Support for all primitive types, their wrapper types, and Strings
-* Support for `BigInteger`, `BigDecimal`, `LocalDate`, `LocalTime`, and `LocalDateTime`
+* Support for `BigInteger`, `BigDecimal`, `LocalDate`, `LocalTime`, `LocalDateTime`, and `UUID`
 * Support for (nested) lists, sets, arrays, and maps
 * Support for enums and POJOs (+ inheritance!)
 * Support for Bukkit's `ConfigurationSerializable` types (e.g. `ItemStack`)
@@ -155,6 +155,7 @@ A configuration type may only contain fields of the following types:
 | Characters and strings      | `char`, `Character`, `String`                                      |
 | Big numeric types           | `BigInteger`, `BigDecimal`                                         |
 | Time related types          | `LocalTime`, `LocalDate`, `LocalDateTime`                          |
+| Utility types               | `UUID`                                                             |
 | Enums                       | Any Java enum                                                      |
 | Configurations              | Any configuration type                                             |
 | `ConfigurationSerializable` | All Bukkit classes that implement this interface, like `ItemStack` |
@@ -172,6 +173,8 @@ public final class SupportedTypes {
     boolean supported;
     Character supported;
     String supported;
+    LocalTime supported;
+    UUID supported;
     ExampleEnum supported;  // where 'ExampleEnum' is some Java enum type
     ExampleConf supported;  // where 'ExampleConf' is another configuration type
 
@@ -439,6 +442,7 @@ library knows how to handle). The conversion happens according to the following 
 | Characters and strings      | `String`         |
 | Big numeric types           | `String`         |
 | Time related types          | `String`         |
+| Utility types               | `String`         |
 | Enums                       | `String`         |
 | Configurations              | `Map<String, ?>` |
 | `Set<S>`                    | `List<T>`*       |

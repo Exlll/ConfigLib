@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Map;
+import java.util.UUID;
 
 final class SerializerSelector {
     private static final Map<Class<?>, Serializer<?, ?>> DEFAULT_SERIALIZERS = Map.ofEntries(
@@ -33,7 +34,8 @@ final class SerializerSelector {
             Map.entry(BigDecimal.class, new BigDecimalSerializer()),
             Map.entry(LocalDate.class, new LocalDateSerializer()),
             Map.entry(LocalTime.class, new LocalTimeSerializer()),
-            Map.entry(LocalDateTime.class, new LocalDateTimeSerializer())
+            Map.entry(LocalDateTime.class, new LocalDateTimeSerializer()),
+            Map.entry(UUID.class, new UuidSerializer())
     );
     private final ConfigurationProperties properties;
 

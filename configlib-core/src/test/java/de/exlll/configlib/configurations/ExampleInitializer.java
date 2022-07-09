@@ -10,6 +10,7 @@ import java.time.Month;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static de.exlll.configlib.TestUtils.*;
 import static de.exlll.configlib.configurations.ExampleEnum.*;
@@ -44,6 +45,12 @@ public final class ExampleInitializer {
     private static final LocalDateTime LDT_3 = LocalDateTime.of(2000, Month.JANUARY, 3, 0, 0);
     private static final LocalDateTime LDT_4 = LocalDateTime.of(2000, Month.JANUARY, 4, 0, 0);
     private static final LocalDateTime LDT_5 = LocalDateTime.of(2000, Month.JANUARY, 5, 0, 0);
+
+    private static final UUID UUID_1 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c0");
+    private static final UUID UUID_2 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c1");
+    private static final UUID UUID_3 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c2");
+    private static final UUID UUID_4 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c3");
+    private static final UUID UUID_5 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c4");
 
     private static final ExampleConfigurationB1 B1_1 = newExampleConfigurationB1_1();
     private static final ExampleConfigurationB1 B1_2 = newExampleConfigurationB1_2();
@@ -124,6 +131,9 @@ public final class ExampleInitializer {
         a2.setA1_localDateTime(LDT_1);
         a2.setA2_localDateTime(LDT_2);
 
+        a2.setA1_uuid(UUID_1);
+        a2.setA2_uuid(UUID_2);
+
         a2.setA1_Enm(A);
         a2.setA2_Enm(B);
 
@@ -174,6 +184,9 @@ public final class ExampleInitializer {
 
         a2.setA1_listLocalDateTime(List.of(LDT_1, LDT_2, LDT_3));
         a2.setA2_listLocalDateTime(List.of(LDT_2, LDT_3, LDT_4));
+
+        a2.setA1_listUuid(List.of(UUID_1, UUID_2, UUID_3));
+        a2.setA2_listUuid(List.of(UUID_2, UUID_3, UUID_4));
 
         a2.setA1_listEnm(List.of(A, B, C));
         a2.setA2_listEnm(List.of(B, C, D));
@@ -250,6 +263,9 @@ public final class ExampleInitializer {
         a2.setA1_arrayLocalDateTime(new LocalDateTime[]{LDT_1, LDT_2, LDT_3});
         a2.setA2_arrayLocalDateTime(new LocalDateTime[]{LDT_2, LDT_3, LDT_4});
 
+        a2.setA1_arrayUuid(new UUID[]{UUID_1, UUID_2, UUID_3});
+        a2.setA2_arrayUuid(new UUID[]{UUID_2, UUID_3, UUID_4});
+
         a2.setA1_arrayEnm(new ExampleEnum[]{A, B, C});
         a2.setA2_arrayEnm(new ExampleEnum[]{B, C, D});
 
@@ -301,6 +317,9 @@ public final class ExampleInitializer {
         a2.setA1_setLocalDateTime(asSet(LDT_1, LDT_2, LDT_3));
         a2.setA2_setLocalDateTime(asSet(LDT_2, LDT_3, LDT_4));
 
+        a2.setA1_setUuid(asSet(UUID_1, UUID_2, UUID_3));
+        a2.setA2_setUuid(asSet(UUID_2, UUID_3, UUID_4));
+
         a2.setA1_setEnm(asSet(A, B, C));
         a2.setA2_setEnm(asSet(B, C, D));
 
@@ -351,6 +370,9 @@ public final class ExampleInitializer {
 
         a2.setA1_mapLocalDateTimeLocalDateTime(asMap(LDT_1, LDT_2, LDT_3, LDT_4));
         a2.setA2_mapLocalDateTimeLocalDateTime(asMap(LDT_2, LDT_3, LDT_4, LDT_5));
+
+        a2.setA1_mapUuidUuid(asMap(UUID_1, UUID_2, UUID_3, UUID_4));
+        a2.setA2_mapUuidUuid(asMap(UUID_2, UUID_3, UUID_4, UUID_5));
 
         a2.setA1_mapEnmEnm(asMap(A, B, C, D));
         a2.setA2_mapEnmEnm(asMap(B, C, D, E));
@@ -763,6 +785,17 @@ public final class ExampleInitializer {
                 {LDT_1},
                 {LDT_1, LDT_2},
                 {LDT_1, LDT_2, LDT_3},
+        });
+
+        a2.setA1_arrayArrayUuid(new UUID[][]{
+                {},
+                {UUID_1},
+                {UUID_1, UUID_2},
+        });
+        a2.setA2_arrayArrayUuid(new UUID[][]{
+                {UUID_1},
+                {UUID_1, UUID_2},
+                {UUID_1, UUID_2, UUID_3},
         });
 
         a2.setA1_arrayArrayEnm(new ExampleEnum[][]{

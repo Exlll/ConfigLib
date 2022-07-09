@@ -272,6 +272,7 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_localDate(), is(a1_2.getA1_localDate()));
         assertThat(a1_1.getA1_localTime(), is(a1_2.getA1_localTime()));
         assertThat(a1_1.getA1_localDateTime(), is(a1_2.getA1_localDateTime()));
+        assertThat(a1_1.getA1_uuid(), is(a1_2.getA1_uuid()));
         assertThat(a1_1.getA1_Enm(), is(a1_2.getA1_Enm()));
         assertThat(a1_1.getA1_b1(), is(a1_2.getA1_b1()));
         assertThat(a1_1.getA1_b2(), is(a1_2.getA1_b2()));
@@ -289,6 +290,7 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_listLocalDate(), is(a1_2.getA1_listLocalDate()));
         assertThat(a1_1.getA1_listLocalTime(), is(a1_2.getA1_listLocalTime()));
         assertThat(a1_1.getA1_listLocalDateTime(), is(a1_2.getA1_listLocalDateTime()));
+        assertThat(a1_1.getA1_listUuid(), is(a1_2.getA1_listUuid()));
         assertThat(a1_1.getA1_listEnm(), is(a1_2.getA1_listEnm()));
         assertThat(a1_1.getA1_listB1(), is(a1_2.getA1_listB1()));
         assertThat(a1_1.getA1_listB2(), is(a1_2.getA1_listB2()));
@@ -314,6 +316,7 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_arrayLocalDate(), is(a1_2.getA1_arrayLocalDate()));
         assertThat(a1_1.getA1_arrayLocalTime(), is(a1_2.getA1_arrayLocalTime()));
         assertThat(a1_1.getA1_arrayLocalDateTime(), is(a1_2.getA1_arrayLocalDateTime()));
+        assertThat(a1_1.getA1_arrayUuid(), is(a1_2.getA1_arrayUuid()));
         assertThat(a1_1.getA1_arrayEnm(), is(a1_2.getA1_arrayEnm()));
         assertThat(a1_1.getA1_arrayB1(), is(a1_2.getA1_arrayB1()));
         assertThat(a1_1.getA1_arrayB2(), is(a1_2.getA1_arrayB2()));
@@ -331,6 +334,7 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_setLocalDate(), is(a1_2.getA1_setLocalDate()));
         assertThat(a1_1.getA1_setLocalTime(), is(a1_2.getA1_setLocalTime()));
         assertThat(a1_1.getA1_setLocalDateTime(), is(a1_2.getA1_setLocalDateTime()));
+        assertThat(a1_1.getA1_setUuid(), is(a1_2.getA1_setUuid()));
         assertThat(a1_1.getA1_setEnm(), is(a1_2.getA1_setEnm()));
         assertThat(a1_1.getA1_setB1(), is(a1_2.getA1_setB1()));
         assertThat(a1_1.getA1_setB2(), is(a1_2.getA1_setB2()));
@@ -348,6 +352,7 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_mapLocalDateLocalDate(), is(a1_2.getA1_mapLocalDateLocalDate()));
         assertThat(a1_1.getA1_mapLocalTimeLocalTime(), is(a1_2.getA1_mapLocalTimeLocalTime()));
         assertThat(a1_1.getA1_mapLocalDateTimeLocalDateTime(), is(a1_2.getA1_mapLocalDateTimeLocalDateTime()));
+        assertThat(a1_1.getA1_mapUuidUuid(), is(a1_2.getA1_mapUuidUuid()));
         assertThat(a1_1.getA1_mapEnmEnm(), is(a1_2.getA1_mapEnmEnm()));
         assertThat(a1_1.getA1_mapIntegerB1(), is(a1_2.getA1_mapIntegerB1()));
         assertThat(a1_1.getA1_mapEnmB2(), is(a1_2.getA1_mapEnmB2()));
@@ -391,6 +396,7 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_arrayArrayLocalDate(), is(a1_2.getA1_arrayArrayLocalDate()));
         assertThat(a1_1.getA1_arrayArrayLocalTime(), is(a1_2.getA1_arrayArrayLocalTime()));
         assertThat(a1_1.getA1_arrayArrayLocalDateTime(), is(a1_2.getA1_arrayArrayLocalDateTime()));
+        assertThat(a1_1.getA1_arrayArrayUuid(), is(a1_2.getA1_arrayArrayUuid()));
         assertThat(a1_1.getA1_arrayArrayEnm(), is(a1_2.getA1_arrayArrayEnm()));
         assertThat(a1_1.getA1_arrayArrayB1(), is(a1_2.getA1_arrayArrayB1()));
         assertThat(a1_1.getA1_arrayArrayB2(), is(a1_2.getA1_arrayArrayB2()));
@@ -437,6 +443,7 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_localDate(), is(a2_2.getA2_localDate()));
         assertThat(a2_1.getA2_localTime(), is(a2_2.getA2_localTime()));
         assertThat(a2_1.getA2_localDateTime(), is(a2_2.getA2_localDateTime()));
+        assertThat(a2_1.getA2_uuid(), is(a2_2.getA2_uuid()));
         assertThat(a2_1.getA2_Enm(), is(a2_2.getA2_Enm()));
         assertThat(a2_1.getA2_b1(), is(a2_2.getA2_b1()));
         assertThat(a2_1.getA2_b2(), is(a2_2.getA2_b2()));
@@ -454,6 +461,7 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_listLocalDate(), is(a2_2.getA2_listLocalDate()));
         assertThat(a2_1.getA2_listLocalTime(), is(a2_2.getA2_listLocalTime()));
         assertThat(a2_1.getA2_listLocalDateTime(), is(a2_2.getA2_listLocalDateTime()));
+        assertThat(a2_1.getA2_listUuid(), is(a2_2.getA2_listUuid()));
         assertThat(a2_1.getA2_listEnm(), is(a2_2.getA2_listEnm()));
         assertThat(a2_1.getA2_listB1(), is(a2_2.getA2_listB1()));
         assertThat(a2_1.getA2_listB2(), is(a2_2.getA2_listB2()));
@@ -479,6 +487,7 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_arrayLocalDate(), is(a2_2.getA2_arrayLocalDate()));
         assertThat(a2_1.getA2_arrayLocalTime(), is(a2_2.getA2_arrayLocalTime()));
         assertThat(a2_1.getA2_arrayLocalDateTime(), is(a2_2.getA2_arrayLocalDateTime()));
+        assertThat(a2_1.getA2_arrayUuid(), is(a2_2.getA2_arrayUuid()));
         assertThat(a2_1.getA2_arrayEnm(), is(a2_2.getA2_arrayEnm()));
         assertThat(a2_1.getA2_arrayB1(), is(a2_2.getA2_arrayB1()));
         assertThat(a2_1.getA2_arrayB2(), is(a2_2.getA2_arrayB2()));
@@ -496,6 +505,7 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_setLocalDate(), is(a2_2.getA2_setLocalDate()));
         assertThat(a2_1.getA2_setLocalTime(), is(a2_2.getA2_setLocalTime()));
         assertThat(a2_1.getA2_setLocalDateTime(), is(a2_2.getA2_setLocalDateTime()));
+        assertThat(a2_1.getA2_setUuid(), is(a2_2.getA2_setUuid()));
         assertThat(a2_1.getA2_setEnm(), is(a2_2.getA2_setEnm()));
         assertThat(a2_1.getA2_setB1(), is(a2_2.getA2_setB1()));
         assertThat(a2_1.getA2_setB2(), is(a2_2.getA2_setB2()));
@@ -513,6 +523,7 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_mapLocalDateLocalDate(), is(a2_2.getA2_mapLocalDateLocalDate()));
         assertThat(a2_1.getA2_mapLocalTimeLocalTime(), is(a2_2.getA2_mapLocalTimeLocalTime()));
         assertThat(a2_1.getA2_mapLocalDateTimeLocalDateTime(), is(a2_2.getA2_mapLocalDateTimeLocalDateTime()));
+        assertThat(a2_1.getA2_mapUuidUuid(), is(a2_2.getA2_mapUuidUuid()));
         assertThat(a2_1.getA2_mapEnmEnm(), is(a2_2.getA2_mapEnmEnm()));
         assertThat(a2_1.getA2_mapIntegerB1(), is(a2_2.getA2_mapIntegerB1()));
         assertThat(a2_1.getA2_mapEnmB2(), is(a2_2.getA2_mapEnmB2()));
@@ -556,6 +567,7 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_arrayArrayLocalDate(), is(a2_2.getA2_arrayArrayLocalDate()));
         assertThat(a2_1.getA2_arrayArrayLocalTime(), is(a2_2.getA2_arrayArrayLocalTime()));
         assertThat(a2_1.getA2_arrayArrayLocalDateTime(), is(a2_2.getA2_arrayArrayLocalDateTime()));
+        assertThat(a2_1.getA2_arrayArrayUuid(), is(a2_2.getA2_arrayArrayUuid()));
         assertThat(a2_1.getA2_arrayArrayEnm(), is(a2_2.getA2_arrayArrayEnm()));
         assertThat(a2_1.getA2_arrayArrayB1(), is(a2_2.getA2_arrayArrayB1()));
         assertThat(a2_1.getA2_arrayArrayB2(), is(a2_2.getA2_arrayArrayB2()));

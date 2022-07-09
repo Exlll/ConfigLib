@@ -19,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static de.exlll.configlib.TestUtils.*;
 import static java.util.Arrays.asList;
@@ -426,6 +427,20 @@ class SerializersTest {
 
         dateTime = dateTime.truncatedTo(ChronoUnit.SECONDS);
         assertThat(serializer.deserialize("2000-02-29T10:11:12"), is(dateTime));
+    }
+
+    @Test
+    void uuidSerializer() {
+        Serializer<UUID, String> serializer = new Serializers.UuidSerializer();
+
+        var uuid = UUID.randomUUID();
+        var uuidString = uuid.toString();
+
+        assertThat(serializer.serialize(uuid), is(uuidString));
+
+        var deserialized = serializer.deserialize(uuidString);
+
+        assertThat(uuid, is(deserialized));
     }
 
     enum E {X, Y, Z}

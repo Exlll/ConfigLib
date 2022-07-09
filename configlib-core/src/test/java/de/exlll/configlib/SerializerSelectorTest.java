@@ -17,6 +17,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static de.exlll.configlib.TestUtils.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -91,6 +92,12 @@ class SerializerSelectorTest {
     void selectSerializerLocalDateTime() {
         Serializer<?, ?> serializer = SELECTOR.select(LocalDateTime.class);
         assertThat(serializer, instanceOf(LocalDateTimeSerializer.class));
+    }
+
+    @Test
+    void selectSerializerUuid() {
+        Serializer<?, ?> serializer = SELECTOR.select(UUID.class);
+        assertThat(serializer, instanceOf(UuidSerializer.class));
     }
 
     @Test
