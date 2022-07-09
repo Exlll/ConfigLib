@@ -582,7 +582,7 @@ replace `configlib-core` with `configlib-paper`
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-core</artifactId>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
 </dependency>
 ```
 
@@ -591,13 +591,13 @@ replace `configlib-core` with `configlib-paper`
 ```groovy
 repositories { maven { url 'https://maven.pkg.github.com/Exlll/ConfigLib' } }
 
-dependencies { implementation 'de.exlll:configlib-core:3.0.0' }
+dependencies { implementation 'de.exlll:configlib-core:3.1.0' }
 ```
 
 ```kotlin
 repositories { maven { url = uri("https://maven.pkg.github.com/Exlll/ConfigLib") } }
 
-dependencies { implementation("de.exlll:configlib-core:3.0.0") }
+dependencies { implementation("de.exlll:configlib-core:3.1.0") }
 ```
 
 ## Future work
