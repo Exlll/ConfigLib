@@ -14,7 +14,9 @@ the [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial) page on the wik
 * Automatic creation, saving, loading, and updating of configuration files
 * Support for comments through annotations
 * Support for all primitive types, their wrapper types, and Strings
-* Support for `BigInteger`, `BigDecimal`, `LocalDate`, `LocalTime`, `LocalDateTime`, and `UUID`
+* Support for `BigInteger` and `BigDecimal`
+* Support for `LocalDate`, `LocalTime`, `LocalDateTime`, and `Instant`
+* Support for `UUID`, `File`, `Path`, `URL`, and `URI`
 * Support for (nested) lists, sets, arrays, and maps
 * Support for enums and POJOs (+ inheritance!)
 * Support for Bukkit's `ConfigurationSerializable` types (e.g. `ItemStack`)
@@ -34,7 +36,7 @@ of this documentation.
 For a step-by-step tutorial with a more advanced example check out
 the [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial) page on the wiki.
 
-If you want support Bukkit classes like `ItemStack`, check out
+If you want support for Bukkit classes like `ItemStack`, check out
 the [Configuration properties](#configuration-properties) section.
 
 ```java
@@ -122,7 +124,7 @@ Two things are noticeable here:
 
 1. Not every user in the `blockedUsers` list has a `password` mapping. This is because null values
    are not output by default. That behavior can be changed by the builder.
-2. The password of the user with username `user3` that has no comment. This is due to limitations of
+2. The password of the user with username `user3` has no comment. This is due to limitations of
    the YAML library. Configurations in lists, sets, or maps cannot have their comments printed.
 
 ## General information
@@ -154,8 +156,8 @@ A configuration type may only contain fields of the following types:
 | Floating point types        | `float`, `double`, and their respective wrapper types              |
 | Characters and strings      | `char`, `Character`, `String`                                      |
 | Big numeric types           | `BigInteger`, `BigDecimal`                                         |
-| Time related types          | `LocalTime`, `LocalDate`, `LocalDateTime`                          |
-| Utility types               | `UUID`                                                             |
+| Time related types          | `LocalTime`, `LocalDate`, `LocalDateTime`, `Instant`               |
+| Utility types               | `UUID`, `File`, `Path`, `URL`, `URI`                               |
 | Enums                       | Any Java enum                                                      |
 | Configurations              | Any configuration type                                             |
 | `ConfigurationSerializable` | All Bukkit classes that implement this interface, like `ItemStack` |

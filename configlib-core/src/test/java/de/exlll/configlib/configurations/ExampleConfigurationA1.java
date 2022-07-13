@@ -4,8 +4,13 @@ import de.exlll.configlib.Configuration;
 import de.exlll.configlib.Ignore;
 
 import java.awt.Point;
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -56,7 +61,12 @@ public class ExampleConfigurationA1 {
     private LocalDate a1_localDate;
     private LocalTime a1_localTime;
     private LocalDateTime a1_localDateTime;
+    private Instant a1_instant;
     private UUID a1_uuid;
+    private File a1_file;
+    private Path a1_path;
+    private URL a1_url;
+    private URI a1_uri;
     private ExampleEnum a1_Enm;
 
     /* OTHER CONFIGURATIONS */
@@ -78,7 +88,12 @@ public class ExampleConfigurationA1 {
     private List<LocalDate> a1_listLocalDate;
     private List<LocalTime> a1_listLocalTime;
     private List<LocalDateTime> a1_listLocalDateTime;
+    private List<Instant> a1_listInstant;
     private List<UUID> a1_listUuid;
+    private List<File> a1_listFile;
+    private List<Path> a1_listPath;
+    private List<URL> a1_listUrl;
+    private List<URI> a1_listUri;
     private List<ExampleEnum> a1_listEnm;
     private List<ExampleConfigurationB1> a1_listB1;
     private List<ExampleConfigurationB2> a1_listB2;
@@ -1469,5 +1484,85 @@ public class ExampleConfigurationA1 {
 
     public void setA1_arrayArrayUuid(UUID[][] a1_arrayArrayUuid) {
         this.a1_arrayArrayUuid = a1_arrayArrayUuid;
+    }
+
+    public Instant getA1_instant() {
+        return a1_instant;
+    }
+
+    public void setA1_instant(Instant a1_instant) {
+        this.a1_instant = a1_instant;
+    }
+
+    public File getA1_file() {
+        return a1_file;
+    }
+
+    public void setA1_file(File a1_file) {
+        this.a1_file = a1_file;
+    }
+
+    public Path getA1_path() {
+        return a1_path;
+    }
+
+    public void setA1_path(Path a1_path) {
+        this.a1_path = a1_path;
+    }
+
+    public URL getA1_url() {
+        return a1_url;
+    }
+
+    public void setA1_url(URL a1_url) {
+        this.a1_url = a1_url;
+    }
+
+    public URI getA1_uri() {
+        return a1_uri;
+    }
+
+    public void setA1_uri(URI a1_uri) {
+        this.a1_uri = a1_uri;
+    }
+
+    public List<Instant> getA1_listInstant() {
+        return a1_listInstant;
+    }
+
+    public void setA1_listInstant(List<Instant> a1_listInstant) {
+        this.a1_listInstant = a1_listInstant;
+    }
+
+    public List<File> getA1_listFile() {
+        return a1_listFile;
+    }
+
+    public void setA1_listFile(List<File> a1_listFile) {
+        this.a1_listFile = a1_listFile;
+    }
+
+    public List<Path> getA1_listPath() {
+        return a1_listPath;
+    }
+
+    public void setA1_listPath(List<Path> a1_listPath) {
+        this.a1_listPath = a1_listPath;
+    }
+
+    public List<URL> getA1_listUrl() {
+        return a1_listUrl;
+    }
+
+    public void setA1_listUrl(List<URL> a1_listUrl) {
+        this.a1_listUrl = a1_listUrl;
+    }
+
+    public List<URI> getA1_listUri() {
+        return a1_listUri;
+    }
+
+    public void setA1_listUri(List<URI> a1_listUri) {
+        this.a1_listUri = a1_listUri;
     }
 }

@@ -9,12 +9,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Month;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -430,6 +431,18 @@ class SerializersTest {
     }
 
     @Test
+    void instantSerializer() {
+        Serializer<Instant, String> serializer = new Serializers.InstantSerializer();
+
+        Instant instant = LocalDateTime.of(2000, Month.FEBRUARY, 29, 10, 11, 12, 13)
+                .toInstant(ZoneOffset.UTC);
+
+        assertThat(serializer.serialize(instant), is("2000-02-29T10:11:12.000000013Z"));
+
+        assertThat(serializer.deserialize("2000-02-29T10:11:12.000000013Z"), is(instant));
+    }
+
+    @Test
     void uuidSerializer() {
         Serializer<UUID, String> serializer = new Serializers.UuidSerializer();
 
@@ -441,6 +454,90 @@ class SerializersTest {
         var deserialized = serializer.deserialize(uuidString);
 
         assertThat(uuid, is(deserialized));
+    }
+
+    @Test
+    void fileSerializer() {
+        Serializer<File, String> serializer = new Serializers.FileSerializer();
+
+        String path1 = "/tmp/config.yml";
+        String path2 = "/tmp/with \n new \n lines.yml";
+        String path3 = "/tmp";
+
+        File file1 = new File(path1);
+        File file2 = new File(path2);
+        File file3 = new File(path3);
+
+        assertThat(serializer.serialize(file1), is(path1));
+        assertThat(serializer.serialize(file2), is(path2));
+        assertThat(serializer.serialize(file3), is(path3));
+
+        assertThat(serializer.deserialize(path1), is(file1));
+        assertThat(serializer.deserialize(path2), is(file2));
+        assertThat(serializer.deserialize(path3), is(file3));
+    }
+
+    @Test
+    void pathSerializer() {
+        Serializer<Path, String> serializer = new Serializers.PathSerializer();
+
+        String path1 = "/tmp/config.yml";
+        String path2 = "/tmp/with \n new \n lines.yml";
+        String path3 = "/tmp";
+
+        Path file1 = Path.of(path1);
+        Path file2 = Path.of(path2);
+        Path file3 = Path.of(path3);
+
+        assertThat(serializer.serialize(file1), is(path1));
+        assertThat(serializer.serialize(file2), is(path2));
+        assertThat(serializer.serialize(file3), is(path3));
+
+        assertThat(serializer.deserialize(path1), is(file1));
+        assertThat(serializer.deserialize(path2), is(file2));
+        assertThat(serializer.deserialize(path3), is(file3));
+    }
+
+    @Test
+    void urlSerializer() throws Exception {
+        Serializer<URL, String> serializer = new Serializers.UrlSerializer();
+
+        String path1 = "https://example.com";
+        String path2 = "https://example.com?query=yes";
+        String path3 = "https://example.com?query=yes#fragment=true";
+
+        URL url1 = new URL(path1);
+        URL url2 = new URL(path2);
+        URL url3 = new URL(path3);
+
+        assertThat(serializer.serialize(url1), is(path1));
+        assertThat(serializer.serialize(url2), is(path2));
+        assertThat(serializer.serialize(url3), is(path3));
+
+        assertThat(serializer.deserialize(path1), is(url1));
+        assertThat(serializer.deserialize(path2), is(url2));
+        assertThat(serializer.deserialize(path3), is(url3));
+    }
+
+    @Test
+    void uriSerializer() {
+        Serializer<URI, String> serializer = new Serializers.UriSerializer();
+
+        String path1 = "https://example.com";
+        String path2 = "https://example.com?query=yes";
+        String path3 = "https://example.com?query=yes#fragment=true";
+
+        URI uri1 = URI.create(path1);
+        URI uri2 = URI.create(path2);
+        URI uri3 = URI.create(path3);
+
+        assertThat(serializer.serialize(uri1), is(path1));
+        assertThat(serializer.serialize(uri2), is(path2));
+        assertThat(serializer.serialize(uri3), is(path3));
+
+        assertThat(serializer.deserialize(path1), is(uri1));
+        assertThat(serializer.deserialize(path2), is(uri2));
+        assertThat(serializer.deserialize(path3), is(uri3));
     }
 
     enum E {X, Y, Z}

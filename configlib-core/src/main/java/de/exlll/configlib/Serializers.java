@@ -1,7 +1,13 @@
 package de.exlll.configlib;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -241,6 +247,18 @@ final class Serializers {
         }
     }
 
+    static final class InstantSerializer implements Serializer<Instant, String> {
+        @Override
+        public String serialize(Instant element) {
+            return element.toString();
+        }
+
+        @Override
+        public Instant deserialize(String element) {
+            return Instant.parse(element);
+        }
+    }
+
     static final class UuidSerializer implements Serializer<UUID, String> {
         @Override
         public String serialize(UUID element) {
@@ -250,6 +268,58 @@ final class Serializers {
         @Override
         public UUID deserialize(String element) {
             return UUID.fromString(element);
+        }
+    }
+
+    static final class FileSerializer implements Serializer<File, String> {
+        @Override
+        public String serialize(File element) {
+            return element.toString();
+        }
+
+        @Override
+        public File deserialize(String element) {
+            return new File(element);
+        }
+    }
+
+    static final class PathSerializer implements Serializer<Path, String> {
+        @Override
+        public String serialize(Path element) {
+            return element.toString();
+        }
+
+        @Override
+        public Path deserialize(String element) {
+            return Path.of(element);
+        }
+    }
+
+    static final class UrlSerializer implements Serializer<URL, String> {
+        @Override
+        public String serialize(URL element) {
+            return element.toString();
+        }
+
+        @Override
+        public URL deserialize(String element) {
+            try {
+                return new URL(element);
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    static final class UriSerializer implements Serializer<URI, String> {
+        @Override
+        public String serialize(URI element) {
+            return element.toString();
+        }
+
+        @Override
+        public URI deserialize(String element) {
+            return URI.create(element);
         }
     }
 

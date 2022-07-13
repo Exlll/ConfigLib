@@ -2,9 +2,14 @@ package de.exlll.configlib;
 
 import de.exlll.configlib.Serializers.*;
 
+import java.io.File;
 import java.lang.reflect.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -35,7 +40,12 @@ final class SerializerSelector {
             Map.entry(LocalDate.class, new LocalDateSerializer()),
             Map.entry(LocalTime.class, new LocalTimeSerializer()),
             Map.entry(LocalDateTime.class, new LocalDateTimeSerializer()),
-            Map.entry(UUID.class, new UuidSerializer())
+            Map.entry(Instant.class, new InstantSerializer()),
+            Map.entry(UUID.class, new UuidSerializer()),
+            Map.entry(File.class, new FileSerializer()),
+            Map.entry(Path.class, new PathSerializer()),
+            Map.entry(URL.class, new UrlSerializer()),
+            Map.entry(URI.class, new UriSerializer())
     );
     private final ConfigurationProperties properties;
 
@@ -67,7 +77,7 @@ final class SerializerSelector {
 
     private Serializer<?, ?> selectCustomSerializer(Type type) {
         if (type instanceof Class<?> cls) {
-            if (properties.getSerializers().containsKey(cls)) // TODO move check out
+            if (properties.getSerializers().containsKey(cls))
                 return properties.getSerializers().get(cls);
         }
         for (var entry : properties.getSerializersByCondition().entrySet()) {

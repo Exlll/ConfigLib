@@ -1,12 +1,14 @@
 package de.exlll.configlib.configurations;
 
 import java.awt.Point;
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Month;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
+import java.time.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -46,11 +48,36 @@ public final class ExampleInitializer {
     private static final LocalDateTime LDT_4 = LocalDateTime.of(2000, Month.JANUARY, 4, 0, 0);
     private static final LocalDateTime LDT_5 = LocalDateTime.of(2000, Month.JANUARY, 5, 0, 0);
 
+    private static final Instant INSTANT_1 = Instant.parse("0000-01-01T00:00:00Z");
+    private static final Instant INSTANT_2 = Instant.parse("0001-01-01T00:00:00Z");
+    private static final Instant INSTANT_3 = Instant.parse("-1000000000-01-01T00:00:00Z");
+    private static final Instant INSTANT_4 = Instant.parse("+1000000000-12-31T23:59:59.999999999Z");
+
     private static final UUID UUID_1 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c0");
     private static final UUID UUID_2 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c1");
     private static final UUID UUID_3 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c2");
     private static final UUID UUID_4 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c3");
     private static final UUID UUID_5 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c4");
+
+    private static final File FILE_1 = new File("/tmp");
+    private static final File FILE_2 = new File("/tmp/config.yml");
+    private static final File FILE_3 = new File("/tmp/with \n new \n lines.yml");
+    private static final File FILE_4 = new File("with \n new \n lines.yml");
+
+    private static final Path PATH_1 = Path.of("/tmp");
+    private static final Path PATH_2 = Path.of("/tmp/config.yml");
+    private static final Path PATH_3 = Path.of("/tmp/with \n new \n lines.yml");
+    private static final Path PATH_4 = Path.of("with \n new \n lines.yml");
+
+    private static final URL URL_1 = createUrl("https://example.com");
+    private static final URL URL_2 = createUrl("https://example.com?query=yes");
+    private static final URL URL_3 = createUrl("https://example.com?query=yes#fragment=true");
+    private static final URL URL_4 = createUrl("https://example.com#fragment=true");
+
+    private static final URI URI_1 = URI.create("https://example.com");
+    private static final URI URI_2 = URI.create("https://example.com?query=yes");
+    private static final URI URI_3 = URI.create("https://example.com?query=yes#fragment=true");
+    private static final URI URI_4 = URI.create("https://example.com#fragment=true");
 
     private static final ExampleConfigurationB1 B1_1 = newExampleConfigurationB1_1();
     private static final ExampleConfigurationB1 B1_2 = newExampleConfigurationB1_2();
@@ -61,6 +88,14 @@ public final class ExampleInitializer {
     private static final Point P2 = new Point(0, 2);
     private static final Point P3 = new Point(0, 3);
     private static final Point P4 = new Point(0, 4);
+
+    private static URL createUrl(String url) {
+        try {
+            return new URL(url);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static ExampleConfigurationA2 newExampleConfigurationA2() {
         ExampleConfigurationA2 a2 = new ExampleConfigurationA2();
@@ -131,8 +166,23 @@ public final class ExampleInitializer {
         a2.setA1_localDateTime(LDT_1);
         a2.setA2_localDateTime(LDT_2);
 
+        a2.setA1_instant(INSTANT_1);
+        a2.setA2_instant(INSTANT_2);
+
         a2.setA1_uuid(UUID_1);
         a2.setA2_uuid(UUID_2);
+
+        a2.setA1_file(FILE_1);
+        a2.setA2_file(FILE_2);
+
+        a2.setA1_path(PATH_1);
+        a2.setA2_path(PATH_2);
+
+        a2.setA1_url(URL_1);
+        a2.setA2_url(URL_2);
+
+        a2.setA1_uri(URI_1);
+        a2.setA2_uri(URI_2);
 
         a2.setA1_Enm(A);
         a2.setA2_Enm(B);
@@ -185,8 +235,23 @@ public final class ExampleInitializer {
         a2.setA1_listLocalDateTime(List.of(LDT_1, LDT_2, LDT_3));
         a2.setA2_listLocalDateTime(List.of(LDT_2, LDT_3, LDT_4));
 
+        a2.setA1_listInstant(List.of(INSTANT_1, INSTANT_2, INSTANT_3));
+        a2.setA2_listInstant(List.of(INSTANT_2, INSTANT_3, INSTANT_4));
+
         a2.setA1_listUuid(List.of(UUID_1, UUID_2, UUID_3));
         a2.setA2_listUuid(List.of(UUID_2, UUID_3, UUID_4));
+
+        a2.setA1_listFile(List.of(FILE_1, FILE_2, FILE_3));
+        a2.setA2_listFile(List.of(FILE_2, FILE_3, FILE_4));
+
+        a2.setA1_listPath(List.of(PATH_1, PATH_2, PATH_3));
+        a2.setA2_listPath(List.of(PATH_2, PATH_3, PATH_4));
+
+        a2.setA1_listUrl(List.of(URL_1, URL_2, URL_3));
+        a2.setA2_listUrl(List.of(URL_2, URL_3, URL_4));
+
+        a2.setA1_listUri(List.of(URI_1, URI_2, URI_3));
+        a2.setA2_listUri(List.of(URI_2, URI_3, URI_4));
 
         a2.setA1_listEnm(List.of(A, B, C));
         a2.setA2_listEnm(List.of(B, C, D));

@@ -6,11 +6,16 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.awt.Point;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -95,9 +100,39 @@ class SerializerSelectorTest {
     }
 
     @Test
+    void selectSerializerInstant() {
+        Serializer<?, ?> serializer = SELECTOR.select(Instant.class);
+        assertThat(serializer, instanceOf(InstantSerializer.class));
+    }
+
+    @Test
     void selectSerializerUuid() {
         Serializer<?, ?> serializer = SELECTOR.select(UUID.class);
         assertThat(serializer, instanceOf(UuidSerializer.class));
+    }
+
+    @Test
+    void selectSerializerFile() {
+        Serializer<?, ?> serializer = SELECTOR.select(File.class);
+        assertThat(serializer, instanceOf(FileSerializer.class));
+    }
+
+    @Test
+    void selectSerializerPath() {
+        Serializer<?, ?> serializer = SELECTOR.select(Path.class);
+        assertThat(serializer, instanceOf(PathSerializer.class));
+    }
+
+    @Test
+    void selectSerializerUrl() {
+        Serializer<?, ?> serializer = SELECTOR.select(URL.class);
+        assertThat(serializer, instanceOf(UrlSerializer.class));
+    }
+
+    @Test
+    void selectSerializerUri() {
+        Serializer<?, ?> serializer = SELECTOR.select(URI.class);
+        assertThat(serializer, instanceOf(UriSerializer.class));
     }
 
     @Test
