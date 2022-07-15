@@ -19,6 +19,7 @@ final class Validator {
     }
 
     static <T> Class<T> requireConfiguration(Class<T> cls) {
+        requireNonNull(cls, "type");
         if (!Reflect.isConfiguration(cls)) {
             String msg = "Class '" + cls.getSimpleName() + "' must be a configuration.";
             throw new ConfigurationException(msg);
@@ -27,8 +28,18 @@ final class Validator {
     }
 
     static <T> Class<T> requireRecord(Class<T> cls) {
+        requireNonNull(cls, "type");
         if (!cls.isRecord()) {
             String msg = "Class '" + cls.getSimpleName() + "' must be a record.";
+            throw new ConfigurationException(msg);
+        }
+        return cls;
+    }
+
+    static <T> Class<T> requireConfigurationOrRecord(Class<T> cls) {
+        requireNonNull(cls, "type");
+        if (!Reflect.isConfiguration(cls) && !cls.isRecord()) {
+            String msg = "Class '" + cls.getSimpleName() + "' must be a configuration or record.";
             throw new ConfigurationException(msg);
         }
         return cls;

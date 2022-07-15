@@ -6,7 +6,7 @@ import java.util.Map;
 
 final class RecordSerializer<R extends Record> extends TypeSerializer<R, RecordComponent> {
     RecordSerializer(Class<R> recordType, ConfigurationProperties properties) {
-        super(recordType, properties);
+        super(Validator.requireRecord(recordType), properties);
     }
 
     @Override

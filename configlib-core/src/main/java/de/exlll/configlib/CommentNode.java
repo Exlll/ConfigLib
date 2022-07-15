@@ -25,5 +25,6 @@ import java.util.List;
  * @param comments
  * @param fieldNames
  */
+// TODO change javadoc
 record CommentNode(List<String> comments, List<String> fieldNames) {}
 

@@ -352,6 +352,88 @@ class YamlFileWriterTest {
         );
     }
 
+    record R1(@Comment("Hello") int i, int j, @Comment("World") int k) {}
+
+    @Configuration
+    static class L1 {
+        @Comment("l1")
+        R1 r1 = new R1(1, 2, 3);
+    }
+
+    @Test
+    void writeYamlConfigWithRecord() {
+        writeConfig(L1.class);
+        assertFileContentEquals(
+                """
+                # l1
+                r1:
+                  # Hello
+                  i: 1
+                  j: 2
+                  # World
+                  k: 3\
+                """
+        );
+    }
+
+    record R2(@Comment("r2i") int i, int j, @Comment("r2k") int k) {}
+
+    record R3(@Comment("r3r2") R2 r2) {}
+
+    record R4(@Comment("r4m1") M1 m1, @Comment("r4r3") R3 r3) {}
+
+    @Configuration
+    static class M1 {
+        @Comment("m1r2")
+        R2 r2 = new R2(1, 2, 3);
+        @Comment("m1r3")
+        R3 r3 = new R3(new R2(4, 5, 6));
+    }
+
+    @Configuration
+    static class M2 {
+        @Comment("m2r4")
+        R4 r4 = new R4(new M1(), new R3(new R2(7, 8, 9)));
+    }
+
+    @Test
+    void writeYamlConfigWithRecordNested() {
+        writeConfig(M2.class);
+        assertFileContentEquals(
+                """
+                # m2r4
+                r4:
+                  # r4m1
+                  m1:
+                    # m1r2
+                    r2:
+                      # r2i
+                      i: 1
+                      j: 2
+                      # r2k
+                      k: 3
+                    # m1r3
+                    r3:
+                      # r3r2
+                      r2:
+                        # r2i
+                        i: 4
+                        j: 5
+                        # r2k
+                        k: 6
+                  # r4r3
+                  r3:
+                    # r3r2
+                    r2:
+                      # r2i
+                      i: 7
+                      j: 8
+                      # r2k
+                      k: 9\
+                """
+        );
+    }
+
     @Test
     void lengthCommonPrefix() {
         List<String> ab = List.of("a", "b");

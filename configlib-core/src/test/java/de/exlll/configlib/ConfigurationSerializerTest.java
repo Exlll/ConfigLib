@@ -59,7 +59,7 @@ class ConfigurationSerializerTest {
     void ctorRequiresConfiguration() {
         assertThrowsConfigurationException(
                 () -> newSerializer(B6.class),
-                "Type 'B6' must be a configuration or record type."
+                "Class 'B6' must be a configuration."
         );
     }
 

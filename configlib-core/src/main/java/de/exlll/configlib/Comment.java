@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Indicates that the annotated element is saved together with explanatory
  * comments describing it.
  */
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Comment {
     /**

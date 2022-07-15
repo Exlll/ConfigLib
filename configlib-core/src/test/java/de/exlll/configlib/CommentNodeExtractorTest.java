@@ -23,7 +23,7 @@ class CommentNodeExtractorTest {
     void requiresConfiguration() {
         assertThrowsConfigurationException(
                 () -> EXTRACTOR.extractCommentNodes(new Object()),
-                "Class 'Object' must be a configuration."
+                "Class 'Object' must be a configuration or record."
         );
     }
 
@@ -41,6 +41,14 @@ class CommentNodeExtractorTest {
     }
 
     @Test
+    void extractSingleComment1Record() {
+        record R(@Comment("Hello") int i) {}
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new R(10));
+        assertEquals(cn(List.of("Hello"), "i"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
     void extractSingleComment2() {
         @Configuration
         class A {
@@ -49,6 +57,15 @@ class CommentNodeExtractorTest {
         }
 
         Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new A());
+        assertEquals(cn(List.of("Hello", "World"), "i"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
+    void extractSingleComment2Record() {
+        record R(@Comment({"Hello", "World"}) int i) {}
+
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new R(10));
         assertEquals(cn(List.of("Hello", "World"), "i"), nodes.poll());
         assertTrue(nodes.isEmpty());
     }
@@ -71,6 +88,16 @@ class CommentNodeExtractorTest {
     }
 
     @Test
+    void extractMultipleCommentsRecord() {
+        record R(@Comment("Hello") int i, int j, @Comment("World") int k) {}
+
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new R(1, 2, 3));
+        assertEquals(cn(List.of("Hello"), "i"), nodes.poll());
+        assertEquals(cn(List.of("World"), "k"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
     void extractNestedComment1() {
         @Configuration
         class A {
@@ -85,6 +112,16 @@ class CommentNodeExtractorTest {
         assertEquals(cn(List.of("Hello"), "a", "i"), nodes.poll());
         assertTrue(nodes.isEmpty());
     }
+
+    @Test
+    void extractNestedComment1Record() {
+        record R1(@Comment("Hello") int i) {}
+        record R2(R1 r1) {}
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new R2(new R1(1)));
+        assertEquals(cn(List.of("Hello"), "r1", "i"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
 
     @Test
     void extractNestedComment2() {
@@ -103,6 +140,16 @@ class CommentNodeExtractorTest {
         Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new B());
         assertEquals(cn(List.of("Hello"), "a", "i"), nodes.poll());
         assertEquals(cn(List.of("World"), "a", "k"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
+    void extractNestedComment2Record() {
+        record R1(@Comment("Hello") int i, int j, @Comment("World") int k) {}
+        record R2(R1 r1) {}
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new R2(new R1(1, 2, 3)));
+        assertEquals(cn(List.of("Hello"), "r1", "i"), nodes.poll());
+        assertEquals(cn(List.of("World"), "r1", "k"), nodes.poll());
         assertTrue(nodes.isEmpty());
     }
 
@@ -149,10 +196,40 @@ class CommentNodeExtractorTest {
     }
 
     @Test
+    void extractNestedComment3Record() {
+        record R1(@Comment("Hello") int i, int j, @Comment("World") int k) {}
+        record R2(@Comment("Hello") R1 r11, @Comment("World") R1 r12) {}
+        record R3(@Comment("Hello") R2 r21, @Comment("World") R1 r11) {}
+        record R4(R3 r3) {}
+        R1 r1 = new R1(1, 2, 3);
+        R2 r2 = new R2(r1, r1);
+        R3 r3 = new R3(r2, r1);
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new R4(r3));
+        assertEquals(cn(List.of("Hello"), "r3", "r21"), nodes.poll());
+        assertEquals(cn(List.of("Hello"), "r3", "r21", "r11"), nodes.poll());
+        assertEquals(cn(List.of("Hello"), "r3", "r21", "r11", "i"), nodes.poll());
+        assertEquals(cn(List.of("World"), "r3", "r21", "r11", "k"), nodes.poll());
+        assertEquals(cn(List.of("World"), "r3", "r21", "r12"), nodes.poll());
+        assertEquals(cn(List.of("Hello"), "r3", "r21", "r12", "i"), nodes.poll());
+        assertEquals(cn(List.of("World"), "r3", "r21", "r12", "k"), nodes.poll());
+        assertEquals(cn(List.of("World"), "r3", "r11"), nodes.poll());
+        assertEquals(cn(List.of("Hello"), "r3", "r11", "i"), nodes.poll());
+        assertEquals(cn(List.of("World"), "r3", "r11", "k"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
     void extractEmptyClass() {
         @Configuration
         class A {}
         Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new A());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
+    void extractEmptyRecord() {
+        record R() {}
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new R());
         assertTrue(nodes.isEmpty());
     }
 
@@ -169,14 +246,28 @@ class CommentNodeExtractorTest {
         }
         @Configuration
         class C {
-            @Comment("Hello")
+            @Comment("World")
             A a = null;
         }
         Queue<CommentNode> nodes1 = EXTRACTOR.extractCommentNodes(new B());
         assertTrue(nodes1.isEmpty());
 
         Queue<CommentNode> nodes2 = EXTRACTOR.extractCommentNodes(new C());
-        assertEquals(cn(List.of("Hello"), "a"), nodes2.poll());
+        assertEquals(cn(List.of("World"), "a"), nodes2.poll());
+        assertTrue(nodes2.isEmpty());
+    }
+
+    @Test
+    void extractNestedOnlyIfNotNullRecord() {
+        record R1(@Comment("Hello") int i) {}
+        record R2(R1 r1) {}
+        record R3(@Comment("World") R1 r1) {}
+
+        Queue<CommentNode> nodes1 = EXTRACTOR.extractCommentNodes(new R2(null));
+        assertTrue(nodes1.isEmpty());
+
+        Queue<CommentNode> nodes2 = EXTRACTOR.extractCommentNodes(new R3(null));
+        assertEquals(cn(List.of("World"), "r1"), nodes2.poll());
         assertTrue(nodes2.isEmpty());
     }
 
@@ -193,7 +284,7 @@ class CommentNodeExtractorTest {
         }
         @Configuration
         class C {
-            @Comment("Hello")
+            @Comment("World")
             A a = null;
         }
         ConfigurationProperties properties = ConfigurationProperties.newBuilder()
@@ -205,6 +296,23 @@ class CommentNodeExtractorTest {
         assertTrue(nodes1.isEmpty());
 
         Queue<CommentNode> nodes2 = extractor.extractCommentNodes(new C());
+        assertTrue(nodes2.isEmpty());
+    }
+
+    @Test
+    void extractIgnoresCommentIfComponentNullAndOutputNull1() {
+        record R1(@Comment("Hello") int i) {}
+        record R2(R1 r1) {}
+        record R3(@Comment("World") R1 r1) {}
+        ConfigurationProperties properties = ConfigurationProperties.newBuilder()
+                .outputNulls(false)
+                .build();
+        CommentNodeExtractor extractor = new CommentNodeExtractor(properties);
+
+        Queue<CommentNode> nodes1 = extractor.extractCommentNodes(new R2(null));
+        assertTrue(nodes1.isEmpty());
+
+        Queue<CommentNode> nodes2 = extractor.extractCommentNodes(new R3(null));
         assertTrue(nodes2.isEmpty());
     }
 
@@ -222,6 +330,18 @@ class CommentNodeExtractorTest {
                 .build();
         CommentNodeExtractor extractor = new CommentNodeExtractor(properties);
         Queue<CommentNode> nodes = extractor.extractCommentNodes(new A());
+        assertEquals(cn(List.of("World"), "s2"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
+    void extractIgnoresCommentIfComponentNullAndOutputNull2() {
+        record R(@Comment("Hello") String s1, @Comment("World") String s2) {}
+        ConfigurationProperties properties = ConfigurationProperties.newBuilder()
+                .outputNulls(false)
+                .build();
+        CommentNodeExtractor extractor = new CommentNodeExtractor(properties);
+        Queue<CommentNode> nodes = extractor.extractCommentNodes(new R(null, ""));
         assertEquals(cn(List.of("World"), "s2"), nodes.poll());
         assertTrue(nodes.isEmpty());
     }
@@ -269,6 +389,39 @@ class CommentNodeExtractorTest {
     }
 
     @Test
+    void extractAppliesFormatterButNotFilterRecord() {
+        record R1(@Comment("Hello") int i, int j, @Comment("World") int k) {}
+        record R2(@Comment("Hello") R1 r11, @Comment("World") R1 r12) {}
+        record R3(@Comment("Hello") R2 r2, @Comment("World") R1 r1) {}
+
+        R1 r1 = new R1(1, 2, 3);
+        R2 r2 = new R2(r1, r1);
+
+        ConfigurationProperties properties = ConfigurationProperties.newBuilder()
+                .setFieldFilter(field -> {
+                    String name = field.getName();
+                    return !name.equals("r11") && !name.equals("r1");
+                })
+                .setNameFormatter(NameFormatters.UPPER_UNDERSCORE)
+                .build();
+
+        CommentNodeExtractor extractor = new CommentNodeExtractor(properties);
+        Queue<CommentNode> nodes = extractor.extractCommentNodes(new R3(r2, r1));
+
+        assertEquals(cn(List.of("Hello"), "R2"), nodes.poll());
+        assertEquals(cn(List.of("Hello"), "R2", "R11"), nodes.poll());
+        assertEquals(cn(List.of("Hello"), "R2", "R11", "I"), nodes.poll());
+        assertEquals(cn(List.of("World"), "R2", "R11", "K"), nodes.poll());
+        assertEquals(cn(List.of("World"), "R2", "R12"), nodes.poll());
+        assertEquals(cn(List.of("Hello"), "R2", "R12", "I"), nodes.poll());
+        assertEquals(cn(List.of("World"), "R2", "R12", "K"), nodes.poll());
+        assertEquals(cn(List.of("World"), "R1"), nodes.poll());
+        assertEquals(cn(List.of("Hello"), "R1", "I"), nodes.poll());
+        assertEquals(cn(List.of("World"), "R1", "K"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
     void extractIgnoresCommentsForConfigurationsInCollections() {
         @Configuration
         class A {
@@ -282,6 +435,23 @@ class CommentNodeExtractorTest {
             Map<Integer, A> mapIntegerA;
         }
         Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new B());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
+    void extractIgnoresCommentsForRecordsInCollections() {
+        record R(@Comment("Yes") int i) {}
+        @Configuration
+        class B {
+            Set<R> setR = Set.of(new R(1));
+            List<R> listR = List.of(new R(2));
+            Map<Integer, R> mapIntegerR = Map.of(1, new R(3));
+        }
+        record C(Set<R> setR, List<R> listR, Map<Integer, R> mapIntegerR) {}
+        C c = new C(Set.of(new R(1)), List.of(new R(2)), Map.of(1, new R(3)));
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new B());
+        assertTrue(nodes.isEmpty());
+        nodes = EXTRACTOR.extractCommentNodes(c);
         assertTrue(nodes.isEmpty());
     }
 
@@ -313,6 +483,39 @@ class CommentNodeExtractorTest {
         assertEquals(cn(List.of("int", "j"), "a2", "j"), nodes.poll());
         assertEquals(cn(List.of("A1", "a1"), "a1"), nodes.poll());
         assertEquals(cn(List.of("int", "i"), "a1", "i"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
+    void extractCommentsForRecordInClass() {
+        record R(@Comment("Hello") int i, int j, @Comment("World") int k) {}
+        @Configuration
+        class A {
+            @Comment({"A", "B"})
+            R r = new R(1, 2, 3);
+        }
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new A());
+        assertEquals(cn(List.of("A", "B"), "r"), nodes.poll());
+        assertEquals(cn(List.of("Hello"), "r", "i"), nodes.poll());
+        assertEquals(cn(List.of("World"), "r", "k"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
+    void extractCommentsForClassInRecord() {
+        @Configuration
+        class A {
+            @Comment("Hello")
+            int i;
+            int j;
+            @Comment("World")
+            int k;
+        }
+        record R(@Comment({"A", "B"}) A a) {}
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new R(new A()));
+        assertEquals(cn(List.of("A", "B"), "a"), nodes.poll());
+        assertEquals(cn(List.of("Hello"), "a", "i"), nodes.poll());
+        assertEquals(cn(List.of("World"), "a", "k"), nodes.poll());
         assertTrue(nodes.isEmpty());
     }
 
