@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import java.awt.Point;
 import java.lang.reflect.Type;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -25,13 +24,13 @@ class ConfigurationPropertiesTest {
         assertThat(properties.inputNulls(), is(false));
         assertThat(properties.getSerializers().entrySet(), empty());
         assertThat(properties.getSerializersByCondition().entrySet(), empty());
-        assertThat(properties.getFieldFormatter(), is(FieldFormatters.IDENTITY));
+        assertThat(properties.getNameFormatter(), is(NameFormatters.IDENTITY));
         assertThat(properties.getFieldFilter(), is(FieldFilters.DEFAULT));
     }
 
     @Test
     void builderCopiesValues() {
-        FieldFormatter formatter = field -> field.getName().toLowerCase(Locale.ROOT);
+        NameFormatter formatter = String::toLowerCase;
         FieldFilter filter = field -> field.getName().startsWith("f");
         TestUtils.PointSerializer serializer = new TestUtils.PointSerializer();
         Predicate<? super Type> predicate = type -> true;
@@ -39,7 +38,7 @@ class ConfigurationPropertiesTest {
         ConfigurationProperties properties = ConfigurationProperties.newBuilder()
                 .addSerializer(Point.class, serializer)
                 .addSerializerByCondition(predicate, serializer)
-                .setFieldFormatter(formatter)
+                .setNameFormatter(formatter)
                 .setFieldFilter(filter)
                 .outputNulls(true)
                 .inputNulls(true)
@@ -51,13 +50,13 @@ class ConfigurationPropertiesTest {
         assertThat(properties.outputNulls(), is(true));
         assertThat(properties.inputNulls(), is(true));
         assertThat(properties.serializeSetsAsLists(), is(false));
-        assertThat(properties.getFieldFormatter(), sameInstance(formatter));
+        assertThat(properties.getNameFormatter(), sameInstance(formatter));
         assertThat(properties.getFieldFilter(), sameInstance(filter));
     }
 
     @Test
     void builderCtorCopiesValues() {
-        FieldFormatter formatter = field -> field.getName().toLowerCase(Locale.ROOT);
+        NameFormatter formatter = String::toLowerCase;
         FieldFilter filter = field -> field.getName().startsWith("f");
         TestUtils.PointSerializer serializer = new TestUtils.PointSerializer();
         Predicate<? super Type> predicate = type -> true;
@@ -65,7 +64,7 @@ class ConfigurationPropertiesTest {
         ConfigurationProperties properties = ConfigurationProperties.newBuilder()
                 .addSerializer(Point.class, serializer)
                 .addSerializerByCondition(predicate, serializer)
-                .setFieldFormatter(formatter)
+                .setNameFormatter(formatter)
                 .setFieldFilter(filter)
                 .outputNulls(true)
                 .inputNulls(true)
@@ -79,7 +78,7 @@ class ConfigurationPropertiesTest {
         assertThat(properties.outputNulls(), is(true));
         assertThat(properties.inputNulls(), is(true));
         assertThat(properties.serializeSetsAsLists(), is(false));
-        assertThat(properties.getFieldFormatter(), sameInstance(formatter));
+        assertThat(properties.getNameFormatter(), sameInstance(formatter));
         assertThat(properties.getFieldFilter(), sameInstance(filter));
     }
 
@@ -111,10 +110,10 @@ class ConfigurationPropertiesTest {
         }
 
         @Test
-        void setFieldFormatterRequiresNonNull() {
+        void setNameFormatterRequiresNonNull() {
             assertThrowsNullPointerException(
-                    () -> builder.setFieldFormatter(null),
-                    "field formatter"
+                    () -> builder.setNameFormatter(null),
+                    "name formatter"
             );
         }
 

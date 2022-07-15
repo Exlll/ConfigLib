@@ -1,15 +1,40 @@
 package de.exlll.configlib;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 final class Reflect {
+    private static final Map<Class<?>, Object> DEFAULT_VALUES = initDefaultValues();
+
     private Reflect() {}
+
+    private static Map<Class<?>, Object> initDefaultValues() {
+        return Stream.of(
+                        boolean.class,
+                        char.class,
+                        byte.class,
+                        short.class,
+                        int.class,
+                        long.class,
+                        float.class,
+                        double.class
+                )
+                .collect(Collectors.toMap(
+                        type -> type,
+                        type -> Array.get(Array.newInstance(type, 1), 0)
+                ));
+    }
+
+    static <T> T getDefaultValue(Class<T> clazz) {
+        @SuppressWarnings("unchecked")
+        T defaultValue = (T) DEFAULT_VALUES.get(clazz);
+        return defaultValue;
+    }
 
     static <T> T newInstance(Class<T> cls) {
         try {
@@ -35,6 +60,35 @@ final class Reflect {
         }
     }
 
+    static <R extends Record> R newRecord(Class<R> recordType, Object... constructorArguments) {
+        try {
+            Constructor<R> constructor = getCanonicalConstructor(recordType);
+            constructor.setAccessible(true);
+            return constructor.newInstance(constructorArguments);
+        } catch (NoSuchMethodException e) {
+            // cannot happen because we select the constructor based on the component types
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            // cannot happen because we set the constructor to be accessible.
+            throw new RuntimeException(e);
+        } catch (InstantiationException e) {
+            // cannot happen because records are instantiable
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            String msg = "The canonical constructor of record type '" +
+                         recordType.getSimpleName() + "' threw an exception.";
+            throw new RuntimeException(msg, e);
+        }
+    }
+
+    static <R extends Record> Constructor<R> getCanonicalConstructor(Class<R> recordType)
+            throws NoSuchMethodException {
+        Class<?>[] parameterTypes = Arrays.stream(recordType.getRecordComponents())
+                .map(RecordComponent::getType)
+                .toArray(Class<?>[]::new);
+        return recordType.getDeclaredConstructor(parameterTypes);
+    }
+
     static <T> T[] newArray(Class<T> componentType, int length) {
         // The following cast won't fail because we just created an array of that type
         @SuppressWarnings("unchecked")
@@ -51,6 +105,23 @@ final class Reflect {
              * we set the field to be accessible. */
             String msg = "Illegal access of field '" + field + "' " +
                          "on object " + instance + ".";
+            throw new RuntimeException(msg, e);
+        }
+    }
+
+    static Object getValue(RecordComponent component, Object recordInstance) {
+        final Method accessor = component.getAccessor();
+        try {
+            accessor.setAccessible(true);
+            return accessor.invoke(recordInstance);
+        } catch (IllegalAccessException e) {
+            /* Should not be thrown because we set the method to be accessible. */
+            String msg = "Illegal access of method '%s' on record '%s'."
+                    .formatted(accessor, recordInstance);
+            throw new RuntimeException(msg, e);
+        } catch (InvocationTargetException e) {
+            String msg = "Invocation of method '%s' on record '%s' failed."
+                    .formatted(accessor, recordInstance);
             throw new RuntimeException(msg, e);
         }
     }

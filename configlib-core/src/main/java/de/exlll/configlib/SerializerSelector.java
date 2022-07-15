@@ -93,11 +93,17 @@ final class SerializerSelector {
         if (Reflect.isEnumType(cls)) {
             // The following cast won't fail because we just checked that it's an enum.
             @SuppressWarnings("unchecked")
-            var enumCls = (Class<? extends Enum<?>>) cls;
-            return new Serializers.EnumSerializer(enumCls);
+            final var enumType = (Class<? extends Enum<?>>) cls;
+            return new Serializers.EnumSerializer(enumType);
         }
         if (Reflect.isArrayType(cls))
             return selectForArray(cls.getComponentType());
+        if (cls.isRecord()) {
+            // The following cast won't fail because we just checked that it's a record.
+            @SuppressWarnings("unchecked")
+            final var recordType = (Class<? extends Record>) cls;
+            return new RecordSerializer<>(recordType, properties);
+        }
         if (Reflect.isConfiguration(cls))
             return new ConfigurationSerializer<>(cls, properties);
 

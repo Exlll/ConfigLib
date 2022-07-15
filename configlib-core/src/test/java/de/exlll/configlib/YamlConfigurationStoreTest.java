@@ -41,7 +41,7 @@ class YamlConfigurationStoreTest {
                 .header("The\nHeader")
                 .footer("The\nFooter")
                 .outputNulls(true)
-                .setFieldFormatter(field -> field.getName().toUpperCase())
+                .setNameFormatter(String::toUpperCase)
                 .build();
         YamlConfigurationStore<A> store = new YamlConfigurationStore<>(A.class, properties);
         store.save(new A(), yamlFile);
@@ -72,7 +72,7 @@ class YamlConfigurationStoreTest {
     void load() throws IOException {
         YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
                 .inputNulls(true)
-                .setFieldFormatter(field -> field.getName().toUpperCase())
+                .setNameFormatter(String::toUpperCase)
                 .build();
         YamlConfigurationStore<B> store = new YamlConfigurationStore<>(B.class, properties);
 

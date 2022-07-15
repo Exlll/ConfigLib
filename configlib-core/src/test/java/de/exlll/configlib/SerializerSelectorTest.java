@@ -211,6 +211,21 @@ class SerializerSelectorTest {
     }
 
     @Test
+    void selectSerializerRecord() {
+        record R(int i) {}
+        var serializer = (RecordSerializer<?>) SELECTOR.select(R.class);
+        assertThat(serializer.getRecordType(), equalTo(R.class));
+    }
+
+    @Test
+    void recordSerializerTakesPrecedenceOverConfigurationSerializer() {
+        @Configuration
+        record R(int i) {}
+        var serializer = (RecordSerializer<?>) SELECTOR.select(R.class);
+        assertThat(serializer.getRecordType(), equalTo(R.class));
+    }
+
+    @Test
     void selectSerializerMissingType() {
         assertThrowsConfigurationException(
                 () -> SELECTOR.select(Object.class),

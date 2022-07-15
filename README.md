@@ -21,7 +21,7 @@ the [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial) page on the wik
 * Support for enums and POJOs (+ inheritance!)
 * Support for Bukkit's `ConfigurationSerializable` types (e.g. `ItemStack`)
 * Option to exclude fields from being converted
-* Option to format field names before conversion
+* Option to format field and component names before conversion
 * Option to customize null handling
 * Option to customize serialization by providing your own serializers
 * Option to add headers and footers to configuration files
@@ -395,15 +395,31 @@ Fields that are `final`, `static`, `transient` or annotated with `@Ignore` are n
 nor updated during deserialization. You can filter out additional fields by providing an instance of
 `FieldFilter` to the configuration properties.
 
-### Handling of `null` values
+### Handling of missing and `null` values
+
+#### Missing values
+
+When a configuration file is read, values that correspond to a field of a configuration type or to a
+component of a record type might be missing.
+That can happen, for example, when somebody deleted that field from the configuration file, when the
+definition of a configuration or record type is changed, or when the `NameFormatter` that was used
+to create that file is changed.
+
+In such cases, fields of configuration types keep the default value you assigned to them and record
+components are initialized with the default value of their corresponding type.
+
+#### `null` values
 
 Configuration properties let you configure how `null` values are handled when serializing and
-deserializing a configuration:
+deserializing a configuration or record type:
 
-* By setting `outputNulls` to false, fields and collection elements that are null are not output.
-  Any comments that belong to such fields are also not written.
-* By setting `inputNulls` to false, fields and collection elements that are null are not input. That
-  means that fields will keep their default values.
+* By setting `outputNulls` to false, class fields, record components, and collection elements that
+  are null are not output. Any comments that belong to such fields are also not written.
+* By setting `inputNulls` to false, null values read from the configuration file are treated as
+  missing and are, therefore, handled as described in the section above.
+* By setting `inputNulls` to true, null values read from the configuration file override the
+  corresponding default values of a configuration type with null or set the component value of a
+  record type to null. If the field or component type is primitive, an exception is thrown.
 
 The following code forbids null values to be output but allows null values to be input. By default,
 both are forbidden which makes the call to `outputNulls` in this case redundant.
@@ -415,18 +431,18 @@ YamlConfigurationProperties.newBuilder()
         .build();
 ```
 
-### Field formatting
+### Field and component name formatting
 
-You can define how fields are formatted by configuring the configuration properties with a custom
-formatter. Field formatters are implementations of the `FieldFormatter` interface. You can implement
-this interface yourself or use one of the several formatters this library provides. These
-pre-defined formatters can be found in the `FieldFormatters` class.
+You can define how fields and component names are formatted by configuring the configuration
+properties with a custom formatter. Formatters are implementations of the `NameFormatter`
+interface. You can implement this interface yourself or use one of the several formatters this
+library provides. These pre-defined formatters can be found in the `NameFormatters` class.
 
 The following code formats fields using the `IDENTITY` formatter (which is the default).
 
 ```java 
 YamlConfigurationProperties.newBuilder()
-        .setFieldFormatter(FieldFormatters.IDENTITY)
+        .setNameFormatter(NameFormatters.IDENTITY)
         .build();
 ```
 

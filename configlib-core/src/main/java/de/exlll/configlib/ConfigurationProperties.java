@@ -12,7 +12,7 @@ import static de.exlll.configlib.Validator.requireNonNull;
 class ConfigurationProperties {
     private final Map<Class<?>, Serializer<?, ?>> serializersByType;
     private final Map<Predicate<? super Type>, Serializer<?, ?>> serializersByCondition;
-    private final FieldFormatter formatter;
+    private final NameFormatter formatter;
     private final FieldFilter filter;
     private final boolean outputNulls;
     private final boolean inputNulls;
@@ -29,7 +29,7 @@ class ConfigurationProperties {
         this.serializersByCondition = Collections.unmodifiableMap(new LinkedHashMap<>(
                 builder.serializersByCondition
         ));
-        this.formatter = requireNonNull(builder.formatter, "field formatter");
+        this.formatter = requireNonNull(builder.formatter, "name formatter");
         this.filter = requireNonNull(builder.filter, "field filter");
         this.outputNulls = builder.outputNulls;
         this.inputNulls = builder.inputNulls;
@@ -75,7 +75,7 @@ class ConfigurationProperties {
         private final Map<Class<?>, Serializer<?, ?>> serializersByType = new HashMap<>();
         private final Map<Predicate<? super Type>, Serializer<?, ?>> serializersByCondition =
                 new LinkedHashMap<>();
-        private FieldFormatter formatter = FieldFormatters.IDENTITY;
+        private NameFormatter formatter = NameFormatters.IDENTITY;
         private FieldFilter filter = FieldFilters.DEFAULT;
         private boolean outputNulls = false;
         private boolean inputNulls = false;
@@ -107,16 +107,16 @@ class ConfigurationProperties {
         }
 
         /**
-         * Sets the field formatter.
+         * Sets the name formatter.
          * <p>
-         * The default value is a formatter that returns the name of the field.
+         * The default value is a formatter that returns the same name that was given to it.
          *
          * @param formatter the formatter
          * @return this builder
          * @throws NullPointerException if {@code formatter} is null
          */
-        public final B setFieldFormatter(FieldFormatter formatter) {
-            this.formatter = requireNonNull(formatter, "field formatter");
+        public final B setNameFormatter(NameFormatter formatter) {
+            this.formatter = requireNonNull(formatter, "name formatter");
             return getThis();
         }
 
@@ -227,11 +227,12 @@ class ConfigurationProperties {
     }
 
     /**
-     * Returns the field formatter used to format the fields of a configuration.
+     * Returns the name formatter used to format the names of configuration fields and
+     * record components.
      *
      * @return the formatter
      */
-    public final FieldFormatter getFieldFormatter() {
+    public final NameFormatter getNameFormatter() {
         return formatter;
     }
 

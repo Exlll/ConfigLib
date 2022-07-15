@@ -217,6 +217,68 @@ class ExampleConfigurationTests {
         );
     }
 
+    @Test
+    void serializeExampleRecord1() {
+        RecordSerializer<ExampleRecord1> serializer =
+                new RecordSerializer<>(ExampleRecord1.class, PROPERTIES_DENY_NULL);
+
+        assertEquals(EXAMPLE_RECORD1_1, serializer.serialize(ExampleInitializer.EXAMPLE_RECORD1_1));
+        assertEquals(EXAMPLE_RECORD1_2, serializer.serialize(ExampleInitializer.EXAMPLE_RECORD1_2));
+    }
+
+    @Test
+    void deserializeExampleRecord1() {
+        RecordSerializer<ExampleRecord1> serializer =
+                new RecordSerializer<>(ExampleRecord1.class, PROPERTIES_DENY_NULL);
+
+        ExampleRecord1 deserialize1 = serializer.deserialize(EXAMPLE_RECORD1_1);
+        assertExampleRecord1Equal(ExampleInitializer.EXAMPLE_RECORD1_1, deserialize1);
+
+        ExampleRecord1 deserialize2 = serializer.deserialize(EXAMPLE_RECORD1_2);
+        assertExampleRecord1Equal(ExampleInitializer.EXAMPLE_RECORD1_2, deserialize2);
+    }
+
+    @Test
+    void serializeExampleRecord2() {
+        RecordSerializer<ExampleRecord2> serializer =
+                new RecordSerializer<>(ExampleRecord2.class, PROPERTIES_DENY_NULL);
+
+        assertEquals(EXAMPLE_RECORD2_1, serializer.serialize(ExampleInitializer.EXAMPLE_RECORD2_1));
+        assertEquals(EXAMPLE_RECORD2_2, serializer.serialize(ExampleInitializer.EXAMPLE_RECORD2_2));
+    }
+
+    @Test
+    void deserializeExampleRecord2() {
+        RecordSerializer<ExampleRecord2> serializer =
+                new RecordSerializer<>(ExampleRecord2.class, PROPERTIES_DENY_NULL);
+
+        ExampleRecord2 deserialize1 = serializer.deserialize(EXAMPLE_RECORD2_1);
+        assertExampleRecord2Equal(ExampleInitializer.EXAMPLE_RECORD2_1, deserialize1);
+
+        ExampleRecord2 deserialize2 = serializer.deserialize(EXAMPLE_RECORD2_2);
+        assertExampleRecord2Equal(ExampleInitializer.EXAMPLE_RECORD2_2, deserialize2);
+    }
+
+    private static void assertExampleRecord1Equal(
+            ExampleRecord1 expected,
+            ExampleRecord1 actual
+    ) {
+        assertThat(actual.i(), is(expected.i()));
+        assertThat(actual.d(), is(expected.d()));
+        assertThat(actual.enm(), is(expected.enm()));
+        assertThat(actual.listUuid(), is(expected.listUuid()));
+        assertThat(actual.arrayArrayFloat(), is(expected.arrayArrayFloat()));
+        assertExampleConfigurationsB1Equal(expected.b1(), actual.b1());
+    }
+
+    private static void assertExampleRecord2Equal(
+            ExampleRecord2 expected,
+            ExampleRecord2 actual
+    ) {
+        assertEquals(expected.b(), actual.b());
+        assertExampleRecord1Equal(expected.r1(), actual.r1());
+    }
+
     private static void assertExampleConfigurationsNullsEqual(
             ExampleConfigurationNulls expected,
             ExampleConfigurationNulls actual
@@ -282,6 +344,8 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_Enm(), is(a1_2.getA1_Enm()));
         assertThat(a1_1.getA1_b1(), is(a1_2.getA1_b1()));
         assertThat(a1_1.getA1_b2(), is(a1_2.getA1_b2()));
+        assertThat(a1_1.getA1_r1(), is(a1_2.getA1_r1()));
+        assertThat(a1_1.getA1_r2(), is(a1_2.getA1_r2()));
         assertThat(a1_1.getA1_listBoolean(), is(a1_2.getA1_listBoolean()));
         assertThat(a1_1.getA1_listChar(), is(a1_2.getA1_listChar()));
         assertThat(a1_1.getA1_listByte(), is(a1_2.getA1_listByte()));
@@ -305,6 +369,8 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_listEnm(), is(a1_2.getA1_listEnm()));
         assertThat(a1_1.getA1_listB1(), is(a1_2.getA1_listB1()));
         assertThat(a1_1.getA1_listB2(), is(a1_2.getA1_listB2()));
+        assertThat(a1_1.getA1_listR1(), is(a1_2.getA1_listR1()));
+        assertThat(a1_1.getA1_listR2(), is(a1_2.getA1_listR2()));
         assertThat(a1_1.getA1_arrayPrimBoolean(), is(a1_2.getA1_arrayPrimBoolean()));
         assertThat(a1_1.getA1_arrayPrimChar(), is(a1_2.getA1_arrayPrimChar()));
         assertThat(a1_1.getA1_arrayPrimByte(), is(a1_2.getA1_arrayPrimByte()));
@@ -331,6 +397,8 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_arrayEnm(), is(a1_2.getA1_arrayEnm()));
         assertThat(a1_1.getA1_arrayB1(), is(a1_2.getA1_arrayB1()));
         assertThat(a1_1.getA1_arrayB2(), is(a1_2.getA1_arrayB2()));
+        assertThat(a1_1.getA1_arrayR1(), is(a1_2.getA1_arrayR1()));
+        assertThat(a1_1.getA1_arrayR2(), is(a1_2.getA1_arrayR2()));
         assertThat(a1_1.getA1_setBoolean(), is(a1_2.getA1_setBoolean()));
         assertThat(a1_1.getA1_setChar(), is(a1_2.getA1_setChar()));
         assertThat(a1_1.getA1_setByte(), is(a1_2.getA1_setByte()));
@@ -349,6 +417,8 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_setEnm(), is(a1_2.getA1_setEnm()));
         assertThat(a1_1.getA1_setB1(), is(a1_2.getA1_setB1()));
         assertThat(a1_1.getA1_setB2(), is(a1_2.getA1_setB2()));
+        assertThat(a1_1.getA1_setR1(), is(a1_2.getA1_setR1()));
+        assertThat(a1_1.getA1_setR2(), is(a1_2.getA1_setR2()));
         assertThat(a1_1.getA1_mapBooleanBoolean(), is(a1_2.getA1_mapBooleanBoolean()));
         assertThat(a1_1.getA1_mapCharChar(), is(a1_2.getA1_mapCharChar()));
         assertThat(a1_1.getA1_mapByteByte(), is(a1_2.getA1_mapByteByte()));
@@ -367,6 +437,8 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_mapEnmEnm(), is(a1_2.getA1_mapEnmEnm()));
         assertThat(a1_1.getA1_mapIntegerB1(), is(a1_2.getA1_mapIntegerB1()));
         assertThat(a1_1.getA1_mapEnmB2(), is(a1_2.getA1_mapEnmB2()));
+        assertThat(a1_1.getA1_mapStringR1(), is(a1_2.getA1_mapStringR1()));
+        assertThat(a1_1.getA1_mapStringR2(), is(a1_2.getA1_mapStringR2()));
         assertThat(a1_1.getA1_listEmpty(), is(a1_2.getA1_listEmpty()));
         assertThat(a1_1.getA1_arrayEmpty(), is(a1_2.getA1_arrayEmpty()));
         assertThat(a1_1.getA1_setEmpty(), is(a1_2.getA1_setEmpty()));
@@ -411,6 +483,8 @@ class ExampleConfigurationTests {
         assertThat(a1_1.getA1_arrayArrayEnm(), is(a1_2.getA1_arrayArrayEnm()));
         assertThat(a1_1.getA1_arrayArrayB1(), is(a1_2.getA1_arrayArrayB1()));
         assertThat(a1_1.getA1_arrayArrayB2(), is(a1_2.getA1_arrayArrayB2()));
+        assertThat(a1_1.getA1_arrayArrayR1(), is(a1_2.getA1_arrayArrayR1()));
+        assertThat(a1_1.getA1_arrayArrayR2(), is(a1_2.getA1_arrayArrayR2()));
         assertThat(a1_1.getA1_point(), is(a1_2.getA1_point()));
         assertThat(a1_1.getA1_listPoint(), is(a1_2.getA1_listPoint()));
         assertThat(a1_1.getA1_arrayPoint(), is(a1_2.getA1_arrayPoint()));
@@ -463,6 +537,8 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_Enm(), is(a2_2.getA2_Enm()));
         assertThat(a2_1.getA2_b1(), is(a2_2.getA2_b1()));
         assertThat(a2_1.getA2_b2(), is(a2_2.getA2_b2()));
+        assertThat(a2_1.getA2_r1(), is(a2_2.getA2_r1()));
+        assertThat(a2_1.getA2_r2(), is(a2_2.getA2_r2()));
         assertThat(a2_1.getA2_listBoolean(), is(a2_2.getA2_listBoolean()));
         assertThat(a2_1.getA2_listChar(), is(a2_2.getA2_listChar()));
         assertThat(a2_1.getA2_listByte(), is(a2_2.getA2_listByte()));
@@ -486,6 +562,8 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_listEnm(), is(a2_2.getA2_listEnm()));
         assertThat(a2_1.getA2_listB1(), is(a2_2.getA2_listB1()));
         assertThat(a2_1.getA2_listB2(), is(a2_2.getA2_listB2()));
+        assertThat(a2_1.getA2_listR1(), is(a2_2.getA2_listR1()));
+        assertThat(a2_1.getA2_listR2(), is(a2_2.getA2_listR2()));
         assertThat(a2_1.getA2_arrayPrimBoolean(), is(a2_2.getA2_arrayPrimBoolean()));
         assertThat(a2_1.getA2_arrayPrimChar(), is(a2_2.getA2_arrayPrimChar()));
         assertThat(a2_1.getA2_arrayPrimByte(), is(a2_2.getA2_arrayPrimByte()));
@@ -512,6 +590,8 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_arrayEnm(), is(a2_2.getA2_arrayEnm()));
         assertThat(a2_1.getA2_arrayB1(), is(a2_2.getA2_arrayB1()));
         assertThat(a2_1.getA2_arrayB2(), is(a2_2.getA2_arrayB2()));
+        assertThat(a2_1.getA2_arrayR1(), is(a2_2.getA2_arrayR1()));
+        assertThat(a2_1.getA2_arrayR2(), is(a2_2.getA2_arrayR2()));
         assertThat(a2_1.getA2_setBoolean(), is(a2_2.getA2_setBoolean()));
         assertThat(a2_1.getA2_setChar(), is(a2_2.getA2_setChar()));
         assertThat(a2_1.getA2_setByte(), is(a2_2.getA2_setByte()));
@@ -530,6 +610,8 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_setEnm(), is(a2_2.getA2_setEnm()));
         assertThat(a2_1.getA2_setB1(), is(a2_2.getA2_setB1()));
         assertThat(a2_1.getA2_setB2(), is(a2_2.getA2_setB2()));
+        assertThat(a2_1.getA2_setR1(), is(a2_2.getA2_setR1()));
+        assertThat(a2_1.getA2_setR2(), is(a2_2.getA2_setR2()));
         assertThat(a2_1.getA2_mapBooleanBoolean(), is(a2_2.getA2_mapBooleanBoolean()));
         assertThat(a2_1.getA2_mapCharChar(), is(a2_2.getA2_mapCharChar()));
         assertThat(a2_1.getA2_mapByteByte(), is(a2_2.getA2_mapByteByte()));
@@ -548,6 +630,8 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_mapEnmEnm(), is(a2_2.getA2_mapEnmEnm()));
         assertThat(a2_1.getA2_mapIntegerB1(), is(a2_2.getA2_mapIntegerB1()));
         assertThat(a2_1.getA2_mapEnmB2(), is(a2_2.getA2_mapEnmB2()));
+        assertThat(a2_1.getA2_mapStringR1(), is(a2_2.getA2_mapStringR1()));
+        assertThat(a2_1.getA2_mapStringR2(), is(a2_2.getA2_mapStringR2()));
         assertThat(a2_1.getA2_listEmpty(), is(a2_2.getA2_listEmpty()));
         assertThat(a2_1.getA2_arrayEmpty(), is(a2_2.getA2_arrayEmpty()));
         assertThat(a2_1.getA2_setEmpty(), is(a2_2.getA2_setEmpty()));
@@ -592,6 +676,8 @@ class ExampleConfigurationTests {
         assertThat(a2_1.getA2_arrayArrayEnm(), is(a2_2.getA2_arrayArrayEnm()));
         assertThat(a2_1.getA2_arrayArrayB1(), is(a2_2.getA2_arrayArrayB1()));
         assertThat(a2_1.getA2_arrayArrayB2(), is(a2_2.getA2_arrayArrayB2()));
+        assertThat(a2_1.getA2_arrayArrayR1(), is(a2_2.getA2_arrayArrayR1()));
+        assertThat(a2_1.getA2_arrayArrayR2(), is(a2_2.getA2_arrayArrayR2()));
         assertThat(a2_1.getA2_point(), is(a2_2.getA2_point()));
         assertThat(a2_1.getA2_listPoint(), is(a2_2.getA2_listPoint()));
         assertThat(a2_1.getA2_arrayPoint(), is(a2_2.getA2_arrayPoint()));

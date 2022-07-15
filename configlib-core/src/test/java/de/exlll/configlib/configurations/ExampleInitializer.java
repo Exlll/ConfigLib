@@ -97,6 +97,27 @@ public final class ExampleInitializer {
         }
     }
 
+    public static final ExampleRecord1 EXAMPLE_RECORD1_1 = new ExampleRecord1(
+            1,
+            2d,
+            ExampleEnum.A,
+            List.of(UUID_1, UUID_2),
+            new float[][]{{1f, 2f}, {3f, 4f}},
+            B1_1
+    );
+
+    public static final ExampleRecord1 EXAMPLE_RECORD1_2 = new ExampleRecord1(
+            2,
+            3d,
+            ExampleEnum.B,
+            List.of(UUID_2, UUID_3),
+            new float[][]{{2f, 3f}, {4f, 5f}},
+            B1_2
+    );
+
+    public static final ExampleRecord2 EXAMPLE_RECORD2_1 = new ExampleRecord2(true, EXAMPLE_RECORD1_1);
+    public static final ExampleRecord2 EXAMPLE_RECORD2_2 = new ExampleRecord2(false, EXAMPLE_RECORD1_2);
+
     public static ExampleConfigurationA2 newExampleConfigurationA2() {
         ExampleConfigurationA2 a2 = new ExampleConfigurationA2();
 
@@ -193,6 +214,12 @@ public final class ExampleInitializer {
         a2.setA1_b2(B2_1);
         a2.setA2_b2(B2_2);
 
+        a2.setA1_r1(EXAMPLE_RECORD1_1);
+        a2.setA2_r1(EXAMPLE_RECORD1_2);
+
+        a2.setA1_r2(EXAMPLE_RECORD2_1);
+        a2.setA2_r2(EXAMPLE_RECORD2_2);
+
         a2.setA1_listBoolean(List.of(true, false, true));
         a2.setA2_listBoolean(List.of(false, true, false));
 
@@ -261,6 +288,12 @@ public final class ExampleInitializer {
 
         a2.setA1_listB2(List.of(B2_1));
         a2.setA2_listB2(List.of(B2_1, B2_2));
+
+        a2.setA1_listR1(List.of(EXAMPLE_RECORD1_1));
+        a2.setA2_listR1(List.of(EXAMPLE_RECORD1_1, EXAMPLE_RECORD1_2));
+
+        a2.setA1_listR2(List.of(EXAMPLE_RECORD2_1));
+        a2.setA2_listR2(List.of(EXAMPLE_RECORD2_1, EXAMPLE_RECORD2_2));
 
         a2.setA1_arrayPrimBoolean(new boolean[]{true, false, true});
         a2.setA2_arrayPrimBoolean(new boolean[]{false, true, false});
@@ -340,6 +373,12 @@ public final class ExampleInitializer {
         a2.setA1_arrayB2(new ExampleConfigurationB2[]{B2_1});
         a2.setA2_arrayB2(new ExampleConfigurationB2[]{B2_1, B2_2});
 
+        a2.setA1_arrayR1(new ExampleRecord1[]{EXAMPLE_RECORD1_1});
+        a2.setA2_arrayR1(new ExampleRecord1[]{EXAMPLE_RECORD1_1, EXAMPLE_RECORD1_2});
+
+        a2.setA1_arrayR2(new ExampleRecord2[]{EXAMPLE_RECORD2_1});
+        a2.setA2_arrayR2(new ExampleRecord2[]{EXAMPLE_RECORD2_1, EXAMPLE_RECORD2_2});
+
         a2.setA1_setBoolean(asSet(true));
         a2.setA2_setBoolean(asSet(false));
 
@@ -394,6 +433,12 @@ public final class ExampleInitializer {
         a2.setA1_setB2(asSet(B2_1));
         a2.setA2_setB2(asSet(B2_1, B2_2));
 
+        a2.setA1_setR1(asSet(EXAMPLE_RECORD1_1));
+        a2.setA2_setR1(asSet(EXAMPLE_RECORD1_1, EXAMPLE_RECORD1_2));
+
+        a2.setA1_setR2(asSet(EXAMPLE_RECORD2_1));
+        a2.setA2_setR2(asSet(EXAMPLE_RECORD2_1, EXAMPLE_RECORD2_2));
+
         a2.setA1_mapBooleanBoolean(asMap(true, true, false, false));
         a2.setA2_mapBooleanBoolean(asMap(true, true, false, false));
 
@@ -447,6 +492,12 @@ public final class ExampleInitializer {
 
         a2.setA1_mapEnmB2(asMap(A, B2_1, B, B2_2));
         a2.setA2_mapEnmB2(asMap(B, B2_1, C, B2_2));
+
+        a2.setA1_mapStringR1(asMap("1", EXAMPLE_RECORD1_1, "2", EXAMPLE_RECORD1_2));
+        a2.setA2_mapStringR1(asMap("2", EXAMPLE_RECORD1_1, "3", EXAMPLE_RECORD1_2));
+
+        a2.setA1_mapStringR2(asMap("1", EXAMPLE_RECORD2_1, "2", EXAMPLE_RECORD2_2));
+        a2.setA2_mapStringR2(asMap("2", EXAMPLE_RECORD2_1, "3", EXAMPLE_RECORD2_2));
 
         a2.setA1_listEmpty(Collections.emptyList());
         a2.setA2_listEmpty(List.of());
@@ -879,6 +930,12 @@ public final class ExampleInitializer {
 
         a2.setA1_arrayArrayB2(new ExampleConfigurationB2[][]{{}, {B2_1}});
         a2.setA2_arrayArrayB2(new ExampleConfigurationB2[][]{{B2_1}, {B2_2}});
+
+        a2.setA1_arrayArrayR1(new ExampleRecord1[][]{{}, {EXAMPLE_RECORD1_1}});
+        a2.setA2_arrayArrayR1(new ExampleRecord1[][]{{EXAMPLE_RECORD1_1}, {EXAMPLE_RECORD1_2}});
+
+        a2.setA1_arrayArrayR2(new ExampleRecord2[][]{{}, {EXAMPLE_RECORD2_1}});
+        a2.setA2_arrayArrayR2(new ExampleRecord2[][]{{EXAMPLE_RECORD2_1}, {EXAMPLE_RECORD2_2}});
 
         a2.setA1_point(P1);
         a2.setA2_point(P2);

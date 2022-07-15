@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,10 +13,27 @@ import java.util.HashSet;
 import static de.exlll.configlib.TestUtils.assertThrowsRuntimeException;
 import static de.exlll.configlib.TestUtils.getField;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
 class ReflectTest {
+
+    @Test
+    void defaultValues() {
+        assertThat(Reflect.getDefaultValue(boolean.class), is(false));
+        assertThat(Reflect.getDefaultValue(byte.class), is((byte) 0));
+        assertThat(Reflect.getDefaultValue(char.class), is('\0'));
+        assertThat(Reflect.getDefaultValue(short.class), is((short) 0));
+        assertThat(Reflect.getDefaultValue(int.class), is(0));
+        assertThat(Reflect.getDefaultValue(long.class), is(0L));
+        assertThat(Reflect.getDefaultValue(float.class), is(0f));
+        assertThat(Reflect.getDefaultValue(double.class), is(0d));
+
+        assertThat(Reflect.getDefaultValue(Boolean.class), nullValue());
+        assertThat(Reflect.getDefaultValue(Integer.class), nullValue());
+        assertThat(Reflect.getDefaultValue(Character.class), nullValue());
+        assertThat(Reflect.getDefaultValue(Double.class), nullValue());
+        assertThat(Reflect.getDefaultValue(Object.class), nullValue());
+    }
 
     static class B1 {
         B1(int i) {}
@@ -81,6 +99,28 @@ class ReflectTest {
         }
         int value = (int) Reflect.getValue(getField(A.class, "i"), new A());
         assertThat(value, is(10));
+    }
+
+    @Test
+    void getValueRecord() {
+        record R(float f) {}
+
+        float value = (float) Reflect.getValue(R.class.getRecordComponents()[0], new R(10f));
+        assertThat(value, is(10f));
+    }
+
+    @Test
+    void getValueRecordThrowsException() {
+        record R(float f) {
+            public float f() {
+                throw new ConfigurationException("TEST");
+            }
+        }
+        assertThrowsRuntimeException(
+                () -> Reflect.getValue(R.class.getRecordComponents()[0], new R(10f)),
+                "Invocation of method 'public float de.exlll.configlib.ReflectTest$2R.f()' " +
+                "on record 'R[f=10.0]' failed."
+        );
     }
 
     @Test
@@ -213,5 +253,56 @@ class ReflectTest {
 
         assertThat(Reflect.isIgnored(fieldA), is(true));
         assertThat(Reflect.isIgnored(fieldB), is(false));
+    }
+
+    record R1(int i, float f) {
+        R1(int i) {
+            this(i, 0);
+        }
+
+        R1(float f) {
+            this(0, f);
+        }
+
+        R1(int i, float f, String s) {
+            this(i, f);
+        }
+    }
+
+    @Test
+    void getCanonicalConstructor() throws NoSuchMethodException {
+        Constructor<R1> constructor = Reflect.getCanonicalConstructor(R1.class);
+        Class<?>[] classes = constructor.getParameterTypes();
+        assertThat(classes.length, is(2));
+        assertThat(classes[0], equalTo(int.class));
+        assertThat(classes[1], equalTo(float.class));
+    }
+
+    @Test
+    void newRecord1() {
+        R1 r = Reflect.newRecord(R1.class, 1, 2f);
+        assertThat(r.i, is(1));
+        assertThat(r.f, is(2f));
+    }
+
+    record R2() {}
+
+    @Test
+    void newRecord2() {
+        Reflect.newRecord(R2.class);
+    }
+
+    record R3(String s) {
+        R3 {
+            throw new IllegalArgumentException("Illegal: " + s);
+        }
+    }
+
+    @Test
+    void newRecordWithThrowingCtor() {
+        assertThrowsRuntimeException(
+                () -> Reflect.newRecord(R3.class, ""),
+                "The canonical constructor of record type 'R3' threw an exception."
+        );
     }
 }

@@ -72,6 +72,8 @@ public class ExampleConfigurationA1 {
     /* OTHER CONFIGURATIONS */
     private ExampleConfigurationB1 a1_b1;
     private ExampleConfigurationB2 a1_b2;
+    private ExampleRecord1 a1_r1;
+    private ExampleRecord2 a1_r2;
 
     /* COLLECTIONS: Lists */
     private List<Boolean> a1_listBoolean;
@@ -97,6 +99,8 @@ public class ExampleConfigurationA1 {
     private List<ExampleEnum> a1_listEnm;
     private List<ExampleConfigurationB1> a1_listB1;
     private List<ExampleConfigurationB2> a1_listB2;
+    private List<ExampleRecord1> a1_listR1;
+    private List<ExampleRecord2> a1_listR2;
 
     /* COLLECTIONS: Arrays */
     private boolean[] a1_arrayPrimBoolean;
@@ -125,6 +129,8 @@ public class ExampleConfigurationA1 {
     private ExampleEnum[] a1_arrayEnm;
     private ExampleConfigurationB1[] a1_arrayB1;
     private ExampleConfigurationB2[] a1_arrayB2;
+    private ExampleRecord1[] a1_arrayR1;
+    private ExampleRecord2[] a1_arrayR2;
 
     /* COLLECTIONS: Sets */
     private Set<Boolean> a1_setBoolean;
@@ -145,6 +151,8 @@ public class ExampleConfigurationA1 {
     private Set<ExampleEnum> a1_setEnm;
     private Set<ExampleConfigurationB1> a1_setB1;
     private Set<ExampleConfigurationB2> a1_setB2;
+    private Set<ExampleRecord1> a1_setR1;
+    private Set<ExampleRecord2> a1_setR2;
 
     /* COLLECTIONS: Maps */
     private Map<Boolean, Boolean> a1_mapBooleanBoolean;
@@ -166,6 +174,8 @@ public class ExampleConfigurationA1 {
 
     private Map<Integer, ExampleConfigurationB1> a1_mapIntegerB1;
     private Map<ExampleEnum, ExampleConfigurationB2> a1_mapEnmB2;
+    private Map<String, ExampleRecord1> a1_mapStringR1;
+    private Map<String, ExampleRecord2> a1_mapStringR2;
 
     /* COLLECTIONS: Empty */
     private List<Boolean> a1_listEmpty;
@@ -218,6 +228,8 @@ public class ExampleConfigurationA1 {
     private ExampleEnum[][] a1_arrayArrayEnm;
     private ExampleConfigurationB1[][] a1_arrayArrayB1;
     private ExampleConfigurationB2[][] a1_arrayArrayB2;
+    private ExampleRecord1[][] a1_arrayArrayR1;
+    private ExampleRecord2[][] a1_arrayArrayR2;
 
     /* CUSTOM CONVERTERS */
     private Point a1_point;
@@ -1564,5 +1576,101 @@ public class ExampleConfigurationA1 {
 
     public void setA1_listUri(List<URI> a1_listUri) {
         this.a1_listUri = a1_listUri;
+    }
+
+    public ExampleRecord1 getA1_r1() {
+        return a1_r1;
+    }
+
+    public void setA1_r1(ExampleRecord1 a1_r1) {
+        this.a1_r1 = a1_r1;
+    }
+
+    public ExampleRecord2 getA1_r2() {
+        return a1_r2;
+    }
+
+    public void setA1_r2(ExampleRecord2 a1_r2) {
+        this.a1_r2 = a1_r2;
+    }
+
+    public List<ExampleRecord1> getA1_listR1() {
+        return a1_listR1;
+    }
+
+    public void setA1_listR1(List<ExampleRecord1> a1_listR1) {
+        this.a1_listR1 = a1_listR1;
+    }
+
+    public List<ExampleRecord2> getA1_listR2() {
+        return a1_listR2;
+    }
+
+    public void setA1_listR2(List<ExampleRecord2> a1_listR2) {
+        this.a1_listR2 = a1_listR2;
+    }
+
+    public ExampleRecord1[] getA1_arrayR1() {
+        return a1_arrayR1;
+    }
+
+    public void setA1_arrayR1(ExampleRecord1[] a1_arrayR1) {
+        this.a1_arrayR1 = a1_arrayR1;
+    }
+
+    public ExampleRecord2[] getA1_arrayR2() {
+        return a1_arrayR2;
+    }
+
+    public void setA1_arrayR2(ExampleRecord2[] a1_arrayR2) {
+        this.a1_arrayR2 = a1_arrayR2;
+    }
+
+    public Set<ExampleRecord1> getA1_setR1() {
+        return a1_setR1;
+    }
+
+    public void setA1_setR1(Set<ExampleRecord1> a1_setR1) {
+        this.a1_setR1 = a1_setR1;
+    }
+
+    public Set<ExampleRecord2> getA1_setR2() {
+        return a1_setR2;
+    }
+
+    public void setA1_setR2(Set<ExampleRecord2> a1_setR2) {
+        this.a1_setR2 = a1_setR2;
+    }
+
+    public Map<String, ExampleRecord1> getA1_mapStringR1() {
+        return a1_mapStringR1;
+    }
+
+    public void setA1_mapStringR1(Map<String, ExampleRecord1> a1_mapStringR1) {
+        this.a1_mapStringR1 = a1_mapStringR1;
+    }
+
+    public Map<String, ExampleRecord2> getA1_mapStringR2() {
+        return a1_mapStringR2;
+    }
+
+    public void setA1_mapStringR2(Map<String, ExampleRecord2> a1_mapStringR2) {
+        this.a1_mapStringR2 = a1_mapStringR2;
+    }
+
+    public ExampleRecord1[][] getA1_arrayArrayR1() {
+        return a1_arrayArrayR1;
+    }
+
+    public void setA1_arrayArrayR1(ExampleRecord1[][] a1_arrayArrayR1) {
+        this.a1_arrayArrayR1 = a1_arrayArrayR1;
+    }
+
+    public ExampleRecord2[][] getA1_arrayArrayR2() {
+        return a1_arrayArrayR2;
+    }
+
+    public void setA1_arrayArrayR2(ExampleRecord2[][] a1_arrayArrayR2) {
+        this.a1_arrayArrayR2 = a1_arrayArrayR2;
     }
 }

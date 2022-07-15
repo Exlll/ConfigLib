@@ -26,6 +26,14 @@ final class Validator {
         return cls;
     }
 
+    static <T> Class<T> requireRecord(Class<T> cls) {
+        if (!cls.isRecord()) {
+            String msg = "Class '" + cls.getSimpleName() + "' must be a record.";
+            throw new ConfigurationException(msg);
+        }
+        return cls;
+    }
+
     static void requirePrimitiveOrWrapperNumberType(Class<?> cls) {
         if (!Reflect.isIntegerType(cls) && !Reflect.isFloatingPointType(cls)) {
             String msg = "Class " + cls.getSimpleName() + " is not a byte, short, int, long, " +

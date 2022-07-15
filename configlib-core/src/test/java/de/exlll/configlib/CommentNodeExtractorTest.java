@@ -256,7 +256,7 @@ class CommentNodeExtractorTest {
                     String name = field.getName();
                     return !name.equals("a1") && !name.equals("a");
                 })
-                .setFieldFormatter(FieldFormatters.UPPER_UNDERSCORE)
+                .setNameFormatter(NameFormatters.UPPER_UNDERSCORE)
                 .build();
 
         CommentNodeExtractor extractor = new CommentNodeExtractor(properties);

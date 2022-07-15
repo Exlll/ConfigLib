@@ -1,8 +1,10 @@
 package de.exlll.configlib;
 
 import de.exlll.configlib.ConfigurationProperties.Builder;
-import de.exlll.configlib.Serializers.*;
-import de.exlll.configlib.configurations.*;
+import de.exlll.configlib.configurations.ExampleConfigurationB1;
+import de.exlll.configlib.configurations.ExampleConfigurationB2;
+import de.exlll.configlib.configurations.ExampleEnum;
+import de.exlll.configlib.configurations.ExampleInitializer;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Point;
@@ -11,101 +13,54 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 import static de.exlll.configlib.TestUtils.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("FieldMayBeFinal")
 class ConfigurationSerializerTest {
     private static <T> ConfigurationSerializer<T> newSerializer(Class<T> cls) {
-        return newSerializer(cls, builder -> builder);
+        return newSerializer(cls, builder -> {});
     }
 
     private static <T> ConfigurationSerializer<T> newSerializer(
             Class<T> cls,
-            Function<Builder<?>, Builder<?>> propertiesConfigurer
+            Consumer<Builder<?>> propertiesConfigurer
     ) {
-        var builder = ConfigurationProperties.newBuilder()
-                .addSerializer(Point.class, TestUtils.POINT_SERIALIZER);
+        var builder = ConfigurationProperties.newBuilder();
         builder.addSerializer(Point.class, TestUtils.POINT_SERIALIZER);
-        builder = propertiesConfigurer.apply(builder);
+        propertiesConfigurer.accept(builder);
         return new ConfigurationSerializer<>(cls, builder.build());
     }
 
-    @Test
-    void buildSerializerMapFiltersFields() {
-        Map<String, Serializer<?, ?>> serializers = newSerializer(ExampleConfigurationA2.class)
-                .buildSerializerMap();
-
-        assertThat(serializers.get("a1_staticFinalInt"), nullValue());
-        assertThat(serializers.get("a1_staticInt"), nullValue());
-        assertThat(serializers.get("a1_finalInt"), nullValue());
-        assertThat(serializers.get("a1_transientInt"), nullValue());
-        assertThat(serializers.get("a1_ignoredInt"), nullValue());
-        assertThat(serializers.get("a1_ignoredString"), nullValue());
-        assertThat(serializers.get("a1_ignoredListString"), nullValue());
-
-        assertThat(serializers.get("a2_staticFinalInt"), nullValue());
-        assertThat(serializers.get("a2_staticInt"), nullValue());
-        assertThat(serializers.get("a2_finalInt"), nullValue());
-        assertThat(serializers.get("a2_transientInt"), nullValue());
-        assertThat(serializers.get("a2_ignoredInt"), nullValue());
-        assertThat(serializers.get("a2_ignoredString"), nullValue());
-        assertThat(serializers.get("a2_ignoredListString"), nullValue());
+    @Configuration
+    private static final class B5 {
+        @Ignore
+        private int ignored = 1;
     }
 
     @Test
-    void buildSerializerMapIgnoresFormatter() {
-        Map<String, Serializer<?, ?>> serializers = newSerializer(
-                ExampleConfigurationA2.class,
-                props -> props.setFieldFormatter(FieldFormatters.UPPER_UNDERSCORE)
-        ).buildSerializerMap();
-
-        assertThat(serializers.get("A2_PRIM_BOOL"), nullValue());
-        assertThat(serializers.get("a2_primBool"), instanceOf(BooleanSerializer.class));
-    }
-
-    @Test
-    void buildSerializerMap() {
-        Map<String, Serializer<?, ?>> serializers = newSerializer(ExampleConfigurationA2.class)
-                .buildSerializerMap();
-        assertThat(serializers.get("a2_primBool"), instanceOf(BooleanSerializer.class));
-        assertThat(serializers.get("a2_refChar"), instanceOf(CharacterSerializer.class));
-        assertThat(serializers.get("a2_string"), instanceOf(StringSerializer.class));
-        assertThat(serializers.get("a2_Enm"), instanceOf(EnumSerializer.class));
-
-        ConfigurationSerializer<?> serializerB1 =
-                (ConfigurationSerializer<?>) serializers.get("a2_b1");
-        ConfigurationSerializer<?> serializerB2 =
-                (ConfigurationSerializer<?>) serializers.get("a2_b2");
-
-        assertThat(serializerB1.getConfigurationType(), equalTo(ExampleConfigurationB1.class));
-        assertThat(serializerB2.getConfigurationType(), equalTo(ExampleConfigurationB2.class));
-
-        ListSerializer<?, ?> serializerList =
-                (ListSerializer<?, ?>) serializers.get("a2_listByte");
-        ArraySerializer<?, ?> serializerArray =
-                (ArraySerializer<?, ?>) serializers.get("a2_arrayString");
-        SetAsListSerializer<?, ?> serializerSet =
-                (SetAsListSerializer<?, ?>) serializers.get("a2_setBigInteger");
-        MapSerializer<?, ?, ?, ?> serializerMap =
-                (MapSerializer<?, ?, ?, ?>) serializers.get("a2_mapLocalTimeLocalTime");
-
-        assertThat(
-                serializers.get("a2_arrayPrimDouble"),
-                instanceOf(PrimitiveDoubleArraySerializer.class)
+    void ctorRequiresConfigurationWithFields() {
+        assertThrowsConfigurationException(
+                () -> newSerializer(B5.class),
+                "Configuration class 'B5' does not contain any (de-)serializable fields."
         );
+    }
 
-        assertThat(serializerList.getElementSerializer(), instanceOf(NumberSerializer.class));
-        assertThat(serializerArray.getElementSerializer(), instanceOf(StringSerializer.class));
-        assertThat(serializerSet.getElementSerializer(), instanceOf(BigIntegerSerializer.class));
-        assertThat(serializerMap.getKeySerializer(), instanceOf(LocalTimeSerializer.class));
-        assertThat(serializerMap.getValueSerializer(), instanceOf(LocalTimeSerializer.class));
+    private static final class B6 {
+        @Ignore
+        private int ignored = 1;
+    }
 
-        assertThat(serializers.get("a2_point"), sameInstance(TestUtils.POINT_SERIALIZER));
+    @Test
+    void ctorRequiresConfiguration() {
+        assertThrowsConfigurationException(
+                () -> newSerializer(B6.class),
+                "Type 'B6' must be a configuration or record type."
+        );
     }
 
     @Test
@@ -117,7 +72,7 @@ class ConfigurationSerializerTest {
         }
         ConfigurationSerializer<A> serializer = newSerializer(
                 A.class,
-                builder -> builder.setFieldFormatter(FieldFormatters.UPPER_UNDERSCORE)
+                builder -> builder.setNameFormatter(NameFormatters.UPPER_UNDERSCORE)
         );
         Map<?, ?> map = serializer.serialize(new A());
         assertThat(map.remove("VALUE1"), is(1L));
@@ -135,7 +90,7 @@ class ConfigurationSerializerTest {
     void deserializeAppliesFormatter() {
         ConfigurationSerializer<B1> serializer = newSerializer(
                 B1.class,
-                builder -> builder.setFieldFormatter(FieldFormatters.UPPER_UNDERSCORE)
+                builder -> builder.setNameFormatter(NameFormatters.UPPER_UNDERSCORE)
         );
         Map<String, ?> map = Map.of(
                 "value1", 3,
@@ -171,7 +126,7 @@ class ConfigurationSerializerTest {
             Map<String, Object> map = asMap(fieldName, null);
             assertThrowsConfigurationException(
                     () -> serializer.deserialize(map),
-                    "Cannot set " + getField(B2.class, fieldName) + " to null value.\n" +
+                    "Cannot set field '" + getField(B2.class, fieldName) + "' to null value. " +
                     "Primitive types cannot be assigned null."
             );
         }
@@ -188,16 +143,16 @@ class ConfigurationSerializerTest {
         ConfigurationSerializer<B3> serializer = newSerializer(B3.class);
         assertThrowsConfigurationException(
                 () -> serializer.deserialize(Map.of("s", (byte) 3)),
-                "Deserialization of value '3' with type class java.lang.Byte for field " +
-                "java.lang.String de.exlll.configlib.ConfigurationSerializerTest$B3.s " +
+                "Deserialization of value '3' with type 'class java.lang.Byte' for field " +
+                "'java.lang.String de.exlll.configlib.ConfigurationSerializerTest$B3.s' " +
                 "failed.\nThe type of the object to be deserialized does not match the type " +
                 "the deserializer expects."
         );
         assertThrowsConfigurationException(
                 () -> serializer.deserialize(Map.of("l", List.of(List.of(3)))),
-                "Deserialization of value '[[3]]' with type class " +
-                "java.util.ImmutableCollections$List12 for field java.util.List " +
-                "de.exlll.configlib.ConfigurationSerializerTest$B3.l failed.\n" +
+                "Deserialization of value '[[3]]' with type 'class " +
+                "java.util.ImmutableCollections$List12' for field 'java.util.List " +
+                "de.exlll.configlib.ConfigurationSerializerTest$B3.l' failed.\n" +
                 "The type of the object to be deserialized does not match the type the " +
                 "deserializer expects."
         );
@@ -250,51 +205,6 @@ class ConfigurationSerializerTest {
         assertSame(B4.B4_NULL_SET, config.nullSet);
         assertSame(B4.B4_NULL_MAP, config.nullMap);
         assertSame(B4.B4_NULL_POINT, config.nullPoint);
-    }
-
-    @Configuration
-    private static final class B5 {
-        @Ignore
-        private int ignored = 1;
-    }
-
-    @Test
-    void ctorRequiresConfigurationWithFields() {
-        assertThrowsConfigurationException(
-                () -> newSerializer(B5.class),
-                "Configuration class 'B5' does not contain any (de-)serializable fields."
-        );
-    }
-
-    private static final class B6 {
-        @Ignore
-        private int ignored = 1;
-    }
-
-    @Test
-    void ctorRequiresConfiguration() {
-        assertThrowsConfigurationException(
-                () -> newSerializer(B6.class),
-                "Class 'B6' must be a configuration."
-        );
-    }
-
-    @Test
-    void buildSerializerMapPreventsRecursiveDefinitions() {
-        assertThrowsConfigurationException(
-                () -> newSerializer(R1.class),
-                "Recursive type definitions are not supported."
-        );
-    }
-
-    @Configuration
-    static final class R1 {
-        R2 r2;
-    }
-
-    @Configuration
-    static final class R2 {
-        R1 r1;
     }
 
     @Test

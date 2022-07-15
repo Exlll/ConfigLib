@@ -5,12 +5,12 @@ import java.util.*;
 
 final class CommentNodeExtractor {
     private final FieldFilter fieldFilter;
-    private final FieldFormatter fieldFormatter;
+    private final NameFormatter nameFormatter;
     private final boolean outputNull;
 
     CommentNodeExtractor(ConfigurationProperties properties) {
         this.fieldFilter = Validator.requireNonNull(properties.getFieldFilter(), "field filter");
-        this.fieldFormatter = Validator.requireNonNull(properties.getFieldFormatter(), "field formatter");
+        this.nameFormatter = Validator.requireNonNull(properties.getNameFormatter(), "name formatter");
         this.outputNull = properties.outputNulls();
     }
 
@@ -52,7 +52,7 @@ final class CommentNodeExtractor {
                     continue;
 
                 stateStack.addLast(new State(state.iterator, state.configuration));
-                fnameStack.addLast(fieldFormatter.format(field));
+                fnameStack.addLast(nameFormatter.format(field.getName()));
                 state = new State(configurationFields(value), value);
             }
         }
@@ -66,8 +66,8 @@ final class CommentNodeExtractor {
     ) {
         if (field.isAnnotationPresent(Comment.class)) {
             final var comments = field.getAnnotation(Comment.class).value();
-            final var fieldName = fieldFormatter.format(field);
-            final var fieldNames = new ArrayList<>(fileNameStack.stream().toList());
+            final var fieldName = nameFormatter.format(field.getName());
+            final var fieldNames = new ArrayList<>(fileNameStack);
             fieldNames.add(fieldName);
             final var result = new CommentNode(Arrays.asList(comments), fieldNames);
             return Optional.of(result);

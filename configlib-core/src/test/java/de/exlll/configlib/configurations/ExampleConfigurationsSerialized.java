@@ -70,6 +70,33 @@ public final class ExampleConfigurationsSerialized {
             )),
             entry("b2_listPoint", List.of("2:3", "4:5"))
     );
+    public static final Map<String, ?> EXAMPLE_RECORD1_1 = entriesAsMap(
+            entry("i", 1L),
+            entry("d", 2d),
+            entry("enm", "A"),
+            entry("listUuid", List.of("d50f3bdd-ac66-4b74-a01f-4617b24d68c0", "d50f3bdd-ac66-4b74-a01f-4617b24d68c1")),
+            entry("arrayArrayFloat", List.of(List.of(1d, 2d), List.of(3d, 4d))),
+            entry("b1", EXAMPLE_CONFIGURATION_B1_1)
+    );
+
+    public static final Map<String, ?> EXAMPLE_RECORD1_2 = entriesAsMap(
+            entry("i", 2L),
+            entry("d", 3d),
+            entry("enm", "B"),
+            entry("listUuid", List.of("d50f3bdd-ac66-4b74-a01f-4617b24d68c1", "d50f3bdd-ac66-4b74-a01f-4617b24d68c2")),
+            entry("arrayArrayFloat", List.of(List.of(2d, 3d), List.of(4d, 5d))),
+            entry("b1", EXAMPLE_CONFIGURATION_B1_2)
+    );
+
+    public static final Map<String, ?> EXAMPLE_RECORD2_1 = entriesAsMap(
+            entry("b", true),
+            entry("r1", EXAMPLE_RECORD1_1)
+    );
+
+    public static final Map<String, ?> EXAMPLE_RECORD2_2 = entriesAsMap(
+            entry("b", false),
+            entry("r1", EXAMPLE_RECORD1_2)
+    );
     public static final Map<String, ?> EXAMPLE_CONFIGURATION_A1 = TestUtils.entriesAsMap(
             entry("a1_primBool", true),
             entry("a1_primChar", "a"),
@@ -102,6 +129,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a1_Enm", "A"),
             entry("a1_b1", EXAMPLE_CONFIGURATION_B1_1),
             entry("a1_b2", EXAMPLE_CONFIGURATION_B2_1),
+            entry("a1_r1", EXAMPLE_RECORD1_1),
+            entry("a1_r2", EXAMPLE_RECORD2_1),
             entry("a1_listBoolean", List.of(true, false, true)),
             entry("a1_listChar", List.of("a", "b", "c")),
             entry("a1_listByte", List.of(1L, 2L, 3L)),
@@ -125,6 +154,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a1_listEnm", List.of("A", "B", "C")),
             entry("a1_listB1", List.of(EXAMPLE_CONFIGURATION_B1_1)),
             entry("a1_listB2", List.of(EXAMPLE_CONFIGURATION_B2_1)),
+            entry("a1_listR1", List.of(EXAMPLE_RECORD1_1)),
+            entry("a1_listR2", List.of(EXAMPLE_RECORD2_1)),
             entry("a1_arrayPrimBoolean", List.of(true, false, true)),
             entry("a1_arrayPrimChar", List.of("a", "b", "c")),
             entry("a1_arrayPrimByte", List.of(1L, 2L, 3L)),
@@ -151,6 +182,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a1_arrayEnm", List.of("A", "B", "C")),
             entry("a1_arrayB1", List.of(EXAMPLE_CONFIGURATION_B1_1)),
             entry("a1_arrayB2", List.of(EXAMPLE_CONFIGURATION_B2_1)),
+            entry("a1_arrayR1", List.of(EXAMPLE_RECORD1_1)),
+            entry("a1_arrayR2", List.of(EXAMPLE_RECORD2_1)),
             entry("a1_setBoolean", List.of(true)),
             entry("a1_setChar", asList("a", "b", "c")),
             entry("a1_setByte", asList(1L, 2L, 3L)),
@@ -169,6 +202,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a1_setEnm", asList("A", "B", "C")),
             entry("a1_setB1", List.of(EXAMPLE_CONFIGURATION_B1_1)),
             entry("a1_setB2", List.of(EXAMPLE_CONFIGURATION_B2_1)),
+            entry("a1_setR1", List.of(EXAMPLE_RECORD1_1)),
+            entry("a1_setR2", List.of(EXAMPLE_RECORD2_1)),
             entry("a1_mapBooleanBoolean", asMap(true, true, false, false)),
             entry("a1_mapCharChar", asMap("a", "b", "c", "d")),
             entry("a1_mapByteByte", asMap(1L, 2L, 3L, 4L)),
@@ -187,6 +222,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a1_mapEnmEnm", asMap("A", "B", "C", "D")),
             entry("a1_mapIntegerB1", asMap(1L, EXAMPLE_CONFIGURATION_B1_1, 2L, EXAMPLE_CONFIGURATION_B1_2)),
             entry("a1_mapEnmB2", asMap("A", EXAMPLE_CONFIGURATION_B2_1, "B", EXAMPLE_CONFIGURATION_B2_2)),
+            entry("a1_mapStringR1", asMap("1", EXAMPLE_RECORD1_1, "2", EXAMPLE_RECORD1_2)),
+            entry("a1_mapStringR2", asMap("1", EXAMPLE_RECORD2_1, "2", EXAMPLE_RECORD2_2)),
             entry("a1_listEmpty", Collections.emptyList()),
             entry("a1_arrayEmpty", Collections.emptyList()),
             entry("a1_setEmpty", Collections.emptyList()),
@@ -230,6 +267,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a1_arrayArrayEnm", List.of(List.of(), List.of("A"), List.of("A", "B"))),
             entry("a1_arrayArrayB1", List.of(List.of(), List.of(EXAMPLE_CONFIGURATION_B1_1))),
             entry("a1_arrayArrayB2", List.of(List.of(), List.of(EXAMPLE_CONFIGURATION_B2_1))),
+            entry("a1_arrayArrayR1", List.of(List.of(), List.of(EXAMPLE_RECORD1_1))),
+            entry("a1_arrayArrayR2", List.of(List.of(), List.of(EXAMPLE_RECORD2_1))),
             entry("a1_point", "0:1"),
             entry("a1_listPoint", List.of("0:1", "0:2", "0:3")),
             entry("a1_arrayPoint", List.of("0:1", "0:2", "0:3")),
@@ -268,6 +307,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a2_Enm", "B"),
             entry("a2_b1", EXAMPLE_CONFIGURATION_B1_2),
             entry("a2_b2", EXAMPLE_CONFIGURATION_B2_2),
+            entry("a2_r1", EXAMPLE_RECORD1_2),
+            entry("a2_r2", EXAMPLE_RECORD2_2),
             entry("a2_listBoolean", List.of(false, true, false)),
             entry("a2_listChar", List.of("d", "e", "f")),
             entry("a2_listByte", List.of(2L, 3L, 4L)),
@@ -291,6 +332,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a2_listEnm", List.of("B", "C", "D")),
             entry("a2_listB1", List.of(EXAMPLE_CONFIGURATION_B1_1, EXAMPLE_CONFIGURATION_B1_2)),
             entry("a2_listB2", List.of(EXAMPLE_CONFIGURATION_B2_1, EXAMPLE_CONFIGURATION_B2_2)),
+            entry("a2_listR1", List.of(EXAMPLE_RECORD1_1, EXAMPLE_RECORD1_2)),
+            entry("a2_listR2", List.of(EXAMPLE_RECORD2_1, EXAMPLE_RECORD2_2)),
             entry("a2_arrayPrimBoolean", List.of(false, true, false)),
             entry("a2_arrayPrimChar", List.of("d", "e", "f")),
             entry("a2_arrayPrimByte", List.of(2L, 3L, 4L)),
@@ -317,6 +360,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a2_arrayEnm", List.of("B", "C", "D")),
             entry("a2_arrayB1", List.of(EXAMPLE_CONFIGURATION_B1_1, EXAMPLE_CONFIGURATION_B1_2)),
             entry("a2_arrayB2", List.of(EXAMPLE_CONFIGURATION_B2_1, EXAMPLE_CONFIGURATION_B2_2)),
+            entry("a2_arrayR1", List.of(EXAMPLE_RECORD1_1, EXAMPLE_RECORD1_2)),
+            entry("a2_arrayR2", List.of(EXAMPLE_RECORD2_1, EXAMPLE_RECORD2_2)),
             entry("a2_setBoolean", List.of(false)),
             entry("a2_setChar", asList("d", "e", "f")),
             entry("a2_setByte", asList(2L, 3L, 4L)),
@@ -335,6 +380,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a2_setEnm", asList("B", "C", "D")),
             entry("a2_setB1", asList(EXAMPLE_CONFIGURATION_B1_1, EXAMPLE_CONFIGURATION_B1_2)),
             entry("a2_setB2", asList(EXAMPLE_CONFIGURATION_B2_1, EXAMPLE_CONFIGURATION_B2_2)),
+            entry("a2_setR1", asList(EXAMPLE_RECORD1_1, EXAMPLE_RECORD1_2)),
+            entry("a2_setR2", asList(EXAMPLE_RECORD2_1, EXAMPLE_RECORD2_2)),
             entry("a2_mapBooleanBoolean", asMap(true, true, false, false)),
             entry("a2_mapCharChar", asMap("b", "c", "d", "e")),
             entry("a2_mapByteByte", asMap(2L, 3L, 4L, 5L)),
@@ -353,6 +400,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a2_mapEnmEnm", asMap("B", "C", "D", "E")),
             entry("a2_mapIntegerB1", asMap(2L, EXAMPLE_CONFIGURATION_B1_1, 3L, EXAMPLE_CONFIGURATION_B1_2)),
             entry("a2_mapEnmB2", asMap("B", EXAMPLE_CONFIGURATION_B2_1, "C", EXAMPLE_CONFIGURATION_B2_2)),
+            entry("a2_mapStringR1", asMap("2", EXAMPLE_RECORD1_1, "3", EXAMPLE_RECORD1_2)),
+            entry("a2_mapStringR2", asMap("2", EXAMPLE_RECORD2_1, "3", EXAMPLE_RECORD2_2)),
             entry("a2_listEmpty", Collections.emptyList()),
             entry("a2_arrayEmpty", Collections.emptyList()),
             entry("a2_setEmpty", Collections.emptyList()),
@@ -396,6 +445,8 @@ public final class ExampleConfigurationsSerialized {
             entry("a2_arrayArrayEnm", List.of(List.of("A"), List.of("A", "B"), List.of("A", "B", "C"))),
             entry("a2_arrayArrayB1", List.of(List.of(EXAMPLE_CONFIGURATION_B1_1), List.of(EXAMPLE_CONFIGURATION_B1_2))),
             entry("a2_arrayArrayB2", List.of(List.of(EXAMPLE_CONFIGURATION_B2_1), List.of(EXAMPLE_CONFIGURATION_B2_2))),
+            entry("a2_arrayArrayR1", List.of(List.of(EXAMPLE_RECORD1_1), List.of(EXAMPLE_RECORD1_2))),
+            entry("a2_arrayArrayR2", List.of(List.of(EXAMPLE_RECORD2_1), List.of(EXAMPLE_RECORD2_2))),
             entry("a2_point", "0:2"),
             entry("a2_listPoint", List.of("0:2", "0:3", "0:4")),
             entry("a2_arrayPoint", List.of("0:2", "0:3", "0:4")),
