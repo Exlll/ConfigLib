@@ -81,16 +81,16 @@ public final class Example {
         var config = new UserConfiguration();
 
         // Save a new instance to the configuration file
-        Configurations.saveYamlConfiguration(configFile, UserConfiguration.class, config);
+        YamlConfigurations.saveConfiguration(configFile, UserConfiguration.class, config);
 
         // Load a new instance from the configuration file
-        config = Configurations.loadYamlConfiguration(configFile, UserConfiguration.class);
+        config = YamlConfigurations.loadConfiguration(configFile, UserConfiguration.class);
         System.out.println(config.admin.username);
         System.out.println(config.blockedUsers);
 
         // Modify and save the configuration file
         config.blockedUsers.add(new User("user3", "pass3"));
-        Configurations.saveYamlConfiguration(configFile, UserConfiguration.class, config);
+        YamlConfigurations.saveConfiguration(configFile, UserConfiguration.class, config);
     }
 }
 ```
@@ -225,11 +225,14 @@ public final class UnsupportedTypes<T> {
 There are two ways to load and save configurations. Which way you choose depends on your liking.
 Both ways have three methods in common:
 
-* `save` saves a configuration to a file
-* `load` creates a new configuration instance and populates it with values taken from a file
-* `update` is a combination of `load` and `save` and the method you'd usually want to use: it takes
-  care of creating the configuration file if it does not exist and otherwise updates it to reflect
-  changes to (the fields or components of) the configuration type.
+* The `save` method saves a configuration to a file. The file is created if it does not exist and
+  is overwritten otherwise.
+* The `load` method creates a new configuration instance and populates it with values taken from a
+  file. For classes, the no-args constructor is used to create a new instance. For records, the
+  canonical constructor is called.
+* The `update` method is a combination of `load` and `save` and the method you'd usually want to
+  use: it takes care of creating the configuration file if it does not exist and otherwise updates
+  it to reflect changes to (the fields or components of) the configuration type.
 
 <details>
  <summary>Example of <code>update</code> behavior when configuration file exists</summary>
@@ -288,13 +291,15 @@ Config config2 = store.update(configurationFile);
 
 #### Way 2
 
-The second way is to use the static methods from the `Configurations` class.
+The second way is to use the static methods from the `YamlConfigurations` class.
 
 ```java 
-Config config1 = Configurations.loadYamlConfiguration(configurationFile, Config.class);
-Configurations.saveYamlConfiguration(configurationFile, Config.class, config1);
-Config config2 = Configurations.updateYamlConfiguration(configurationFile, Config.class);
+Config config1 = YamlConfigurations.loadConfiguration(configurationFile, Config.class);
+YamlConfigurations.saveConfiguration(configurationFile, Config.class, config1);
+Config config2 = YamlConfigurations.updateConfiguration(configurationFile, Config.class);
 ```
+
+<hr>
 
 Each of these methods has two additional overloads: One that takes a properties object and another
 that lets you configure a properties object builder. For example, the overloads for the
@@ -306,14 +311,24 @@ YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder(
     .inputNulls(true)
     .outputNulls(false)
     .build();
-Config c1 = Configurations.loadYamlConfiguration(configurationFile, Config.class, properties);
+Config c1 = YamlConfigurations.loadConfiguration(configurationFile, Config.class, properties);
 
 // overload 2
-Config c2 = Configurations.loadYamlConfiguration(
+Config c2 = YamlConfigurations.loadConfiguration(
     configurationFile,
     Config.class,
     builder -> builder.inputNulls(true).outputNulls(false)
 ); 
+```
+
+All three methods can also be passed a Java record instead of a class. Because you cannot provide
+default values for records, the `update` method also has an additional variant which takes a default
+configuration:
+
+```java 
+record User(String name, String email) {}
+YamlConfigurationStore<User> store = new YamlConfigurationStore<>(User.class, properties);
+User user = store.update(configurationFile, new User("John Doe", "john@doe.com"));
 ```
 
 ### Configuration properties
@@ -339,7 +354,7 @@ YamlConfigurationProperties properties = ConfigLib.BUKKIT_DEFAULT_PROPERTIES.toB
     .build();
 ```
 
-To get access to this object, you have to import `configlib-paper` instead of `configlib-core` as
+To get access to this object, you have to import `configlib-paper` instead of `configlib-yaml` as
 described in the [Import](#import) section.
 
 ### Comments
@@ -347,6 +362,11 @@ described in the [Import](#import) section.
 The fields or components of a configuration can be annotated with the `@Comment` annotation. This
 annotation takes an array of strings. Each of these strings is written onto a new line as a comment.
 Empty strings are written as newlines.
+
+If a configuration type _C_ that defines comments is used (as a field or component) within another
+configuration type, the comments of _C_ are written with the proper indentation. However, if
+instances of _C_ are stored inside a collection, their comments are not printed when the collection
+is written.
 
 Serializing the following configuration as YAML ...
 
@@ -368,10 +388,25 @@ public final class ExampleConfiguration {
  commentedField: commented field
 ```
 
-If a configuration type _C_ that defines comments is used (as a field or component) within another
-configuration type, the comments of _C_ are written with the proper indentation. However, if
-instances of _C_ are stored inside a collection, their comments are not printed when the collection
-is written.
+Similarly, if you define the following record configuration and save it ...
+
+```java 
+record User(@Comment("The name") String name, @Comment("The address") Address address) {}
+record Address(@Comment("The street") String street) {}
+
+User user = new User("John Doe", new Address("10 Downing St"));
+```
+
+... you get:
+
+```yaml
+# The name
+name: John Doe
+# The address
+address:
+  # The street
+  street: 10 Downing St
+```
 
 ### Subclassing
 
@@ -498,13 +533,13 @@ instances of `B` (or some other subclass of `A`) in it.
 
 #### Custom serializers
 
-If you want to add support for a type is not a record or whose class is not annotated
+If you want to add support for a type that is not a record or whose class is not annotated
 with `@Configuration`, you can register a custom serializer. Serializers are instances of
 the `de.exlll.configlib.Serializer` interface. When implementing that interface you have to make
 sure that you convert your source type into one of the valid target types listed in the table above.
 The serializer then has to be registered through a `ConfigurationProperties` object.
 
-The following `Serializer` serializes instances of `java.awt.Point` into strings.
+The following `Serializer` serializes instances of `java.awt.Point` into strings and vice versa.
 
 ```java
 public final class PointSerializer implements Serializer<Point, String> {
@@ -565,6 +600,25 @@ public final class RecursiveTypDefinitions {
 
 </details>
 
+## Project structure
+
+This project contains three classes of modules:
+
+* The `configlib-core` module contains most of the logic of this library. In it, you can find (among
+  other things), the object mapper that converts configuration instances to maps (and vice versa),
+  most serializers, and the classes responsible for the extraction of comments. It does not
+  contain anything Minecraft related.
+* The `configlib-yaml` module contains the classes that can save configuration instances as YAML
+  files and instantiate new instances from such files. This module does not contain anything
+  Minecraft related, either.
+* The `configlib-paper`, `configlib-velocity`, and `configlib-waterfall` modules contain basic
+  plugins that are used to conveniently load this library. These three modules shade the `-core`
+  module, the `-yaml` module, and the YAML parser when the `shadowJar` task is executed. The shaded
+  jar files are released on the [releases page](https://github.com/Exlll/ConfigLib/releases).
+    * The `configlib-paper` module additionally contains the `ConfigLib.BUKKIT_DEFAULT_PROPERTIES`
+      object which adds support for the serialization of Bukkit classes like `ItemStack` as
+      described [here](#support-for-bukkit-classes-like-itemstack).
+
 ## Import
 
 **INFO:** I'm currently looking for an easier way for you to import this library that does not
@@ -572,8 +626,8 @@ require authentication with GitHub. Please check
 this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have authentication problems.
 
 To use this library, import it into your project with either Maven or Gradle as shown in the two
-sections below. This library has additional dependencies (namely, a YAML parser) which are not
-included in the artifact you import.
+examples below. This library has additional dependencies (namely, a YAML parser) which are not
+exposed by the artifact you import.
 
 This repository provides plugin versions of this library which bundle all its dependencies, so you
 don't have to worry about them. Also, these versions make it easier for you to update this library
@@ -581,16 +635,16 @@ if you have written multiple plugins that use it.
 
 The plugin versions can be downloaded from
 the [releases page](https://github.com/Exlll/ConfigLib/releases) where you can identify them by
-their `-paper-`, `-waterfall-`, and `-velocity-` infix and `-all` suffix. Other than that, the
-plugin versions currently don't add any additional functionality. If you use these versions, don't
-forget to add them as a dependency in the `plugin.yml` (for Paper and Waterfall) or to the
-dependencies array (for Velocity) of your own plugin.
+their `-paper-`, `-waterfall-`, and `-velocity-` infix and `-all` suffix. Except for the `-paper-`
+version, the other two plugin versions currently don't add any additional functionality. If you use
+these versions, don't forget to add them as a dependency in the `plugin.yml` (for Paper and
+Waterfall) or to the dependencies array (for Velocity) of your own plugin.
 
-Alternatively, if you don't want to use an extra plugin, you can shade the `-core` version and the
+Alternatively, if you don't want to use an extra plugin, you can shade the `-yaml` version with its
 YAML parser yourself.
 
 **NOTE:** If you want serialization support for Bukkit classes like `ItemStack`,
-replace `configlib-core` with `configlib-paper`
+replace `configlib-yaml` with `configlib-paper`
 (see [here](#support-for-bukkit-classes-like-itemstack)).
 
 #### Maven
@@ -603,7 +657,7 @@ replace `configlib-core` with `configlib-paper`
 
 <dependency>
     <groupId>de.exlll</groupId>
-    <artifactId>configlib-core</artifactId>
+    <artifactId>configlib-yaml</artifactId>
     <version>3.1.0</version>
 </dependency>
 ```
@@ -613,13 +667,13 @@ replace `configlib-core` with `configlib-paper`
 ```groovy
 repositories { maven { url 'https://maven.pkg.github.com/Exlll/ConfigLib' } }
 
-dependencies { implementation 'de.exlll:configlib-core:3.1.0' }
+dependencies { implementation 'de.exlll:configlib-yaml:3.1.0' }
 ```
 
 ```kotlin
 repositories { maven { url = uri("https://maven.pkg.github.com/Exlll/ConfigLib") } }
 
-dependencies { implementation("de.exlll:configlib-core:3.1.0") }
+dependencies { implementation("de.exlll:configlib-yaml:3.1.0") }
 ```
 
 ## Future work

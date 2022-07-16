@@ -1,5 +1,6 @@
 plugins {
     `core-config`
+    `libs-config`
 }
 
 dependencies {

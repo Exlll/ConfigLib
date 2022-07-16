@@ -6,8 +6,8 @@ import java.util.function.Consumer;
 /**
  * This class contains convenience methods for loading, saving, and updating configurations.
  */
-public final class Configurations {
-    private Configurations() {}
+public final class YamlConfigurations {
+    private YamlConfigurations() {}
 
     /**
      * Loads a configuration of the given type from the specified YAML file using a
@@ -23,12 +23,12 @@ public final class Configurations {
      * @throws RuntimeException         if reading the configuration throws an exception
      * @see YamlConfigurationStore#load(Path)
      */
-    public static <T> T loadYamlConfiguration(
+    public static <T> T loadConfiguration(
             Path configurationFile,
             Class<T> configurationType
     ) {
         final var properties = YamlConfigurationProperties.newBuilder().build();
-        return loadYamlConfiguration(configurationFile, configurationType, properties);
+        return loadConfiguration(configurationFile, configurationType, properties);
     }
 
     /**
@@ -47,14 +47,14 @@ public final class Configurations {
      * @throws RuntimeException         if reading the configuration throws an exception
      * @see YamlConfigurationStore#load(Path)
      */
-    public static <T> T loadYamlConfiguration(
+    public static <T> T loadConfiguration(
             Path configurationFile,
             Class<T> configurationType,
             Consumer<YamlConfigurationProperties.Builder<?>> propertiesConfigurer
     ) {
         final var builder = YamlConfigurationProperties.newBuilder();
         propertiesConfigurer.accept(builder);
-        return loadYamlConfiguration(configurationFile, configurationType, builder.build());
+        return loadConfiguration(configurationFile, configurationType, builder.build());
     }
 
     /**
@@ -72,7 +72,7 @@ public final class Configurations {
      * @throws RuntimeException         if reading the configuration throws an exception
      * @see YamlConfigurationStore#load(Path)
      */
-    public static <T> T loadYamlConfiguration(
+    public static <T> T loadConfiguration(
             Path configurationFile,
             Class<T> configurationType,
             YamlConfigurationProperties properties
@@ -85,7 +85,7 @@ public final class Configurations {
      * Updates a YAML configuration file with a configuration of the given type using a
      * {@code YamlConfigurationProperties} object with default values.
      * <p>
-     * See {@link YamlConfigurationStore#save(Object, Path)} for an explanation of how the update is // TODO: change #save to #update
+     * See {@link YamlConfigurationStore#update(Path)} for an explanation of how the update is done.
      * done.
      *
      * @param configurationFile the configuration file that is updated
@@ -97,12 +97,12 @@ public final class Configurations {
      * @throws RuntimeException       if loading or saving the configuration throws an exception
      * @see YamlConfigurationStore#update(Path)
      */
-    public static <T> T updateYamlConfiguration(
+    public static <T> T updateConfiguration(
             Path configurationFile,
             Class<T> configurationType
     ) {
         final var properties = YamlConfigurationProperties.newBuilder().build();
-        return updateYamlConfiguration(configurationFile, configurationType, properties);
+        return updateConfiguration(configurationFile, configurationType, properties);
     }
 
     /**
@@ -110,8 +110,7 @@ public final class Configurations {
      * {@code YamlConfigurationProperties} object that is built by a builder. The builder is
      * initialized with default values and can be configured by the {@code propertiesConfigurer}.
      * <p>
-     * See {@link YamlConfigurationStore#save(Object, Path)} for an explanation of how the update is
-     * done.
+     * See {@link YamlConfigurationStore#update(Path)} for an explanation of how the update is done.
      *
      * @param configurationFile    the configuration file that is updated
      * @param configurationType    the type of configuration
@@ -123,22 +122,21 @@ public final class Configurations {
      * @throws RuntimeException       if loading or saving the configuration throws an exception
      * @see YamlConfigurationStore#update(Path)
      */
-    public static <T> T updateYamlConfiguration(
+    public static <T> T updateConfiguration(
             Path configurationFile,
             Class<T> configurationType,
             Consumer<YamlConfigurationProperties.Builder<?>> propertiesConfigurer
     ) {
         final var builder = YamlConfigurationProperties.newBuilder();
         propertiesConfigurer.accept(builder);
-        return updateYamlConfiguration(configurationFile, configurationType, builder.build());
+        return updateConfiguration(configurationFile, configurationType, builder.build());
     }
 
     /**
      * Updates a YAML configuration file with a configuration of the given type using the given
      * {@code YamlConfigurationProperties} object.
      * <p>
-     * See {@link YamlConfigurationStore#save(Object, Path)} for an explanation of how the update is
-     * done.
+     * See {@link YamlConfigurationStore#update(Path)} for an explanation of how the update is done.
      *
      * @param configurationFile the configuration file that is updated
      * @param configurationType the type of configuration
@@ -150,7 +148,7 @@ public final class Configurations {
      * @throws RuntimeException       if loading or saving the configuration throws an exception
      * @see YamlConfigurationStore#update(Path)
      */
-    public static <T> T updateYamlConfiguration(
+    public static <T> T updateConfiguration(
             Path configurationFile,
             Class<T> configurationType,
             YamlConfigurationProperties properties
@@ -173,13 +171,13 @@ public final class Configurations {
      * @throws RuntimeException       if writing the configuration throws an exception
      * @see YamlConfigurationStore#save(Object, Path)
      */
-    public static <T> void saveYamlConfiguration(
+    public static <T> void saveConfiguration(
             Path configurationFile,
             Class<T> configurationType,
             T configuration
     ) {
         final var properties = YamlConfigurationProperties.newBuilder().build();
-        saveYamlConfiguration(configurationFile, configurationType, configuration, properties);
+        saveConfiguration(configurationFile, configurationType, configuration, properties);
     }
 
     /**
@@ -198,7 +196,7 @@ public final class Configurations {
      * @throws RuntimeException       if writing the configuration throws an exception
      * @see YamlConfigurationStore#save(Object, Path)
      */
-    public static <T> void saveYamlConfiguration(
+    public static <T> void saveConfiguration(
             Path configurationFile,
             Class<T> configurationType,
             T configuration,
@@ -206,7 +204,7 @@ public final class Configurations {
     ) {
         final var builder = YamlConfigurationProperties.newBuilder();
         propertiesConfigurer.accept(builder);
-        saveYamlConfiguration(configurationFile, configurationType, configuration, builder.build());
+        saveConfiguration(configurationFile, configurationType, configuration, builder.build());
     }
 
     /**
@@ -224,7 +222,7 @@ public final class Configurations {
      * @throws RuntimeException       if writing the configuration throws an exception
      * @see YamlConfigurationStore#save(Object, Path)
      */
-    public static <T> void saveYamlConfiguration(
+    public static <T> void saveConfiguration(
             Path configurationFile,
             Class<T> configurationType,
             T configuration,

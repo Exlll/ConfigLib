@@ -12,7 +12,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class ConfigurationsTest {
+class YamlConfigurationsTest {
     private static final FieldFilter includeI = field -> field.getName().equals("i");
     private final FileSystem fs = Jimfs.newFileSystem();
     private final Path yamlFile = fs.getPath("/tmp/config.yml");
@@ -37,11 +37,11 @@ class ConfigurationsTest {
     void saveYamlConfiguration1() {
         Config configuration = new Config();
 
-        Configurations.saveYamlConfiguration(yamlFile, Config.class, configuration);
+        YamlConfigurations.saveConfiguration(yamlFile, Config.class, configuration);
         assertEquals("i: 10\nj: 11", TestUtils.readFile(yamlFile));
 
         configuration.i = 20;
-        Configurations.saveYamlConfiguration(yamlFile, Config.class, configuration);
+        YamlConfigurations.saveConfiguration(yamlFile, Config.class, configuration);
         assertEquals("i: 20\nj: 11", TestUtils.readFile(yamlFile));
     }
 
@@ -49,7 +49,7 @@ class ConfigurationsTest {
     void saveYamlConfiguration2() {
         Config configuration = new Config();
 
-        Configurations.saveYamlConfiguration(
+        YamlConfigurations.saveConfiguration(
                 yamlFile, Config.class, configuration,
                 builder -> builder.setFieldFilter(includeI)
         );
@@ -60,7 +60,7 @@ class ConfigurationsTest {
     void saveYamlConfiguration3() {
         Config configuration = new Config();
 
-        Configurations.saveYamlConfiguration(
+        YamlConfigurations.saveConfiguration(
                 yamlFile, Config.class, configuration,
                 YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
         );
@@ -70,18 +70,18 @@ class ConfigurationsTest {
     @Test
     void loadYamlConfiguration1() {
         writeString("i: 20\nk: 30");
-        Config config = Configurations.loadYamlConfiguration(yamlFile, Config.class);
+        Config config = YamlConfigurations.loadConfiguration(yamlFile, Config.class);
         assertConfigEquals(config, 20, 11);
 
         writeString("i: 20\nj: 30");
-        config = Configurations.loadYamlConfiguration(yamlFile, Config.class);
+        config = YamlConfigurations.loadConfiguration(yamlFile, Config.class);
         assertConfigEquals(config, 20, 30);
     }
 
     @Test
     void loadYamlConfiguration2() {
         writeString("i: 20\nj: 30");
-        Config config = Configurations.loadYamlConfiguration(
+        Config config = YamlConfigurations.loadConfiguration(
                 yamlFile, Config.class,
                 builder -> builder.setFieldFilter(includeI)
         );
@@ -92,7 +92,7 @@ class ConfigurationsTest {
     void loadYamlConfiguration3() {
         writeString("i: 20\nj: 30");
 
-        Config config = Configurations.loadYamlConfiguration(
+        Config config = YamlConfigurations.loadConfiguration(
                 yamlFile, Config.class,
                 YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
         );
@@ -102,19 +102,19 @@ class ConfigurationsTest {
 
     @Test
     void updateYamlConfiguration1() {
-        Config config = Configurations.updateYamlConfiguration(yamlFile, Config.class);
+        Config config = YamlConfigurations.updateConfiguration(yamlFile, Config.class);
         assertConfigEquals(config, 10, 11);
         assertEquals("i: 10\nj: 11", TestUtils.readFile(yamlFile));
 
         writeString("i: 20\nk: 30");
-        config = Configurations.updateYamlConfiguration(yamlFile, Config.class);
+        config = YamlConfigurations.updateConfiguration(yamlFile, Config.class);
         assertConfigEquals(config, 20, 11);
         assertEquals("i: 20\nj: 11", TestUtils.readFile(yamlFile));
     }
 
     @Test
     void updateYamlConfiguration2() {
-        Config config = Configurations.updateYamlConfiguration(
+        Config config = YamlConfigurations.updateConfiguration(
                 yamlFile, Config.class,
                 builder -> builder.setFieldFilter(includeI)
         );
@@ -124,7 +124,7 @@ class ConfigurationsTest {
 
     @Test
     void updateYamlConfiguration3() {
-        Config config = Configurations.updateYamlConfiguration(
+        Config config = YamlConfigurations.updateConfiguration(
                 yamlFile, Config.class,
                 YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
         );

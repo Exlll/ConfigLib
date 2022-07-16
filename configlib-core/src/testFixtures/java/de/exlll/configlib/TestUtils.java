@@ -1,5 +1,6 @@
 package de.exlll.configlib;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.function.Executable;
 
 import java.awt.Point;
@@ -14,8 +15,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public final class TestUtils {
     public static final PointSerializer POINT_SERIALIZER = new PointSerializer();
@@ -62,8 +61,8 @@ public final class TestUtils {
             Executable executable,
             String expectedExceptionMessage
     ) {
-        T exception = assertThrows(exceptionType, executable);
-        assertEquals(expectedExceptionMessage, exception.getMessage());
+        T exception = Assertions.assertThrows(exceptionType, executable);
+        Assertions.assertEquals(expectedExceptionMessage, exception.getMessage());
     }
 
     public static final class CustomBigIntegerSerializer implements Serializer<BigInteger, String> {
