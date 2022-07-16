@@ -31,7 +31,7 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
     private static final Load YAML_LOADER = newYamlLoader();
     private final Class<T> configurationType;
     private final YamlConfigurationProperties properties;
-    private final ConfigurationSerializer<T> serializer;
+    private final TypeSerializer<T, ?> serializer;
     private final CommentNodeExtractor extractor;
 
     /**
@@ -44,7 +44,7 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
     public YamlConfigurationStore(Class<T> configurationType, YamlConfigurationProperties properties) {
         this.configurationType = requireNonNull(configurationType, "configuration type");
         this.properties = requireNonNull(properties, "properties");
-        this.serializer = new ConfigurationSerializer<>(configurationType, properties);
+        this.serializer = TypeSerializer.newSerializerFor(configurationType, properties);
         this.extractor = new CommentNodeExtractor(properties);
     }
 
@@ -83,7 +83,7 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
     public T load(Path configurationFile) {
         try (var reader = Files.newBufferedReader(configurationFile)) {
             var yaml = YAML_LOADER.loadFromReader(reader);
-            var conf = requireConfiguration(yaml, configurationFile);
+            var conf = requireYamlMap(yaml, configurationFile);
             return serializer.deserialize(conf);
         } catch (YamlEngineException e) {
             String msg = "The configuration file at %s does not contain valid YAML.";
@@ -93,7 +93,7 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
         }
     }
 
-    private Map<?, ?> requireConfiguration(Object yaml, Path configurationFile) {
+    private Map<?, ?> requireYamlMap(Object yaml, Path configurationFile) {
         if (yaml == null) {
             String msg = "The configuration file at %s is empty or only contains null.";
             throw new ConfigurationException(msg.formatted(configurationFile));
@@ -116,7 +116,7 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
             save(configuration, configurationFile);
             return configuration;
         }
-        T configuration = Reflect.newInstance(configurationType);
+        T configuration = serializer.newDefaultInstance();
         save(configuration, configurationFile);
         return configuration;
     }

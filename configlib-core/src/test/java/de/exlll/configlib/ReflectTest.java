@@ -10,10 +10,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import static de.exlll.configlib.TestUtils.assertThrowsRuntimeException;
-import static de.exlll.configlib.TestUtils.getField;
+import static de.exlll.configlib.TestUtils.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ReflectTest {
 
@@ -304,5 +304,37 @@ class ReflectTest {
                 () -> Reflect.newRecord(R3.class, ""),
                 "The canonical constructor of record type 'R3' threw an exception."
         );
+    }
+
+    @Test
+    void newRecordRequiresRecordType() {
+        class A {}
+        assertThrowsConfigurationException(
+                () -> Reflect.newRecord(A.class),
+                "Class 'A' must be a record."
+        );
+    }
+
+    @Test
+    void newRecordWithDefaultValues() {
+        record E() {}
+        record R(boolean a, char b, byte c, short d, int e, long f, float g, double h,
+                 Boolean i, Character j, Integer k, Float l, E m, R n, Object o) {}
+        R r = Reflect.newRecordDefaultValues(R.class);
+        assertFalse(r.a);
+        assertEquals('\0', r.b);
+        assertEquals(0, r.c);
+        assertEquals(0, r.d);
+        assertEquals(0, r.e);
+        assertEquals(0, r.f);
+        assertEquals(0, r.g);
+        assertEquals(0, r.h);
+        assertNull(r.i);
+        assertNull(r.j);
+        assertNull(r.k);
+        assertNull(r.l);
+        assertNull(r.m);
+        assertNull(r.n);
+        assertNull(r.o);
     }
 }

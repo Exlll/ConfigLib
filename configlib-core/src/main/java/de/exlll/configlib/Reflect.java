@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static de.exlll.configlib.Validator.requireRecord;
+
 final class Reflect {
     private static final Map<Class<?>, Object> DEFAULT_VALUES = initDefaultValues();
 
@@ -60,9 +62,11 @@ final class Reflect {
         }
     }
 
-    static <R extends Record> R newRecord(Class<R> recordType, Object... constructorArguments) {
+    // We could use <R extends Record> as a bound here and for the other methods below
+    // but that would require casts elsewhere.
+    static <R> R newRecord(Class<R> recordType, Object... constructorArguments) {
         try {
-            Constructor<R> constructor = getCanonicalConstructor(recordType);
+            Constructor<R> constructor = getCanonicalConstructor(requireRecord(recordType));
             constructor.setAccessible(true);
             return constructor.newInstance(constructorArguments);
         } catch (NoSuchMethodException e) {
@@ -81,12 +85,23 @@ final class Reflect {
         }
     }
 
-    static <R extends Record> Constructor<R> getCanonicalConstructor(Class<R> recordType)
+    static <R> R newRecordDefaultValues(Class<R> recordType) {
+        final Object[] args = Arrays.stream(recordParameterTypes(requireRecord(recordType)))
+                .map(Reflect::getDefaultValue)
+                .toArray(Object[]::new);
+        return Reflect.newRecord(recordType, args);
+    }
+
+    static <R> Constructor<R> getCanonicalConstructor(Class<R> recordType)
             throws NoSuchMethodException {
-        Class<?>[] parameterTypes = Arrays.stream(recordType.getRecordComponents())
+        Class<?>[] parameterTypes = recordParameterTypes(requireRecord(recordType));
+        return recordType.getDeclaredConstructor(parameterTypes);
+    }
+
+    private static <R> Class<?>[] recordParameterTypes(Class<R> recordType) {
+        return Arrays.stream(recordType.getRecordComponents())
                 .map(RecordComponent::getType)
                 .toArray(Class<?>[]::new);
-        return recordType.getDeclaredConstructor(parameterTypes);
     }
 
     static <T> T[] newArray(Class<T> componentType, int length) {

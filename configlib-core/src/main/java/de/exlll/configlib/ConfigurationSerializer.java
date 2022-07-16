@@ -1,52 +1,34 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.TypeComponent.ConfigurationField;
+
 import java.lang.reflect.Field;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-final class ConfigurationSerializer<T> extends TypeSerializer<T, Field> {
+final class ConfigurationSerializer<T> extends TypeSerializer<T, ConfigurationField> {
     ConfigurationSerializer(Class<T> configurationType, ConfigurationProperties properties) {
         super(Validator.requireConfiguration(configurationType), properties);
-    }
-
-    @Override
-    public Map<?, ?> serialize(T element) {
-        final Map<String, Object> result = new LinkedHashMap<>();
-
-        for (final Field field : filterFields()) {
-            final Object fieldValue = Reflect.getValue(field, element);
-
-            if ((fieldValue == null) && !properties.outputNulls())
-                continue;
-
-            final Object serializedValue = serialize(field.getName(), fieldValue);
-
-            final String formattedField = properties.getNameFormatter().format(field.getName());
-            result.put(formattedField, serializedValue);
-        }
-
-        return result;
     }
 
     @Override
     public T deserialize(Map<?, ?> element) {
         final T result = Reflect.newInstance(type);
 
-        for (final Field field : filterFields()) {
-            final String fieldFormatted = properties.getNameFormatter().format(field.getName());
+        for (final var component : components()) {
+            final var formattedName = formatter.format(component.componentName());
 
-            if (!element.containsKey(fieldFormatted))
+            if (!element.containsKey(formattedName))
                 continue;
 
-            final Object serializedValue = element.get(fieldFormatted);
+            final var serializedValue = element.get(formattedName);
+            final var field = component.component();
 
-            if (serializedValue == null && properties.inputNulls()) {
+            if ((serializedValue == null) && properties.inputNulls()) {
                 requireNonPrimitiveFieldType(field);
                 Reflect.setValue(field, result, null);
             } else if (serializedValue != null) {
-                final Object deserialized = deserialize(field, field.getName(), serializedValue);
-                Reflect.setValue(field, result, deserialized);
+                Object deserializeValue = deserialize(component, serializedValue);
+                Reflect.setValue(field, result, deserializeValue);
             }
         }
 
@@ -54,7 +36,7 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, Field> {
     }
 
     @Override
-    protected void requireSerializableParts() {
+    protected void requireSerializableComponents() {
         if (serializers.isEmpty()) {
             String msg = "Configuration class '" + type.getSimpleName() + "' " +
                          "does not contain any (de-)serializable fields.";
@@ -63,9 +45,22 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, Field> {
     }
 
     @Override
-    protected String baseDeserializeExceptionMessage(Field field, Object value) {
+    protected String baseDeserializeExceptionMessage(ConfigurationField component, Object value) {
         return "Deserialization of value '%s' with type '%s' for field '%s' failed."
-                .formatted(value, value.getClass(), field);
+                .formatted(value, value.getClass(), component.component());
+    }
+
+    @Override
+    protected Iterable<ConfigurationField> components() {
+        return FieldExtractors.CONFIGURATION.extract(type)
+                .filter(properties.getFieldFilter())
+                .map(ConfigurationField::new)
+                .toList();
+    }
+
+    @Override
+    T newDefaultInstance() {
+        return Reflect.newInstance(type);
     }
 
     private static void requireNonPrimitiveFieldType(Field field) {
@@ -74,12 +69,6 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, Field> {
                           "cannot be assigned null.").formatted(field);
             throw new ConfigurationException(msg);
         }
-    }
-
-    private List<Field> filterFields() {
-        return FieldExtractors.CONFIGURATION.extract(type)
-                .filter(properties.getFieldFilter())
-                .toList();
     }
 
     Class<T> getConfigurationType() {

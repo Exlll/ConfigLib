@@ -61,6 +61,33 @@ class YamlConfigurationStoreTest {
         assertEquals(expected, TestUtils.readFile(yamlFile));
     }
 
+    @Test
+    void saveRecord() {
+        record R(String s, @Comment("A comment") Integer i) {}
+        YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
+                .header("The\nHeader")
+                .footer("The\nFooter")
+                .outputNulls(true)
+                .setNameFormatter(String::toUpperCase)
+                .build();
+        YamlConfigurationStore<R> store = new YamlConfigurationStore<>(R.class, properties);
+        store.save(new R("S1", null), yamlFile);
+
+        String expected =
+                """
+                # The
+                # Header
+                                
+                S: S1
+                # A comment
+                I: null
+                                
+                # The
+                # Footer\
+                """;
+        assertEquals(expected, TestUtils.readFile(yamlFile));
+    }
+
     @Configuration
     static final class B {
         String s = "S1";
@@ -94,6 +121,36 @@ class YamlConfigurationStoreTest {
         B config = store.load(yamlFile);
         assertEquals("S2", config.s);
         assertEquals("T1", config.t);
+        assertNull(config.i);
+    }
+
+    @Test
+    void loadRecord() throws IOException {
+        record R(String s, String t, Integer i) {}
+        YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
+                .inputNulls(true)
+                .setNameFormatter(String::toUpperCase)
+                .build();
+        YamlConfigurationStore<R> store = new YamlConfigurationStore<>(R.class, properties);
+
+        Files.writeString(
+                yamlFile,
+                """
+                # The
+                # Header
+                                
+                S: S2
+                t: T2
+                I: null
+                                
+                # The
+                # Footer\
+                """
+        );
+
+        R config = store.load(yamlFile);
+        assertEquals("S2", config.s);
+        assertNull(config.t);
         assertNull(config.i);
     }
 
@@ -208,6 +265,29 @@ class YamlConfigurationStoreTest {
     }
 
     @Test
+    void updateCreatesConfigurationFileIfItDoesNotExistRecord() {
+        record R(int i, char c, String s) {}
+        YamlConfigurationStore<R> store = new YamlConfigurationStore<>(
+                R.class,
+                YamlConfigurationProperties.newBuilder().outputNulls(true).build()
+        );
+
+        assertFalse(Files.exists(yamlFile));
+        R config = store.update(yamlFile);
+        assertEquals(
+                """
+                i: 0
+                c: "\\0"
+                s: null\
+                """,
+                readFile(yamlFile)
+        );
+        assertEquals(0, config.i);
+        assertEquals('\0', config.c);
+        assertNull(config.s);
+    }
+
+    @Test
     void updateLoadsConfigurationFileIfItDoesExist() throws IOException {
         YamlConfigurationStore<E> store = newDefaultStore(E.class);
 
@@ -215,6 +295,17 @@ class YamlConfigurationStoreTest {
         E config = store.update(yamlFile);
         assertEquals(20, config.i);
         assertEquals(11, config.j);
+    }
+
+    @Test
+    void updateLoadsConfigurationFileIfItDoesExistRecord() throws IOException {
+        record R(int i, int j) {}
+        YamlConfigurationStore<R> store = newDefaultStore(R.class);
+
+        Files.writeString(yamlFile, "i: 20");
+        R config = store.update(yamlFile);
+        assertEquals(20, config.i);
+        assertEquals(0, config.j);
     }
 
     @Test
@@ -226,6 +317,18 @@ class YamlConfigurationStoreTest {
         assertEquals(20, config.i);
         assertEquals(11, config.j);
         assertEquals("i: 20\nj: 11", readFile(yamlFile));
+    }
+
+    @Test
+    void updateUpdatesFileRecord() throws IOException {
+        record R(int i, int j) {}
+        YamlConfigurationStore<R> store = newDefaultStore(R.class);
+
+        Files.writeString(yamlFile, "i: 20\nk: 30");
+        R config = store.update(yamlFile);
+        assertEquals(20, config.i);
+        assertEquals(0, config.j);
+        assertEquals("i: 20\nj: 0", readFile(yamlFile));
     }
 
     private static <T> YamlConfigurationStore<T> newDefaultStore(Class<T> configType) {

@@ -43,6 +43,12 @@ sealed interface TypeComponent<T> {
      */
     Object componentValue(Object componentHolder);
 
+    /**
+     * Returns the type that declares this component.
+     *
+     * @return the declaring type
+     */
+    Class<?> declaringType();
 
     record ConfigurationField(Field component) implements TypeComponent<Field> {
         public ConfigurationField(Field component) {
@@ -62,6 +68,11 @@ sealed interface TypeComponent<T> {
         @Override
         public Object componentValue(Object componentHolder) {
             return Reflect.getValue(component, componentHolder);
+        }
+
+        @Override
+        public Class<?> declaringType() {
+            return component.getDeclaringClass();
         }
     }
 
@@ -84,6 +95,11 @@ sealed interface TypeComponent<T> {
         @Override
         public Object componentValue(Object componentHolder) {
             return Reflect.getValue(component, componentHolder);
+        }
+
+        @Override
+        public Class<?> declaringType() {
+            return component.getDeclaringRecord();
         }
     }
 }

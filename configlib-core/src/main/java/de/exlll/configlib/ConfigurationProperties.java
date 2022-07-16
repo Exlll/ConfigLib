@@ -1,7 +1,10 @@
 package de.exlll.configlib;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static de.exlll.configlib.Validator.requireNonNull;

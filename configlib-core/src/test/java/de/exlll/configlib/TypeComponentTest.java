@@ -35,6 +35,11 @@ class TypeComponentTest {
         void componentValue() {
             assertThat(COMPONENT.componentValue(new C()), is(20));
         }
+
+        @Test
+        void declaringType() {
+            assertThat(COMPONENT.declaringType(), equalTo(C.class));
+        }
     }
 
     static final class ConfigurationRecordComponentTest {
@@ -57,6 +62,11 @@ class TypeComponentTest {
         @Test
         void componentValue() {
             assertThat(COMPONENT.componentValue(new R(10f)), is(10f));
+        }
+
+        @Test
+        void declaringType() {
+            assertThat(COMPONENT.declaringType(), equalTo(R.class));
         }
     }
 }
