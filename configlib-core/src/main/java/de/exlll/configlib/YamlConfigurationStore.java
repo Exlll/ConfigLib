@@ -29,7 +29,6 @@ import static de.exlll.configlib.Validator.requireNonNull;
 public final class YamlConfigurationStore<T> implements FileConfigurationStore<T> {
     private static final Dump YAML_DUMPER = newYamlDumper();
     private static final Load YAML_LOADER = newYamlLoader();
-    private final Class<T> configurationType;
     private final YamlConfigurationProperties properties;
     private final TypeSerializer<T, ?> serializer;
     private final CommentNodeExtractor extractor;
@@ -42,7 +41,7 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
      * @throws NullPointerException if any argument is null
      */
     public YamlConfigurationStore(Class<T> configurationType, YamlConfigurationProperties properties) {
-        this.configurationType = requireNonNull(configurationType, "configuration type");
+        requireNonNull(configurationType, "configuration type");
         this.properties = requireNonNull(properties, "properties");
         this.serializer = TypeSerializer.newSerializerFor(configurationType, properties);
         this.extractor = new CommentNodeExtractor(properties);
@@ -111,14 +110,18 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
 
     @Override
     public T update(Path configurationFile) {
+        return update(configurationFile, serializer.newDefaultInstance());
+    }
+
+    @Override
+    public T update(Path configurationFile, T defaultConfiguration) {
         if (Files.exists(configurationFile)) {
             T configuration = load(configurationFile);
             save(configuration, configurationFile);
             return configuration;
         }
-        T configuration = serializer.newDefaultInstance();
-        save(configuration, configurationFile);
-        return configuration;
+        save(defaultConfiguration, configurationFile);
+        return defaultConfiguration;
     }
 
     static Dump newYamlDumper() {

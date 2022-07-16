@@ -41,31 +41,19 @@ the [Configuration properties](#configuration-properties) section.
 
 ```java
 public final class Example {
-    // To create a configuration annotate the class with @Configuration and make sure that
-    // it has a no-args constructor. That's it! Now you can add fields to it which can all
-    // be private; setters are not required!
+    // * To create a configuration annotate a class with @Configuration and make sure that
+    //   it has a no-args constructor.
+    // * Now add fields to that class and assign them default values.
+    // * That's it! Fields can be private; setters are not required.
     @Configuration
     public static class BaseConfiguration {
         private String host = "127.0.0.1";
         private int port = 1234;
         // The library supports lists, sets, and maps.
-        private Set<String> blockedAddresses = Set.of();
+        private Set<String> blockedAddresses = Set.of("8.8.8.8");
         // Fields can be ignored by making them final, transient, static or by
         // annotating them with @Ignore.
         private final double ignoreMe = 3.14;
-    }
-
-    // This class does not need to be annotated with @Configuration because it
-    // extends a class which already is!
-    public static final class UserConfiguration extends BaseConfiguration {
-        // You can add comments with the @Comment annotation. Each string in the comment
-        // array is written (as a comment) on a new line.
-        @Comment({"The admin user has full access.", "Choose a proper password!"})
-        User admin = new User("root", "toor"); // The User class is a @Configuration!
-        List<User> blockedUsers = List.of(
-                new User("user1", null), // null values are supported
-                new User("user2", null)
-        );
     }
 
     // This library supports records; no @Configuration annotation required
@@ -74,6 +62,19 @@ public final class Example {
             @Comment("Please choose a strong password.")
             String password
     ) {}
+
+    // Subclassing of configurations and nesting of configurations in other configurations
+    // is also supported. Subclasses don't need to be annotated again.
+    public static final class UserConfiguration extends BaseConfiguration {
+        // You can add comments with the @Comment annotation. Each string in the comment
+        // array is written (as a comment) on a new line.
+        @Comment({"The admin user has full access.", "Choose a proper password!"})
+        User admin = new User("root", "toor"); // The User class is a record!
+        List<User> blockedUsers = List.of(
+                new User("user1", null), // null values are supported
+                new User("user2", null)
+        );
+    }
 
     public static void main(String[] args) {
         var configFile = Paths.get("/tmp/config.yml");
@@ -100,7 +101,8 @@ looks like this:
 ```yaml
 host: 127.0.0.1
 port: 1234
-blockedAddresses: [ ]
+blockedAddresses:
+  - 8.8.8.8
 # The admin user has full access.
 # Choose a proper password!
 admin:

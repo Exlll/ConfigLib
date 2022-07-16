@@ -45,6 +45,25 @@ public interface FileConfigurationStore<T> {
      * @throws ConfigurationException if the configuration cannot be deserialized
      * @throws NullPointerException   if {@code configurationFile} is null
      * @throws RuntimeException       if loading or saving the configuration throws an exception
+     * @see #update(Path, Object)
      */
     T update(Path configurationFile);
+
+    /**
+     * Updates the configuration file. If the file does not exist, it is created and populated
+     * with values taken from the {@code defaultConfiguration} object.
+     * Otherwise, if the file exists, a new configuration instance is created, initialized with the
+     * values taken from the configuration file, and immediately saved to reflect possible changes
+     * of the configuration type.
+     *
+     * @param configurationFile    the configuration file that is updated
+     * @param defaultConfiguration the default value used when creating a new file
+     * @return a configuration initialized with values taken from the configuration file or
+     * the default value if the file was newly created
+     * @throws ConfigurationException if the configuration cannot be deserialized
+     * @throws NullPointerException   if any argument is null
+     * @throws RuntimeException       if loading or saving the configuration throws an exception
+     * @see #update(Path)
+     */
+    T update(Path configurationFile, T defaultConfiguration);
 }

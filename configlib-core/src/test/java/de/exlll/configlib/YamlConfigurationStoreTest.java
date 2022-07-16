@@ -251,6 +251,13 @@ class YamlConfigurationStoreTest {
     static final class E {
         int i = 10;
         int j = 11;
+
+        public E() {}
+
+        public E(int i, int j) {
+            this.i = i;
+            this.j = j;
+        }
     }
 
     @Test
@@ -326,6 +333,82 @@ class YamlConfigurationStoreTest {
 
         Files.writeString(yamlFile, "i: 20\nk: 30");
         R config = store.update(yamlFile);
+        assertEquals(20, config.i);
+        assertEquals(0, config.j);
+        assertEquals("i: 20\nj: 0", readFile(yamlFile));
+    }
+
+    @Test
+    void updateWithDefaultCreatesConfigurationFileIfItDoesNotExist() {
+        final YamlConfigurationStore<E> store = newDefaultStore(E.class);
+        final E defaultConfig = new E(20, 21);
+
+        assertFalse(Files.exists(yamlFile));
+        E config = store.update(yamlFile, defaultConfig);
+        assertEquals("i: 20\nj: 21", readFile(yamlFile));
+        assertSame(defaultConfig, config);
+    }
+
+    @Test
+    void updateWithDefaultCreatesConfigurationFileIfItDoesNotExistRecord() {
+        record R(int i, char c, String s) {}
+
+        final YamlConfigurationStore<R> store = new YamlConfigurationStore<>(
+                R.class,
+                YamlConfigurationProperties.newBuilder().outputNulls(true).build()
+        );
+        final R defaultConfig = new R(1, 'a', "s");
+
+        assertFalse(Files.exists(yamlFile));
+        R config = store.update(yamlFile, defaultConfig);
+        assertEquals("i: 1\nc: a\ns: s", readFile(yamlFile));
+        assertSame(defaultConfig, config);
+    }
+
+    @Test
+    void updateWithDefaultLoadsConfigurationFileIfItDoesExist() throws IOException {
+        final YamlConfigurationStore<E> store = newDefaultStore(E.class);
+        final E defaultConfig = new E(100, 200);
+
+        Files.writeString(yamlFile, "i: 20");
+        E config = store.update(yamlFile, defaultConfig);
+        assertEquals(20, config.i);
+        assertEquals(11, config.j);
+        assertNotSame(defaultConfig, config);
+    }
+
+    @Test
+    void updateWithDefaultLoadsConfigurationFileIfItDoesExistRecord() throws IOException {
+        record R(int i, int j) {}
+        final YamlConfigurationStore<R> store = newDefaultStore(R.class);
+        final R defaultConfig = new R(100, 200);
+
+        Files.writeString(yamlFile, "i: 20");
+        R config = store.update(yamlFile, defaultConfig);
+        assertEquals(20, config.i);
+        assertEquals(0, config.j);
+    }
+
+    @Test
+    void updateWithDefaultUpdatesFile() throws IOException {
+        final YamlConfigurationStore<E> store = newDefaultStore(E.class);
+        final E defaultConfig = new E(100, 200);
+
+        Files.writeString(yamlFile, "i: 20\nk: 30");
+        E config = store.update(yamlFile, defaultConfig);
+        assertEquals(20, config.i);
+        assertEquals(11, config.j);
+        assertEquals("i: 20\nj: 11", readFile(yamlFile));
+    }
+
+    @Test
+    void updateWithDefaultUpdatesFileRecord() throws IOException {
+        record R(int i, int j) {}
+        final YamlConfigurationStore<R> store = newDefaultStore(R.class);
+        final R defaultConfig = new R(100, 200);
+
+        Files.writeString(yamlFile, "i: 20\nk: 30");
+        R config = store.update(yamlFile, defaultConfig);
         assertEquals(20, config.i);
         assertEquals(0, config.j);
         assertEquals("i: 20\nj: 0", readFile(yamlFile));

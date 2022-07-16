@@ -85,7 +85,7 @@ public final class Configurations {
      * Updates a YAML configuration file with a configuration of the given type using a
      * {@code YamlConfigurationProperties} object with default values.
      * <p>
-     * See {@link YamlConfigurationStore#save(Object, Path)} for an explanation of how the update is
+     * See {@link YamlConfigurationStore#save(Object, Path)} for an explanation of how the update is // TODO: change #save to #update
      * done.
      *
      * @param configurationFile the configuration file that is updated
