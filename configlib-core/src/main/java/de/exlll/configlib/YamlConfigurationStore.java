@@ -211,11 +211,12 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
              * to properly support comments, at least not the way I want them.
              *
              * The algorithm writes YAML line by line and keeps track of the current
-             * context with the help of fieldNames lists which come from the nodes in
+             * context with the help of elementNames lists which come from the nodes in
              * the 'nodes' queue. The 'nodes' queue contains nodes in the order in
-             * which the fields were read, which happened in DFS manner and with fields
-             * of a parent class being read before the fields of the child. That order
-             * ultimately represents the order in which the YAML file is structured.
+             * which fields and records components were extracted, which happened in
+             * DFS manner and with fields of a parent class being read before the fields
+             * of a child. That order ultimately represents the order in which the
+             * YAML file is structured.
              */
             var node = nodes.poll();
             var currentIndentLevel = 0;
@@ -226,20 +227,20 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
                     continue;
                 }
 
-                final var fieldNames = node.fieldNames();
+                final var elementNames = node.elementNames();
                 final var indent = "  ".repeat(currentIndentLevel);
 
-                final var lineStart = indent + fieldNames.get(currentIndentLevel) + ":";
+                final var lineStart = indent + elementNames.get(currentIndentLevel) + ":";
                 if (!line.startsWith(lineStart)) {
                     writeLine(line);
                     continue;
                 }
 
-                final var commentIndentLevel = fieldNames.size() - 1;
+                final var commentIndentLevel = elementNames.size() - 1;
                 if (currentIndentLevel++ == commentIndentLevel) {
                     writeComments(node.comments(), commentIndentLevel);
                     if ((node = nodes.poll()) != null) {
-                        currentIndentLevel = lengthCommonPrefix(node.fieldNames(), fieldNames);
+                        currentIndentLevel = lengthCommonPrefix(node.elementNames(), elementNames);
                     }
                 }
 

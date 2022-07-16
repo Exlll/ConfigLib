@@ -144,10 +144,10 @@ class ConfigurationProperties {
         /**
          * Adds a serializer for the condition. The serializer is selected when the condition
          * evaluates to true. The {@code test} method of the condition object is invoked with
-         * the type of a field. Serializers added by this method take precedence over all other
-         * serializers expect the ones that were added for a specific type by the
-         * {@link #addSerializer(Class, Serializer)} method. The conditions are checked in the order
-         * in which they were added.
+         * the generic type of a field or record component. Serializers added by this method
+         * take precedence over all other serializers expect the ones that were added for a
+         * specific type by the {@link #addSerializer(Class, Serializer)} method.
+         * The conditions are checked in the order in which they were added.
          *
          * @param condition  the condition
          * @param serializer the serializer
@@ -165,8 +165,8 @@ class ConfigurationProperties {
         }
 
         /**
-         * Sets whether fields or collection elements whose value is null should be output
-         * while serializing the configuration.
+         * Sets whether fields, record components, or collection elements whose value
+         * is null should be output while serializing the configuration.
          * <p>
          * The default value is {@code false}.
          *
@@ -179,8 +179,11 @@ class ConfigurationProperties {
         }
 
         /**
-         * Sets whether fields or collection elements should allow null values to bet set
-         * while deserializing the configuration.
+         * Sets whether fields, record components, or collection elements should
+         * allow null values to bet set while deserializing the configuration.
+         * <p>
+         * If this option is set to false, null values read from a configuration
+         * are treated as missing.
          * <p>
          * The default value is {@code false}.
          *

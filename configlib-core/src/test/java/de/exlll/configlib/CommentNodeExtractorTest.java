@@ -519,7 +519,7 @@ class CommentNodeExtractorTest {
         assertTrue(nodes.isEmpty());
     }
 
-    private static CommentNode cn(List<String> comments, String... fieldNames) {
-        return new CommentNode(comments, List.of(fieldNames));
+    private static CommentNode cn(List<String> comments, String... elementNames) {
+        return new CommentNode(comments, List.of(elementNames));
     }
 }

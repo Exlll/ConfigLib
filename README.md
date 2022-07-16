@@ -13,12 +13,12 @@ the [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial) page on the wik
 
 * Automatic creation, saving, loading, and updating of configuration files
 * Support for comments through annotations
-* Support for all primitive types, their wrapper types, and Strings
+* Support for all primitive types, their wrapper types, and strings
+* Support for enums, records, and POJOs (+ inheritance!)
+* Support for (nested) lists, sets, arrays, and maps
 * Support for `BigInteger` and `BigDecimal`
 * Support for `LocalDate`, `LocalTime`, `LocalDateTime`, and `Instant`
 * Support for `UUID`, `File`, `Path`, `URL`, and `URI`
-* Support for (nested) lists, sets, arrays, and maps
-* Support for enums and POJOs (+ inheritance!)
 * Support for Bukkit's `ConfigurationSerializable` types (e.g. `ItemStack`)
 * Option to exclude fields from being converted
 * Option to format field and component names before conversion
@@ -68,18 +68,12 @@ public final class Example {
         );
     }
 
-    @Configuration
-    public static final class User {
-        private String username;
-        @Comment("Please choose a strong password.")
-        private String password;
-
-        // Configuration classes require a no-args constructor.
-        // The constructor can be private though.
-        private User() {}
-
-        public User(String username, String password) {/* initialize */}
-    }
+    // This library supports records; no @Configuration annotation required
+    public record User(
+            String username,
+            @Comment("Please choose a strong password.")
+            String password
+    ) {}
 
     public static void main(String[] args) {
         var configFile = Paths.get("/tmp/config.yml");
@@ -129,25 +123,25 @@ Two things are noticeable here:
 
 ## General information
 
-In the following sections the term _configuration type_ refers to any non-generic class that is
-directly or indirectly (i.e. through subclassing) annotated with
+In the following sections the term _configuration type_ refers to any record type or to any
+non-generic class that is directly or indirectly (i.e. through subclassing) annotated with
 `@de.exlll.configlib.Configuration`. Accordingly, the term _configuration_ refers to an instance of
 such a type.
 
 ### Declaring configuration types
 
-To declare a configuration type, annotate a class with `@Configuration` and make sure that it has a
-no-args constructor. The no-args constructor can be set `private`. Inner classes (i.e. the ones that
-are nested but not `static`) have an implicit synthetic constructor with at least one argument and
-are therefore not supported.
+To declare a configuration type, either define a record or annotate a class with `@Configuration`
+and make sure that it has a no-args constructor. The no-args constructor can be set `private`. Inner
+classes (i.e. the ones that are nested but not `static`) have an implicit synthetic constructor with
+at least one argument and are therefore not supported.
 
-Add fields to your class whose type is any of the supported types listed in the next section. You
-should initialize all fields of reference types with non-null default values, though you can leave
-them null. Handling of null values is discussed in one of the sections further below.
+Now simply add components to your record or fields to your class whose type is any of the supported
+types listed in the next section. You can (and should) initialize all fields of a configuration
+class with non-null default values.
 
 ### Supported types
 
-A configuration type may only contain fields of the following types:
+A configuration type may only contain fields or components of the following types:
 
 | Type class                  | Types                                                              |
 |-----------------------------|--------------------------------------------------------------------|
@@ -159,7 +153,7 @@ A configuration type may only contain fields of the following types:
 | Time related types          | `LocalTime`, `LocalDate`, `LocalDateTime`, `Instant`               |
 | Utility types               | `UUID`, `File`, `Path`, `URL`, `URI`                               |
 | Enums                       | Any Java enum                                                      |
-| Configurations              | Any configuration type                                             |
+| Configurations              | Any Java record or any class annotated with `@Configuration`       |
 | `ConfigurationSerializable` | All Bukkit classes that implement this interface, like `ItemStack` |
 | Collections                 | (Nested) Lists, sets, maps*, or arrays of previously listed types  |
 
@@ -178,18 +172,19 @@ public final class SupportedTypes {
     LocalTime supported;
     UUID supported;
     ExampleEnum supported;  // where 'ExampleEnum' is some Java enum type
-    ExampleConf supported;  // where 'ExampleConf' is another configuration type
+    ExampleConfig supported;  // where 'ExampleConfig' is a class annotated with @Configuration
+    ExampleRecord supported;  // where 'ExampleRecord' is a Java record
 
     /* collection types */
     List<BigInteger> supported;
     Set<Double> supported;
     LocalDate[] supported;
-    Map<ExampleEnum, ExampleConf> supported;
+    Map<ExampleEnum, ExampleConfig> supported;
 
     /* nested collection types */
     List<Map<ExampleEnum, LocalDate>> supported;
     int[][] supported;
-    Map<Integer, List<Map<Short, Set<ExampleConf>>>> supported;
+    Map<Integer, List<Map<Short, Set<ExampleRecord>>>> supported;
 
     // supported if a custom serializer is registered
     java.awt.Point supported;
@@ -231,8 +226,8 @@ Both ways have three methods in common:
 * `save` saves a configuration to a file
 * `load` creates a new configuration instance and populates it with values taken from a file
 * `update` is a combination of `load` and `save` and the method you'd usually want to use: it takes
-  care of creating the configuration file if it does not exist and updates it otherwise to reflect
-  changes to (the fields of) the configuration type.
+  care of creating the configuration file if it does not exist and otherwise updates it to reflect
+  changes to (the fields or components of) the configuration type.
 
 <details>
  <summary>Example of <code>update</code> behavior when configuration file exists</summary>
@@ -347,9 +342,9 @@ described in the [Import](#import) section.
 
 ### Comments
 
-The fields of a configuration can be annotated with the `@Comment` annotation. This annotation takes
-an array of strings. Each of these strings is written onto a new line as a comment. Empty strings
-are written as newlines.
+The fields or components of a configuration can be annotated with the `@Comment` annotation. This
+annotation takes an array of strings. Each of these strings is written onto a new line as a comment.
+Empty strings are written as newlines.
 
 Serializing the following configuration as YAML ...
 
@@ -371,9 +366,10 @@ public final class ExampleConfiguration {
  commentedField: commented field
 ```
 
-If a configuration type _C_ that defines comments is used (as a field) within another configuration
-type, the comments of _C_ are written with the proper indentation. However, if instances of _C_ are
-stored inside a collection, their comments are not printed when the collection is written.
+If a configuration type _C_ that defines comments is used (as a field or component) within another
+configuration type, the comments of _C_ are written with the proper indentation. However, if
+instances of _C_ are stored inside a collection, their comments are not printed when the collection
+is written.
 
 ### Subclassing
 
@@ -393,7 +389,7 @@ and describe how to handle name clashes.)
 
 Fields that are `final`, `static`, `transient` or annotated with `@Ignore` are neither serialized
 nor updated during deserialization. You can filter out additional fields by providing an instance of
-`FieldFilter` to the configuration properties.
+`FieldFilter` to the configuration properties. Record components cannot be filtered.
 
 ### Handling of missing and `null` values
 
@@ -403,15 +399,20 @@ When a configuration file is read, values that correspond to a field of a config
 component of a record type might be missing.
 That can happen, for example, when somebody deleted that field from the configuration file, when the
 definition of a configuration or record type is changed, or when the `NameFormatter` that was used
-to create that file is changed.
+to create that file is replaced.
 
 In such cases, fields of configuration types keep the default value you assigned to them and record
 components are initialized with the default value of their corresponding type.
 
-#### `null` values
+#### Null values
 
-Configuration properties let you configure how `null` values are handled when serializing and
-deserializing a configuration or record type:
+**NOTE:** Null values written to a configuration file generally don't give any indication about
+which kinds of values the configuration expects. Therefore, they not only make it harder for the
+users of that configuration file to properly configure it, but they might also prevent loading a
+configuration if the values the users set are of the wrong type.
+
+Although strongly discouraged, null values are supported and `ConfigurationProperties` let you
+configure how they are handled when serializing and deserializing a configuration:
 
 * By setting `outputNulls` to false, class fields, record components, and collection elements that
   are null are not output. Any comments that belong to such fields are also not written.
@@ -474,8 +475,8 @@ properties. This also means that `Set`s are valid target types.
 
 #### Serializer selection
 
-To convert the value of a field `F` with (source) type `S` into a serializable value of some
-target type, a serializer has to be selected. Serializers are instances of
+To convert the value of a field or record component `F` with (source) type `S` into a serializable
+value of some target type, a serializer has to be selected. Serializers are instances of
 the `de.exlll.configlib.Serializer` interface and are selected based on `S`. Put differently,
 serializers are always selected based on the compile-time type of `F` and never on the runtime type
 of its value.
@@ -483,23 +484,23 @@ of its value.
 <details>
  <summary>Why should I care about this?</summary>
 
-This distinction makes a difference (and might lead to confusion) when you have fields whose type is
-a configuration type or a collection of some configuration type, and you extend that configuration
-type. Concretely, assume you have and written two configuration types `A` and `B`
-where `B extends A`. Then, if you use `A a = new B()` in your main configuration, only the fields of
-a `A` will be stored when you save your main configuration. That is because the serializer of
-field `a` was selected based on the compile-time type of `a` which is `A` and not `B`. The same
-happens if you have a `List<A>` and put instances of `B` (or some other subclass of `A`) in it.
+This distinction makes a difference (and might lead to confusion) when you have fields or record
+components whose type is a configuration type, and you extend that configuration type. Concretely,
+assume you have written two configuration classes `A` and `B` where `B extends A`. Then, if you
+use `A a = new B()` in your main configuration, only the fields of a `A` will be stored when you
+save your main configuration. That is because the serializer of field `a` was selected based on the
+compile-time type of `a` which is `A` and not `B`. The same happens if you have a `List<A>` and put
+instances of `B` (or some other subclass of `A`) in it.
 
 </details>
 
 #### Custom serializers
 
-If you want to add support for a type whose class is not annotated with `@Configuration`, you can
-register a custom serializer. Serializers are instances of the `de.exlll.configlib.Serializer`
-interface. When implementing that interface you have to make sure that you convert your source type
-into one of the valid target types listed in the table above. The serializer then has to be
-registered through a `ConfigurationProperties` object.
+If you want to add support for a type is not a record or whose class is not annotated
+with `@Configuration`, you can register a custom serializer. Serializers are instances of
+the `de.exlll.configlib.Serializer` interface. When implementing that interface you have to make
+sure that you convert your source type into one of the valid target types listed in the table above.
+The serializer then has to be registered through a `ConfigurationProperties` object.
 
 The following `Serializer` serializes instances of `java.awt.Point` into strings.
 
@@ -522,11 +523,12 @@ public final class PointSerializer implements Serializer<Point, String> {
 
 Custom serializers takes precedence over the serializers provided by this library.
 
-### Changing the type of fields
+### Changing the type of fields or record components
 
-Changing the type of fields is not supported. If you change the type of one of your fields but your
-configuration file still contains a value of the old type, a type mismatch will occur when reading
-that file. Instead, remove the old field and add a new one with a different name.
+Changing the type of fields or record components is not supported. If you change the type of one of
+these but your configuration file still contains a value of the old type, a type mismatch will
+occur when loading a configuration from that file. Instead, remove the old element and add a new one
+with a different name.
 
 ### Recursive type definitions
 

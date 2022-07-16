@@ -33,13 +33,13 @@ final class CommentNodeExtractor {
     public Queue<CommentNode> extractCommentNodes(final Object componentHolder) {
         requireConfigurationOrRecord(componentHolder.getClass());
         final Queue<CommentNode> result = new ArrayDeque<>();
-        final var fnameStack = new ArrayDeque<>(List.of(""));
+        final var elementNameStack = new ArrayDeque<>(List.of(""));
         final var stateStack = new ArrayDeque<>(List.of(stateFromObject(componentHolder)));
 
         State state;
         while (!stateStack.isEmpty()) {
             state = stateStack.removeLast();
-            fnameStack.removeLast();
+            elementNameStack.removeLast();
 
             while (state.iterator.hasNext()) {
                 final var component = state.iterator.next();
@@ -60,7 +60,11 @@ final class CommentNodeExtractor {
                 assert element != null;
 
                 final var componentName = component.componentName();
-                final var commentNode = createNodeIfCommentPresent(element, componentName, fnameStack);
+                final var commentNode = createNodeIfCommentPresent(
+                        element,
+                        componentName,
+                        elementNameStack
+                );
                 commentNode.ifPresent(result::add);
 
                 if ((componentValue == null) ||
@@ -69,7 +73,7 @@ final class CommentNodeExtractor {
                     continue;
 
                 stateStack.addLast(new State(state.iterator, state.componentHolder));
-                fnameStack.addLast(nameFormatter.format(componentName));
+                elementNameStack.addLast(nameFormatter.format(componentName));
                 state = stateFromObject(componentValue);
             }
         }
@@ -88,14 +92,14 @@ final class CommentNodeExtractor {
     private Optional<CommentNode> createNodeIfCommentPresent(
             final AnnotatedElement element,
             final String elementName,
-            final Deque<String> fileNameStack
+            final Deque<String> elementNameStack
     ) {
         if (element.isAnnotationPresent(Comment.class)) {
             final var comments = element.getAnnotation(Comment.class).value();
-            final var fieldName = nameFormatter.format(elementName);
-            final var fieldNames = new ArrayList<>(fileNameStack);
-            fieldNames.add(fieldName);
-            final var result = new CommentNode(Arrays.asList(comments), fieldNames);
+            final var formattedName = nameFormatter.format(elementName);
+            final var elementNames = new ArrayList<>(elementNameStack);
+            elementNames.add(formattedName);
+            final var result = new CommentNode(Arrays.asList(comments), elementNames);
             return Optional.of(result);
         }
         return Optional.empty();

@@ -35,9 +35,10 @@ public interface FileConfigurationStore<T> {
     /**
      * Updates the configuration file. If the file does not exist, it is created and populated
      * with the default values with which the fields of the configuration have been initialized.
-     * Otherwise, a new configuration instance is created, initialized with the values taken from
-     * the configuration file, and immediately saved to reflect possible changes of the
-     * configuration type.
+     * If the configuration is of record type, the default values are chosen to be the default
+     * values of its component types. Otherwise, if the file exists, a new configuration instance
+     * is created, initialized with the values taken from the configuration file, and immediately
+     * saved to reflect possible changes of the configuration type.
      *
      * @param configurationFile the configuration file that is updated
      * @return a newly created configuration initialized with values taken from the configuration file
