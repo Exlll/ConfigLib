@@ -110,16 +110,12 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
 
     @Override
     public T update(Path configurationFile) {
-        return update(configurationFile, serializer.newDefaultInstance());
-    }
-
-    @Override
-    public T update(Path configurationFile, T defaultConfiguration) {
         if (Files.exists(configurationFile)) {
             T configuration = load(configurationFile);
             save(configuration, configurationFile);
             return configuration;
         }
+        T defaultConfiguration = serializer.newDefaultInstance();
         save(defaultConfiguration, configurationFile);
         return defaultConfiguration;
     }

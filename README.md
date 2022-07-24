@@ -81,16 +81,16 @@ public final class Example {
         var config = new UserConfiguration();
 
         // Save a new instance to the configuration file
-        YamlConfigurations.saveConfiguration(configFile, UserConfiguration.class, config);
+        YamlConfigurations.save(configFile, UserConfiguration.class, config);
 
         // Load a new instance from the configuration file
-        config = YamlConfigurations.loadConfiguration(configFile, UserConfiguration.class);
+        config = YamlConfigurations.load(configFile, UserConfiguration.class);
         System.out.println(config.admin.username);
         System.out.println(config.blockedUsers);
 
         // Modify and save the configuration file
         config.blockedUsers.add(new User("user3", "pass3"));
-        YamlConfigurations.saveConfiguration(configFile, UserConfiguration.class, config);
+        YamlConfigurations.save(configFile, UserConfiguration.class, config);
     }
 }
 ```
@@ -294,41 +294,40 @@ Config config2 = store.update(configurationFile);
 The second way is to use the static methods from the `YamlConfigurations` class.
 
 ```java 
-Config config1 = YamlConfigurations.loadConfiguration(configurationFile, Config.class);
-YamlConfigurations.saveConfiguration(configurationFile, Config.class, config1);
-Config config2 = YamlConfigurations.updateConfiguration(configurationFile, Config.class);
+Config config1 = YamlConfigurations.load(configurationFile, Config.class);
+YamlConfigurations.save(configurationFile, Config.class, config1);
+Config config2 = YamlConfigurations.update(configurationFile, Config.class);
 ```
 
-<hr>
-
 Each of these methods has two additional overloads: One that takes a properties object and another
-that lets you configure a properties object builder. For example, the overloads for the
-`loadYamlConfiguration` method are:
+that lets you configure a properties object builder. For example, the overloads of the `load`
+method are:
 
 ```java 
 // overload 1
-YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
-    .inputNulls(true)
-    .outputNulls(false)
-    .build();
-Config c1 = YamlConfigurations.loadConfiguration(configurationFile, Config.class, properties);
+YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder().build();
+Config c1 = YamlConfigurations.load(configurationFile, Config.class, properties);
 
 // overload 2
-Config c2 = YamlConfigurations.loadConfiguration(
+Config c2 = YamlConfigurations.load(
     configurationFile,
     Config.class,
     builder -> builder.inputNulls(true).outputNulls(false)
 ); 
 ```
 
-All three methods can also be passed a Java record instead of a class. Because you cannot provide
-default values for records, the `update` method also has an additional variant which takes a default
-configuration:
+<hr>
+
+All three methods can also be passed a Java record instead of a class. To provide default values
+for records when calling the `update` method, you can add a constructor with no parameters that
+initializes its components. This constructor is only called if the configuration file does not
+exist.
 
 ```java 
-record User(String name, String email) {}
-YamlConfigurationStore<User> store = new YamlConfigurationStore<>(User.class, properties);
-User user = store.update(configurationFile, new User("John Doe", "john@doe.com"));
+record User(String name, String email) {
+    User() { this("John Doe", "john@doe.com"); }
+}
+User user = YamlConfigurations.update(configurationFile, User.class);
 ```
 
 ### Configuration properties
@@ -682,8 +681,9 @@ This section contains ideas for upcoming features. If you want any of these to h
 please [open an issue](https://github.com/Exlll/ConfigLib/issues/new) where we can discuss the
 details.
 
-- Optional fields
-- Post load / pre save hooks
-- TOML support
-- Change the order of fields in parent/child class scenarios
+- JSON, TOML, XML support
+- Post-load/Pre-save hooks
+- More features and control over updating/versioning
+- More control over the ordering of fields, especially in parent/child class scenarios
 - Recursive definitions
+- Shadowing of fields

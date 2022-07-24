@@ -40,20 +40,20 @@ class ReflectTest {
     }
 
     @Test
-    void newInstanceRequiresNoArgsCtor() {
+    void callNoParamConstructorRequiresNoParamCtor() {
         assertThrowsRuntimeException(
-                () -> Reflect.newInstance(B1.class),
-                "Class B1 doesn't have a no-args constructor."
+                () -> Reflect.callNoParamConstructor(B1.class),
+                "Type 'B1' doesn't have a no-args constructor."
         );
     }
 
     static abstract class B2 {}
 
     @Test
-    void newInstanceRequiresConcreteClass() {
+    void callNoParamConstructorRequiresConcreteClass() {
         assertThrowsRuntimeException(
-                () -> Reflect.newInstance(B2.class),
-                "Class B2 is not instantiable."
+                () -> Reflect.callNoParamConstructor(B2.class),
+                "Type 'B2' is not instantiable."
         );
     }
 
@@ -64,10 +64,10 @@ class ReflectTest {
     }
 
     @Test
-    void newInstanceRequiresNonThrowingCtor() {
+    void callNoParamConstructorRequiresNonThrowingCtor() {
         assertThrowsRuntimeException(
-                () -> Reflect.newInstance(B3.class),
-                "Constructor of class B3 threw an exception."
+                () -> Reflect.callNoParamConstructor(B3.class),
+                "No-args constructor of type 'B3' threw an exception."
         );
     }
 
@@ -76,8 +76,8 @@ class ReflectTest {
     }
 
     @Test
-    void newInstance() {
-        B4 inst = Reflect.newInstance(B4.class);
+    void callNoParamConstructor() {
+        B4 inst = Reflect.callNoParamConstructor(B4.class);
         assertThat(inst, notNullValue());
         assertThat(inst.i, is(10));
     }
@@ -279,8 +279,8 @@ class ReflectTest {
     }
 
     @Test
-    void newRecord1() {
-        R1 r = Reflect.newRecord(R1.class, 1, 2f);
+    void callCanonicalConstructor1() {
+        R1 r = Reflect.callCanonicalConstructor(R1.class, 1, 2f);
         assertThat(r.i, is(1));
         assertThat(r.f, is(2f));
     }
@@ -288,8 +288,8 @@ class ReflectTest {
     record R2() {}
 
     @Test
-    void newRecord2() {
-        Reflect.newRecord(R2.class);
+    void callCanonicalConstructor2() {
+        Reflect.callCanonicalConstructor(R2.class);
     }
 
     record R3(String s) {
@@ -299,28 +299,28 @@ class ReflectTest {
     }
 
     @Test
-    void newRecordWithThrowingCtor() {
+    void callCanonicalConstructorWithThrowingCtor() {
         assertThrowsRuntimeException(
-                () -> Reflect.newRecord(R3.class, ""),
+                () -> Reflect.callCanonicalConstructor(R3.class, ""),
                 "The canonical constructor of record type 'R3' threw an exception."
         );
     }
 
     @Test
-    void newRecordRequiresRecordType() {
+    void callCanonicalConstructorRequiresRecordType() {
         class A {}
         assertThrowsConfigurationException(
-                () -> Reflect.newRecord(A.class),
+                () -> Reflect.callCanonicalConstructor(A.class),
                 "Class 'A' must be a record."
         );
     }
 
     @Test
-    void newRecordWithDefaultValues() {
+    void callCanonicalConstructorWithDefaultValues() {
         record E() {}
         record R(boolean a, char b, byte c, short d, int e, long f, float g, double h,
                  Boolean i, Character j, Integer k, Float l, E m, R n, Object o) {}
-        R r = Reflect.newRecordDefaultValues(R.class);
+        R r = Reflect.callCanonicalConstructorWithDefaultValues(R.class);
         assertFalse(r.a);
         assertEquals('\0', r.b);
         assertEquals(0, r.c);
@@ -336,5 +336,15 @@ class ReflectTest {
         assertNull(r.m);
         assertNull(r.n);
         assertNull(r.o);
+    }
+
+    @Test
+    void hasDefaultConstructor() {
+        record R1(int i) {}
+        record R2(int i) {
+            R2() {this(10);}
+        }
+        assertFalse(Reflect.hasDefaultConstructor(R1.class));
+        assertTrue(Reflect.hasDefaultConstructor(R2.class));
     }
 }

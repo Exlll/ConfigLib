@@ -33,37 +33,28 @@ public interface FileConfigurationStore<T> {
     T load(Path configurationFile);
 
     /**
-     * Updates the configuration file. If the file does not exist, it is created and populated
-     * with the default values with which the fields of the configuration have been initialized.
-     * If the configuration is of record type, the default values are chosen to be the default
-     * values of its component types. Otherwise, if the file exists, a new configuration instance
-     * is created, initialized with the values taken from the configuration file, and immediately
-     * saved to reflect possible changes of the configuration type.
+     * Updates the configuration file.
+     * <ul>
+     * <li>
+     * If the file does not exist, it is created and populated with the default values with which
+     * the fields of the configuration have been initialized. If the configuration is of record type,
+     * the default values are either chosen to be the default values of its component types
+     * (i.e. zero for primitive numbers, null for references, etc) or, if the record defines a
+     * constructor with no parameters, the values with which this constructor initializes the
+     * components of the record.
+     * </li>
+     * <li>
+     * Otherwise, if the file exists, a new configuration instance is created, initialized with the
+     * values taken from the configuration file, and immediately saved to reflect possible changes
+     * of the configuration type.
+     * </li>
+     * </ul>
      *
      * @param configurationFile the configuration file that is updated
      * @return a newly created configuration initialized with values taken from the configuration file
      * @throws ConfigurationException if the configuration cannot be deserialized
      * @throws NullPointerException   if {@code configurationFile} is null
      * @throws RuntimeException       if loading or saving the configuration throws an exception
-     * @see #update(Path, Object)
      */
     T update(Path configurationFile);
-
-    /**
-     * Updates the configuration file. If the file does not exist, it is created and populated
-     * with values taken from the {@code defaultConfiguration} object.
-     * Otherwise, if the file exists, a new configuration instance is created, initialized with the
-     * values taken from the configuration file, and immediately saved to reflect possible changes
-     * of the configuration type.
-     *
-     * @param configurationFile    the configuration file that is updated
-     * @param defaultConfiguration the default value used when creating a new file
-     * @return a configuration initialized with values taken from the configuration file or
-     * the default value if the file was newly created
-     * @throws ConfigurationException if the configuration cannot be deserialized
-     * @throws NullPointerException   if any argument is null
-     * @throws RuntimeException       if loading or saving the configuration throws an exception
-     * @see #update(Path)
-     */
-    T update(Path configurationFile, T defaultConfiguration);
 }

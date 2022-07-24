@@ -475,7 +475,11 @@ class YamlFileWriterTest {
     }
 
     <T> void writeConfig(Class<T> cls, Consumer<YamlConfigurationProperties.Builder<?>> configurer) {
-        YamlFileWriterArguments args = argsFromConfig(cls, Reflect.newInstance(cls), configurer);
+        YamlFileWriterArguments args = argsFromConfig(
+                cls,
+                Reflect.callNoParamConstructor(cls),
+                configurer
+        );
         YamlFileWriter writer = new YamlFileWriter(yamlFile, args.properties);
         writer.writeYaml(args.yaml, args.nodes);
     }

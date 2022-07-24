@@ -40,7 +40,7 @@ final class RecordSerializer<R> extends
             }
         }
 
-        return Reflect.newRecord(type, constructorArguments);
+        return Reflect.callCanonicalConstructor(type, constructorArguments);
     }
 
     @Override
@@ -67,7 +67,9 @@ final class RecordSerializer<R> extends
 
     @Override
     R newDefaultInstance() {
-        return Reflect.newRecordDefaultValues(type);
+        return Reflect.hasDefaultConstructor(type)
+                ? Reflect.callNoParamConstructor(type)
+                : Reflect.callCanonicalConstructorWithDefaultValues(type);
     }
 
     private static void requireNonPrimitiveComponentType(RecordComponent component) {

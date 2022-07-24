@@ -31,17 +31,24 @@ class YamlConfigurationsTest {
     private static final class Config {
         int i = 10;
         int j = 11;
+
+        public Config() {}
+
+        public Config(int i, int j) {
+            this.i = i;
+            this.j = j;
+        }
     }
 
     @Test
     void saveYamlConfiguration1() {
         Config configuration = new Config();
 
-        YamlConfigurations.saveConfiguration(yamlFile, Config.class, configuration);
+        YamlConfigurations.save(yamlFile, Config.class, configuration);
         assertEquals("i: 10\nj: 11", TestUtils.readFile(yamlFile));
 
         configuration.i = 20;
-        YamlConfigurations.saveConfiguration(yamlFile, Config.class, configuration);
+        YamlConfigurations.save(yamlFile, Config.class, configuration);
         assertEquals("i: 20\nj: 11", TestUtils.readFile(yamlFile));
     }
 
@@ -49,7 +56,7 @@ class YamlConfigurationsTest {
     void saveYamlConfiguration2() {
         Config configuration = new Config();
 
-        YamlConfigurations.saveConfiguration(
+        YamlConfigurations.save(
                 yamlFile, Config.class, configuration,
                 builder -> builder.setFieldFilter(includeI)
         );
@@ -60,7 +67,7 @@ class YamlConfigurationsTest {
     void saveYamlConfiguration3() {
         Config configuration = new Config();
 
-        YamlConfigurations.saveConfiguration(
+        YamlConfigurations.save(
                 yamlFile, Config.class, configuration,
                 YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
         );
@@ -70,18 +77,18 @@ class YamlConfigurationsTest {
     @Test
     void loadYamlConfiguration1() {
         writeString("i: 20\nk: 30");
-        Config config = YamlConfigurations.loadConfiguration(yamlFile, Config.class);
+        Config config = YamlConfigurations.load(yamlFile, Config.class);
         assertConfigEquals(config, 20, 11);
 
         writeString("i: 20\nj: 30");
-        config = YamlConfigurations.loadConfiguration(yamlFile, Config.class);
+        config = YamlConfigurations.load(yamlFile, Config.class);
         assertConfigEquals(config, 20, 30);
     }
 
     @Test
     void loadYamlConfiguration2() {
         writeString("i: 20\nj: 30");
-        Config config = YamlConfigurations.loadConfiguration(
+        Config config = YamlConfigurations.load(
                 yamlFile, Config.class,
                 builder -> builder.setFieldFilter(includeI)
         );
@@ -92,7 +99,7 @@ class YamlConfigurationsTest {
     void loadYamlConfiguration3() {
         writeString("i: 20\nj: 30");
 
-        Config config = YamlConfigurations.loadConfiguration(
+        Config config = YamlConfigurations.load(
                 yamlFile, Config.class,
                 YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
         );
@@ -102,19 +109,19 @@ class YamlConfigurationsTest {
 
     @Test
     void updateYamlConfiguration1() {
-        Config config = YamlConfigurations.updateConfiguration(yamlFile, Config.class);
+        Config config = YamlConfigurations.update(yamlFile, Config.class);
         assertConfigEquals(config, 10, 11);
         assertEquals("i: 10\nj: 11", TestUtils.readFile(yamlFile));
 
         writeString("i: 20\nk: 30");
-        config = YamlConfigurations.updateConfiguration(yamlFile, Config.class);
+        config = YamlConfigurations.update(yamlFile, Config.class);
         assertConfigEquals(config, 20, 11);
         assertEquals("i: 20\nj: 11", TestUtils.readFile(yamlFile));
     }
 
     @Test
     void updateYamlConfiguration2() {
-        Config config = YamlConfigurations.updateConfiguration(
+        Config config = YamlConfigurations.update(
                 yamlFile, Config.class,
                 builder -> builder.setFieldFilter(includeI)
         );
@@ -124,7 +131,7 @@ class YamlConfigurationsTest {
 
     @Test
     void updateYamlConfiguration3() {
-        Config config = YamlConfigurations.updateConfiguration(
+        Config config = YamlConfigurations.update(
                 yamlFile, Config.class,
                 YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
         );

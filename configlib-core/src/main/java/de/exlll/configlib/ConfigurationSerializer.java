@@ -12,7 +12,7 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, ConfigurationFi
 
     @Override
     public T deserialize(Map<?, ?> element) {
-        final T result = Reflect.newInstance(type);
+        final T result = Reflect.callNoParamConstructor(type);
 
         for (final var component : components()) {
             final var formattedName = formatter.format(component.componentName());
@@ -60,7 +60,7 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, ConfigurationFi
 
     @Override
     T newDefaultInstance() {
-        return Reflect.newInstance(type);
+        return Reflect.callNoParamConstructor(type);
     }
 
     private static void requireNonPrimitiveFieldType(Field field) {

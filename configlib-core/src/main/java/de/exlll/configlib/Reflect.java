@@ -38,33 +38,34 @@ final class Reflect {
         return defaultValue;
     }
 
-    static <T> T newInstance(Class<T> cls) {
+    static <T> T callNoParamConstructor(Class<T> cls) {
         try {
             Constructor<T> constructor = cls.getDeclaredConstructor();
             constructor.setAccessible(true);
             return constructor.newInstance();
         } catch (NoSuchMethodException e) {
-            String msg = "Class " + cls.getSimpleName() + " doesn't have a " +
-                         "no-args constructor.";
+            String msg = "Type '%s' doesn't have a no-args constructor."
+                    .formatted(cls.getSimpleName());
             throw new RuntimeException(msg, e);
         } catch (IllegalAccessException e) {
             /* This exception should not be thrown because
              * we set the constructor to be accessible. */
-            String msg = "No-args constructor of class " + cls.getSimpleName() +
-                         " not accessible.";
+            String msg = "No-args constructor of type '%s' not accessible."
+                    .formatted(cls.getSimpleName());
             throw new RuntimeException(msg, e);
         } catch (InstantiationException e) {
-            String msg = "Class " + cls.getSimpleName() + " is not instantiable.";
+            String msg = "Type '%s' is not instantiable.".formatted(cls.getSimpleName());
             throw new RuntimeException(msg, e);
         } catch (InvocationTargetException e) {
-            String msg = "Constructor of class " + cls.getSimpleName() + " threw an exception.";
+            String msg = "No-args constructor of type '%s' threw an exception."
+                    .formatted(cls.getSimpleName());
             throw new RuntimeException(msg, e);
         }
     }
 
     // We could use <R extends Record> as a bound here and for the other methods below
     // but that would require casts elsewhere.
-    static <R> R newRecord(Class<R> recordType, Object... constructorArguments) {
+    static <R> R callCanonicalConstructor(Class<R> recordType, Object... constructorArguments) {
         try {
             Constructor<R> constructor = getCanonicalConstructor(requireRecord(recordType));
             constructor.setAccessible(true);
@@ -79,17 +80,17 @@ final class Reflect {
             // cannot happen because records are instantiable
             throw new RuntimeException(e);
         } catch (InvocationTargetException e) {
-            String msg = "The canonical constructor of record type '" +
-                         recordType.getSimpleName() + "' threw an exception.";
+            String msg = "The canonical constructor of record type '%s' threw an exception."
+                    .formatted(recordType.getSimpleName());
             throw new RuntimeException(msg, e);
         }
     }
 
-    static <R> R newRecordDefaultValues(Class<R> recordType) {
+    static <R> R callCanonicalConstructorWithDefaultValues(Class<R> recordType) {
         final Object[] args = Arrays.stream(recordParameterTypes(requireRecord(recordType)))
                 .map(Reflect::getDefaultValue)
                 .toArray(Object[]::new);
-        return Reflect.newRecord(recordType, args);
+        return Reflect.callCanonicalConstructor(recordType, args);
     }
 
     static <R> Constructor<R> getCanonicalConstructor(Class<R> recordType)
@@ -111,15 +112,21 @@ final class Reflect {
         return array;
     }
 
+    static boolean hasDefaultConstructor(Class<?> type) {
+        for (Constructor<?> constructor : type.getDeclaredConstructors()) {
+            if (constructor.getParameterCount() == 0)
+                return true;
+        }
+        return false;
+    }
+
     static Object getValue(Field field, Object instance) {
         try {
             field.setAccessible(true);
             return field.get(instance);
         } catch (IllegalAccessException e) {
-            /* This exception should not be thrown because
-             * we set the field to be accessible. */
-            String msg = "Illegal access of field '" + field + "' " +
-                         "on object " + instance + ".";
+            /* This exception should not be thrown because we set the field to be accessible. */
+            String msg = "Illegal access of field '%s' on object %s.".formatted(field, instance);
             throw new RuntimeException(msg, e);
         }
     }
@@ -146,10 +153,8 @@ final class Reflect {
             field.setAccessible(true);
             field.set(instance, value);
         } catch (IllegalAccessException e) {
-            /* This exception should not be thrown because
-             * we set the field to be accessible. */
-            String msg = "Illegal access of field '" + field + "' " +
-                         "on object " + instance + ".";
+            /* This exception should not be thrown because we set the field to be accessible. */
+            String msg = "Illegal access of field '%s' on object %s.".formatted(field, instance);
             throw new RuntimeException(msg, e);
         }
     }

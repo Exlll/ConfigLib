@@ -211,4 +211,22 @@ class RecordSerializerTest {
                 "the deserializer expects."
         );
     }
+
+    @Test
+    void newDefaultInstanceWithoutDefaultConstructor() {
+        record R(int i, String s) {}
+        R r = newSerializer(R.class).newDefaultInstance();
+        assertThat(r.i, is(0));
+        assertThat(r.s, nullValue());
+    }
+
+    @Test
+    void newDefaultInstanceWithDefaultConstructor() {
+        record R(int i, String s) {
+            R() {this(10, "s");}
+        }
+        R r = newSerializer(R.class).newDefaultInstance();
+        assertThat(r.i, is(10));
+        assertThat(r.s, is("s"));
+    }
 }
