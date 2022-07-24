@@ -657,7 +657,7 @@ replace `configlib-yaml` with `configlib-paper`
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-yaml</artifactId>
-    <version>3.1.0</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 
@@ -666,13 +666,13 @@ replace `configlib-yaml` with `configlib-paper`
 ```groovy
 repositories { maven { url 'https://maven.pkg.github.com/Exlll/ConfigLib' } }
 
-dependencies { implementation 'de.exlll:configlib-yaml:3.1.0' }
+dependencies { implementation 'de.exlll:configlib-yaml:4.0.0' }
 ```
 
 ```kotlin
 repositories { maven { url = uri("https://maven.pkg.github.com/Exlll/ConfigLib") } }
 
-dependencies { implementation("de.exlll:configlib-yaml:3.1.0") }
+dependencies { implementation("de.exlll:configlib-yaml:4.0.0") }
 ```
 
 ## Future work

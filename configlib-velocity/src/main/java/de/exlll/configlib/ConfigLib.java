@@ -8,7 +8,7 @@ import com.velocitypowered.api.plugin.Plugin;
 @Plugin(
         id = "configlib",
         name = "ConfigLib",
-        version = "3.1.0",
+        version = "4.0.0",
         url = "https://github.com/Exlll/ConfigLib",
         description = "A library for working with YAML configurations.",
         authors = {"Exlll"}
