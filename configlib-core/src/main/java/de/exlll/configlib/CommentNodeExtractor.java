@@ -95,7 +95,9 @@ final class CommentNodeExtractor {
             final Deque<String> elementNameStack
     ) {
         if (element.isAnnotationPresent(Comment.class)) {
-            final var comments = Arrays.stream(element.getAnnotation(Comment.class).value()).flatMap(s -> Arrays.stream(s.split("\n"))).toList();
+            final var comments = Arrays.stream(element.getAnnotation(Comment.class).value())
+                    .flatMap(s -> Arrays.stream(s.split("\n", -1)))
+                    .toList();
             final var formattedName = nameFormatter.format(elementName);
             final var elementNames = new ArrayList<>(elementNameStack);
             elementNames.add(formattedName);
