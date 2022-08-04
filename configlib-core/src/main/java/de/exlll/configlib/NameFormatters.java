@@ -51,5 +51,51 @@ public enum NameFormatters implements NameFormatter {
             }
             return builder.toString();
         }
+    },
+    /**
+     * A {@code NameFormatter} that transforms <i>camelCase</i> to
+     * <i>lower-kebab-case</i>.
+     * <p>
+     * For example, <i>myPrivateField</i> becomes <i>my-private-field</i>.
+     */
+    LOWER_KEBAB_CASE {
+        @Override
+        public String format(String name) {
+            StringBuilder builder = new StringBuilder(name.length());
+            for (int i = 0; i < name.length(); i++) {
+                char c = name.charAt(i);
+                if (Character.isUpperCase(c)) {
+                    builder.append('-');
+                    builder.append(Character.toLowerCase(c));
+                } else {
+                    builder.append(c);
+                }
+            }
+            return builder.toString();
+        }
+    },
+    /**
+     * A {@code NameFormatter} that transforms <i>camelCase</i> to
+     * <i>UPPER-KEBAB-CASE</i>.
+     * <p>
+     * For example, <i>myPrivateField</i> becomes <i>MY-PRIVATE-FIELD</i>.
+     */
+    UPPER_KEBAB_CASE {
+        @Override
+        public String format(String name) {
+            StringBuilder builder = new StringBuilder(name.length());
+            for (int i = 0; i < name.length(); i++) {
+                char c = name.charAt(i);
+                if (Character.isLowerCase(c)) {
+                    builder.append(Character.toUpperCase(c));
+                } else if (Character.isUpperCase(c)) {
+                    builder.append('-');
+                    builder.append(c);
+                } else {
+                    builder.append(c);
+                }
+            }
+            return builder.toString();
+        }
     }
 }
