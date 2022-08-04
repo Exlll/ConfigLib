@@ -44,4 +44,26 @@ class NameFormattersTest {
         assertThat(formatter.format(NAME_4), is("WITH123_NUMBER"));
         assertThat(formatter.format(NAME_5), is("WITH_$"));
     }
+
+    @Test
+    void formatLowerKebab() {
+        NameFormatters formatter = NameFormatters.LOWER_KEBAB_CASE;
+
+        assertThat(formatter.format(NAME_1), is("lowercase"));
+        assertThat(formatter.format(NAME_2), is("camel-case"));
+        assertThat(formatter.format(NAME_3), is("with-number123"));
+        assertThat(formatter.format(NAME_4), is("with123-number"));
+        assertThat(formatter.format(NAME_5), is("with_$"));
+    }
+
+    @Test
+    void formatUpperKebab() {
+        NameFormatters formatter = NameFormatters.UPPER_KEBAB_CASE;
+
+        assertThat(formatter.format(NAME_1), is("LOWERCASE"));
+        assertThat(formatter.format(NAME_2), is("CAMEL-CASE"));
+        assertThat(formatter.format(NAME_3), is("WITH-NUMBER123"));
+        assertThat(formatter.format(NAME_4), is("WITH123-NUMBER"));
+        assertThat(formatter.format(NAME_5), is("WITH_$"));
+    }
 }
