@@ -74,9 +74,12 @@ class CommentNodeExtractorTest {
     void extractSingleCommentMultipleLines() {
         @Configuration
         class A {
-            @Comment("""
+            @Comment(
+                    """
                     Hello
-                    World""")
+                    World\
+                    """
+            )
             int i;
         }
 
@@ -89,18 +92,18 @@ class CommentNodeExtractorTest {
     void extractSingleCommentMultipleLinesTrailingNewlines() {
         @Configuration
         class A {
-
-            @Comment("""
-                    
-                    
+            @Comment(
+                    """
+                                        
+                                        
                     Hello
-                    
+                                        
                     World
-                    
-                    
-                    """)
+                                        
+                                        
+                    """
+            )
             int i;
-
         }
 
         Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new A());
@@ -112,14 +115,17 @@ class CommentNodeExtractorTest {
     void extractSingleCommentMultipleLinesInArrayAndNewlineSplit() {
         @Configuration
         class A {
-
-            @Comment({ """
+            @Comment({
+                    """
                     Hello
-                    World""", """
+                    World\
+                    """,
+                    """
                     Hi
-                    Again""" })
+                    Again\
+                    """
+            })
             int i;
-
         }
 
         Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new A());
@@ -131,18 +137,20 @@ class CommentNodeExtractorTest {
     void extractSingleCommentMultipleLinesInArrayAndNewlineSplitWithTrailingNewlines() {
         @Configuration
         class A {
-
-            @Comment({ """
-                    
+            @Comment({
+                    """
+                                        
                     Hello
                     World
-                    
-                    """, """
-                    
+                                        
+                    """,
+                    """
+                                        
                     Hi
                     Again
-                    
-                    """ })
+                                        
+                    """
+            })
             int i;
 
         }

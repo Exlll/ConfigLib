@@ -360,7 +360,7 @@ described in the [Import](#import) section.
 
 The fields or components of a configuration can be annotated with the `@Comment` annotation. This
 annotation takes an array of strings. Each of these strings is written onto a new line as a comment.
-Empty strings are written as newlines.
+The strings can contain `\n` characters. Empty strings are written as newlines (not as comments).
 
 If a configuration type _C_ that defines comments is used (as a field or component) within another
 configuration type, the comments of _C_ are written with the proper indentation. However, if
@@ -620,17 +620,16 @@ This project contains three classes of modules:
 
 ## Import
 
-**INFO:** I'm currently looking for an easier way for you to import this library that does not
-require authentication with GitHub. Please check
-this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have authentication problems.
+To use this library, import it into your project with Maven or Gradle. Examples of how to do that
+are at the end of this section within the spoilers. Currently, there are two repositories from
+which you can choose: [jitpack.io](https://jitpack.io/#Exlll/ConfigLib) and GitHub (which requires
+authentication, see this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have any
+problems).
 
-To use this library, import it into your project with either Maven or Gradle as shown in the two
-examples below. This library has additional dependencies (namely, a YAML parser) which are not
-exposed by the artifact you import.
-
-This repository provides plugin versions of this library which bundle all its dependencies, so you
-don't have to worry about them. Also, these versions make it easier for you to update this library
-if you have written multiple plugins that use it.
+This library has additional dependencies (namely, a YAML parser) which are not exposed by the
+artifact you import. The current repository provides plugin versions of this library which bundle
+all its dependencies, so you don't have to worry about them. Also, these versions make it easier for
+you to update this library if you have written multiple plugins that use it.
 
 The plugin versions can be downloaded from
 the [releases page](https://github.com/Exlll/ConfigLib/releases) where you can identify them by
@@ -642,11 +641,52 @@ Waterfall) or to the dependencies array (for Velocity) of your own plugin.
 Alternatively, if you don't want to use an extra plugin, you can shade the `-yaml` version with its
 YAML parser yourself.
 
-**NOTE:** If you want serialization support for Bukkit classes like `ItemStack`,
-replace `configlib-yaml` with `configlib-paper`
-(see [here](#support-for-bukkit-classes-like-itemstack)).
+### Import examples
 
-#### Maven
+If you want serialization support for Bukkit classes like `ItemStack`, replace `configlib-yaml`
+with `configlib-paper` (see [here](#support-for-bukkit-classes-like-itemstack)).
+
+<details>
+ <summary>Import via <code>jitpack.io</code></summary>
+
+**Maven**
+
+```xml 
+<repository>
+    <id>jitpack.io</id>
+    <url>https://jitpack.io</url>
+</repository>
+
+<dependency>
+    <groupId>com.github.Exlll.ConfigLib</groupId>
+    <artifactId>configlib-yaml</artifactId>
+    <version>v4.1.0</version>
+</dependency>
+```
+
+**Gradle**
+
+```groovy
+repositories { maven { url 'https://jitpack.io' } }
+
+dependencies { implementation 'com.github.Exlll.ConfigLib:configlib-yaml:v4.1.0' }
+```
+
+```kotlin
+repositories { maven { url = uri("https://jitpack.io") } }
+
+dependencies { implementation("com.github.Exlll.ConfigLib:configlib-yaml:v4.1.0") }
+```
+
+</details>
+
+<details>
+ <summary>Import via GitHub</summary>
+
+Importing via GitHub requires authentication. Check
+this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have any trouble with that.
+
+**Maven**
 
 ```xml 
 <repository>
@@ -661,7 +701,7 @@ replace `configlib-yaml` with `configlib-paper`
 </dependency>
 ```
 
-#### Gradle
+**Gradle**
 
 ```groovy
 repositories { maven { url 'https://maven.pkg.github.com/Exlll/ConfigLib' } }
@@ -674,6 +714,8 @@ repositories { maven { url = uri("https://maven.pkg.github.com/Exlll/ConfigLib")
 
 dependencies { implementation("de.exlll:configlib-yaml:4.0.0") }
 ```
+
+</details>
 
 ## Future work
 
