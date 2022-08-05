@@ -71,6 +71,88 @@ class CommentNodeExtractorTest {
     }
 
     @Test
+    void extractSingleCommentMultipleLines() {
+        @Configuration
+        class A {
+            @Comment("""
+                    Hello
+                    World""")
+            int i;
+        }
+
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new A());
+        assertEquals(cn(List.of("Hello", "World"), "i"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
+    void extractSingleCommentMultipleLinesTrailingNewlines() {
+        @Configuration
+        class A {
+
+            @Comment("""
+                    
+                    
+                    Hello
+                    
+                    World
+                    
+                    
+                    """)
+            int i;
+
+        }
+
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new A());
+        assertEquals(cn(List.of("", "", "Hello", "", "World", "", "", ""), "i"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
+    void extractSingleCommentMultipleLinesInArrayAndNewlineSplit() {
+        @Configuration
+        class A {
+
+            @Comment({ """
+                    Hello
+                    World""", """
+                    Hi
+                    Again""" })
+            int i;
+
+        }
+
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new A());
+        assertEquals(cn(List.of("Hello", "World", "Hi", "Again"), "i"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
+    void extractSingleCommentMultipleLinesInArrayAndNewlineSplitWithTrailingNewlines() {
+        @Configuration
+        class A {
+
+            @Comment({ """
+                    
+                    Hello
+                    World
+                    
+                    """, """
+                    
+                    Hi
+                    Again
+                    
+                    """ })
+            int i;
+
+        }
+
+        Queue<CommentNode> nodes = EXTRACTOR.extractCommentNodes(new A());
+        assertEquals(cn(List.of("", "Hello", "World", "", "", "", "Hi", "Again", "", ""), "i"), nodes.poll());
+        assertTrue(nodes.isEmpty());
+    }
+
+    @Test
     void extractMultipleComments() {
         @Configuration
         class A {
