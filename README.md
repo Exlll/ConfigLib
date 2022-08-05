@@ -697,7 +697,7 @@ this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have any troub
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-yaml</artifactId>
-    <version>4.0.0</version>
+    <version>4.1.0</version>
 </dependency>
 ```
 
@@ -706,13 +706,13 @@ this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have any troub
 ```groovy
 repositories { maven { url 'https://maven.pkg.github.com/Exlll/ConfigLib' } }
 
-dependencies { implementation 'de.exlll:configlib-yaml:4.0.0' }
+dependencies { implementation 'de.exlll:configlib-yaml:4.1.0' }
 ```
 
 ```kotlin
 repositories { maven { url = uri("https://maven.pkg.github.com/Exlll/ConfigLib") } }
 
-dependencies { implementation("de.exlll:configlib-yaml:4.0.0") }
+dependencies { implementation("de.exlll:configlib-yaml:4.1.0") }
 ```
 
 </details>
