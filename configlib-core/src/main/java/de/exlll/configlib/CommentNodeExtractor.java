@@ -44,12 +44,12 @@ final class CommentNodeExtractor {
 
             while (state.iterator.hasNext()) {
                 final var component = state.iterator.next();
-                final var componentValue = component.componentValue(state.componentHolder);
+                final var componentValue = component.value(state.componentHolder);
 
                 if ((componentValue == null) && !outputNull)
                     continue;
 
-                final var componentName = component.componentName();
+                final var componentName = component.name();
                 final var commentNode = createNodeIfCommentPresent(
                         component.component(),
                         componentName,
@@ -57,7 +57,7 @@ final class CommentNodeExtractor {
                 );
                 commentNode.ifPresent(result::add);
 
-                final var componentType = component.componentType();
+                final var componentType = component.type();
                 if ((componentValue != null) &&
                     (Reflect.isConfiguration(componentType) ||
                      componentType.isRecord())) {

@@ -27,21 +27,21 @@ sealed interface TypeComponent<T extends AnnotatedElement> {
      *
      * @return name of the component
      */
-    String componentName();
+    String name();
 
     /**
      * Returns the type of the component.
      *
      * @return type of the component
      */
-    Class<?> componentType();
+    Class<?> type();
 
     /**
      * Returns the generic type of the component.
      *
      * @return generic type of the component
      */
-    Type componentGenericType();
+    Type genericType();
 
     /**
      * Returns the value the component is holding.
@@ -51,7 +51,7 @@ sealed interface TypeComponent<T extends AnnotatedElement> {
      * @throws IllegalArgumentException if {@code componentHolder} is not an instance of the type to
      *                                  which this component belongs
      */
-    Object componentValue(Object componentHolder);
+    Object value(Object componentHolder);
 
     /**
      * Returns the type that declares this component.
@@ -79,22 +79,22 @@ sealed interface TypeComponent<T extends AnnotatedElement> {
         }
 
         @Override
-        public String componentName() {
+        public String name() {
             return component.getName();
         }
 
         @Override
-        public Class<?> componentType() {
+        public Class<?> type() {
             return component.getType();
         }
 
         @Override
-        public Type componentGenericType() {
+        public Type genericType() {
             return component.getGenericType();
         }
 
         @Override
-        public Object componentValue(Object componentHolder) {
+        public Object value(Object componentHolder) {
             return Reflect.getValue(component, componentHolder);
         }
 
@@ -111,22 +111,22 @@ sealed interface TypeComponent<T extends AnnotatedElement> {
         }
 
         @Override
-        public String componentName() {
+        public String name() {
             return component.getName();
         }
 
         @Override
-        public Class<?> componentType() {
+        public Class<?> type() {
             return component.getType();
         }
 
         @Override
-        public Type componentGenericType() {
+        public Type genericType() {
             return component.getGenericType();
         }
 
         @Override
-        public Object componentValue(Object componentHolder) {
+        public Object value(Object componentHolder) {
             return Reflect.getValue(component, componentHolder);
         }
 

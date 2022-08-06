@@ -15,7 +15,7 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, ConfigurationFi
         final T result = Reflect.callNoParamConstructor(type);
 
         for (final var component : components()) {
-            final var formattedName = formatter.format(component.componentName());
+            final var formattedName = formatter.format(component.name());
 
             if (!element.containsKey(formattedName))
                 continue;

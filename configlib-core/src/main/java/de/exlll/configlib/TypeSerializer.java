@@ -35,13 +35,13 @@ sealed abstract class TypeSerializer<T, TC extends TypeComponent<?>>
         final Map<String, Object> result = new LinkedHashMap<>();
 
         for (final TC component : components()) {
-            final Object componentValue = component.componentValue(element);
+            final Object componentValue = component.value(element);
 
             if ((componentValue == null) && !properties.outputNulls())
                 continue;
 
             final Object serializedValue = serialize(component, componentValue);
-            final String formattedName = formatter.format(component.componentName());
+            final String formattedName = formatter.format(component.name());
             result.put(formattedName, serializedValue);
         }
 
@@ -53,7 +53,7 @@ sealed abstract class TypeSerializer<T, TC extends TypeComponent<?>>
         // are selected based on the component type.
         @SuppressWarnings("unchecked")
         final var serializer = (Serializer<Object, Object>)
-                serializers.get(component.componentName());
+                serializers.get(component.name());
         return (value != null) ? serializer.serialize(value) : null;
     }
 
@@ -62,7 +62,7 @@ sealed abstract class TypeSerializer<T, TC extends TypeComponent<?>>
         // is deserialized is not a subtype of the type the deserializer expects.
         @SuppressWarnings("unchecked")
         final var serializer = (Serializer<Object, Object>)
-                serializers.get(component.componentName());
+                serializers.get(component.name());
 
         final Object deserialized;
         try {

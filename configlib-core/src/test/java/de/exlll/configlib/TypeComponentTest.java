@@ -27,24 +27,24 @@ class TypeComponentTest {
 
         @Test
         void componentName() {
-            assertThat(COMPONENT.componentName(), is("field"));
+            assertThat(COMPONENT.name(), is("field"));
         }
 
         @Test
         void componentType() {
-            assertThat(COMPONENT.componentType(), equalTo(List.class));
+            assertThat(COMPONENT.type(), equalTo(List.class));
         }
 
         @Test
         void componentGenericType() {
-            ParameterizedType type = (ParameterizedType) COMPONENT.componentGenericType();
+            ParameterizedType type = (ParameterizedType) COMPONENT.genericType();
             Type argument = type.getActualTypeArguments()[0];
             assertThat(argument, equalTo(String.class));
         }
 
         @Test
         void componentValue() {
-            assertThat(COMPONENT.componentValue(new C()), is(List.of("20")));
+            assertThat(COMPONENT.value(new C()), is(List.of("20")));
         }
 
         @Test
@@ -67,24 +67,24 @@ class TypeComponentTest {
 
         @Test
         void componentName() {
-            assertThat(COMPONENT.componentName(), is("comp"));
+            assertThat(COMPONENT.name(), is("comp"));
         }
 
         @Test
         void componentType() {
-            assertThat(COMPONENT.componentType(), equalTo(Set.class));
+            assertThat(COMPONENT.type(), equalTo(Set.class));
         }
 
         @Test
         void componentGenericType() {
-            ParameterizedType type = (ParameterizedType) COMPONENT.componentGenericType();
+            ParameterizedType type = (ParameterizedType) COMPONENT.genericType();
             Type argument = type.getActualTypeArguments()[0];
             assertThat(argument, equalTo(Integer.class));
         }
 
         @Test
         void componentValue() {
-            assertThat(COMPONENT.componentValue(new R(Set.of(1))), is(Set.of(1)));
+            assertThat(COMPONENT.value(new R(Set.of(1))), is(Set.of(1)));
         }
 
         @Test

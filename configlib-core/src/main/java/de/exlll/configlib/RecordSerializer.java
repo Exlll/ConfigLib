@@ -20,10 +20,10 @@ final class RecordSerializer<R> extends
 
         for (int i = 0, size = components.size(); i < size; i++) {
             final var component = components.get(i);
-            final var formattedName = formatter.format(component.componentName());
+            final var formattedName = formatter.format(component.name());
 
             if (!element.containsKey(formattedName)) {
-                constructorArguments[i] = Reflect.getDefaultValue(component.componentType());
+                constructorArguments[i] = Reflect.getDefaultValue(component.type());
                 continue;
             }
 
@@ -34,7 +34,7 @@ final class RecordSerializer<R> extends
                 requireNonPrimitiveComponentType(recordComponent);
                 constructorArguments[i] = null;
             } else if (serializedValue == null) {
-                constructorArguments[i] = Reflect.getDefaultValue(component.componentType());
+                constructorArguments[i] = Reflect.getDefaultValue(component.type());
             } else {
                 constructorArguments[i] = deserialize(component, serializedValue);
             }
