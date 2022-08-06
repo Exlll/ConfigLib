@@ -1,7 +1,9 @@
 package de.exlll.configlib;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static de.exlll.configlib.Validator.requireNonNull;
 
@@ -17,7 +19,7 @@ sealed abstract class TypeSerializer<T, TC extends TypeComponent<?>>
         this.type = requireNonNull(type, "type");
         this.properties = requireNonNull(properties, "configuration properties");
         this.formatter = properties.getNameFormatter();
-        this.serializers = new SerializerMapper(type, properties).buildSerializerMap();
+        this.serializers = buildSerializerMap();
         requireSerializableComponents();
     }
 
@@ -28,6 +30,19 @@ sealed abstract class TypeSerializer<T, TC extends TypeComponent<?>>
         return type.isRecord()
                 ? new RecordSerializer<>(type, properties)
                 : new ConfigurationSerializer<>(type, properties);
+    }
+
+    Map<String, Serializer<?, ?>> buildSerializerMap() {
+        final var selector = new SerializerSelector(properties);
+        try {
+            return components().stream().collect(Collectors.toMap(
+                    TypeComponent::name,
+                    component -> selector.select(component.genericType())
+            ));
+        } catch (StackOverflowError error) {
+            String msg = "Recursive type definitions are not supported.";
+            throw new ConfigurationException(msg, error);
+        }
     }
 
     @Override
@@ -83,7 +98,7 @@ sealed abstract class TypeSerializer<T, TC extends TypeComponent<?>>
 
     protected abstract String baseDeserializeExceptionMessage(TC component, Object value);
 
-    protected abstract Iterable<TC> components();
+    protected abstract List<TC> components();
 
     abstract T newDefaultInstance();
 }

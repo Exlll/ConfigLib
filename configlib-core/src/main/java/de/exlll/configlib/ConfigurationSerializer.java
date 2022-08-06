@@ -3,6 +3,7 @@ package de.exlll.configlib;
 import de.exlll.configlib.TypeComponent.ConfigurationField;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
 
 final class ConfigurationSerializer<T> extends TypeSerializer<T, ConfigurationField> {
@@ -51,7 +52,7 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, ConfigurationFi
     }
 
     @Override
-    protected Iterable<ConfigurationField> components() {
+    protected List<ConfigurationField> components() {
         return FieldExtractors.CONFIGURATION.extract(type)
                 .filter(properties.getFieldFilter())
                 .map(ConfigurationField::new)

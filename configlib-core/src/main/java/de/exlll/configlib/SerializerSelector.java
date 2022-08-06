@@ -16,6 +16,8 @@ import java.time.LocalTime;
 import java.util.Map;
 import java.util.UUID;
 
+import static de.exlll.configlib.Validator.requireNonNull;
+
 final class SerializerSelector {
     private static final Map<Class<?>, Serializer<?, ?>> DEFAULT_SERIALIZERS = Map.ofEntries(
             Map.entry(boolean.class, new BooleanSerializer()),
@@ -50,7 +52,7 @@ final class SerializerSelector {
     private final ConfigurationProperties properties;
 
     public SerializerSelector(ConfigurationProperties properties) {
-        this.properties = properties;
+        this.properties = requireNonNull(properties, "configuration properties");
     }
 
     public Serializer<?, ?> select(Type type) {

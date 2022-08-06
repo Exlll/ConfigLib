@@ -1,5 +1,6 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.Serializers.*;
 import de.exlll.configlib.configurations.ExampleConfigurationA2;
 import de.exlll.configlib.configurations.ExampleConfigurationB1;
 import de.exlll.configlib.configurations.ExampleConfigurationB2;
@@ -14,71 +15,39 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import static de.exlll.configlib.Serializers.*;
 import static de.exlll.configlib.TestUtils.assertThrowsConfigurationException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-class SerializerMapperTest {
-    private static SerializerMapper newMapper(Class<?> cls) {
-        return newMapper(cls, builder -> {});
-    }
-
-    private static SerializerMapper newMapper(
-            Class<?> cls,
+class TypeSerializerTest {
+    private static <T> TypeSerializer<T, ?> newTypeSerializer(
+            Class<T> type,
             Consumer<ConfigurationProperties.Builder<?>> propertiesConfigurer
     ) {
         var builder = ConfigurationProperties.newBuilder();
         builder.addSerializer(Point.class, TestUtils.POINT_SERIALIZER);
         propertiesConfigurer.accept(builder);
-        return new SerializerMapper(cls, builder.build());
+        ConfigurationProperties properties = builder.build();
+        return TypeSerializer.newSerializerFor(type, properties);
+    }
+
+    private static <T> TypeSerializer<T, ?> newTypeSerializer(Class<T> type) {
+        return newTypeSerializer(type, builder -> {});
     }
 
     @Test
-    void requireConfigurationOrRecord() {
-        ConfigurationProperties properties = ConfigurationProperties.newBuilder().build();
-        TestUtils.assertThrowsConfigurationException(
-                () -> new SerializerMapper(Object.class, properties),
-                "Type 'Object' must be a configuration or record type."
-        );
-    }
-
-    @Test
-    void buildSerializerMapForConfigurationFiltersFields() {
-        Map<String, Serializer<?, ?>> serializers = newMapper(ExampleConfigurationA2.class)
-                .buildSerializerMap();
-
-        assertThat(serializers.get("a1_staticFinalInt"), nullValue());
-        assertThat(serializers.get("a1_staticInt"), nullValue());
-        assertThat(serializers.get("a1_finalInt"), nullValue());
-        assertThat(serializers.get("a1_transientInt"), nullValue());
-        assertThat(serializers.get("a1_ignoredInt"), nullValue());
-        assertThat(serializers.get("a1_ignoredString"), nullValue());
-        assertThat(serializers.get("a1_ignoredListString"), nullValue());
-
-        assertThat(serializers.get("a2_staticFinalInt"), nullValue());
-        assertThat(serializers.get("a2_staticInt"), nullValue());
-        assertThat(serializers.get("a2_finalInt"), nullValue());
-        assertThat(serializers.get("a2_transientInt"), nullValue());
-        assertThat(serializers.get("a2_ignoredInt"), nullValue());
-        assertThat(serializers.get("a2_ignoredString"), nullValue());
-        assertThat(serializers.get("a2_ignoredListString"), nullValue());
-    }
-
-    @Test
-    void buildSerializerMapForConfigurationIgnoresFormatter() {
-        Map<String, Serializer<?, ?>> serializers = newMapper(
+    void buildSerializerMapUsesComponentName() {
+        Map<String, Serializer<?, ?>> serializers = newTypeSerializer(
                 ExampleConfigurationA2.class,
-                props -> props.setNameFormatter(NameFormatters.UPPER_UNDERSCORE)
+                builder -> builder.setNameFormatter(NameFormatters.UPPER_UNDERSCORE)
         ).buildSerializerMap();
-
         assertThat(serializers.get("A2_PRIM_BOOL"), nullValue());
         assertThat(serializers.get("a2_primBool"), instanceOf(BooleanSerializer.class));
     }
 
     @Test
     void buildSerializerMapForConfiguration() {
-        Map<String, Serializer<?, ?>> serializers = newMapper(ExampleConfigurationA2.class)
+        Map<String, Serializer<?, ?>> serializers = newTypeSerializer(ExampleConfigurationA2.class)
                 .buildSerializerMap();
         assertThat(serializers.get("a2_primBool"), instanceOf(BooleanSerializer.class));
         assertThat(serializers.get("a2_refChar"), instanceOf(CharacterSerializer.class));
@@ -116,22 +85,7 @@ class SerializerMapperTest {
         assertThat(serializers.get("a2_point"), sameInstance(TestUtils.POINT_SERIALIZER));
     }
 
-    private record R1(int integer, boolean bool) {}
-
-    @Test
-    void buildSerializerMapForRecordIgnoresFormatter() {
-        Map<String, Serializer<?, ?>> serializers = newMapper(
-                R1.class,
-                props -> props.setNameFormatter(NameFormatters.UPPER_UNDERSCORE)
-        ).buildSerializerMap();
-
-        assertThat(serializers.get("INTEGER"), nullValue());
-        assertThat(serializers.get("BOOL"), nullValue());
-        assertThat(serializers.get("integer"), instanceOf(NumberSerializer.class));
-        assertThat(serializers.get("bool"), instanceOf(BooleanSerializer.class));
-    }
-
-    private record R2(
+    private record R1(
             boolean primBool,
             Character refChar,
             String string,
@@ -148,7 +102,7 @@ class SerializerMapperTest {
 
     @Test
     void buildSerializerMapForRecord() {
-        Map<String, Serializer<?, ?>> serializers = newMapper(R2.class)
+        Map<String, Serializer<?, ?>> serializers = newTypeSerializer(R1.class)
                 .buildSerializerMap();
         assertThat(serializers.get("primBool"), instanceOf(BooleanSerializer.class));
         assertThat(serializers.get("refChar"), instanceOf(CharacterSerializer.class));
@@ -199,7 +153,7 @@ class SerializerMapperTest {
     @Test
     void buildSerializerMapForConfigurationPreventsRecursiveDefinitions() {
         assertThrowsConfigurationException(
-                () -> newMapper(Recursive1.class).buildSerializerMap(),
+                () -> newTypeSerializer(Recursive1.class),
                 "Recursive type definitions are not supported."
         );
     }
@@ -213,12 +167,12 @@ class SerializerMapperTest {
     @Test
     void buildSerializerMapForRecordPreventsRecursiveDefinitions() {
         assertThrowsConfigurationException(
-                () -> newMapper(RecursiveRecord1.class).buildSerializerMap(),
+                () -> newTypeSerializer(RecursiveRecord1.class),
                 "Recursive type definitions are not supported."
         );
 
         assertThrowsConfigurationException(
-                () -> newMapper(RecursiveRecord3.class).buildSerializerMap(),
+                () -> newTypeSerializer(RecursiveRecord3.class),
                 "Recursive type definitions are not supported."
         );
     }
