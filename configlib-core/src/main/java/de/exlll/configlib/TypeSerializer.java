@@ -37,7 +37,7 @@ sealed abstract class TypeSerializer<T, TC extends TypeComponent<?>>
         try {
             return components().stream().collect(Collectors.toMap(
                     TypeComponent::name,
-                    component -> selector.select(component.genericType())
+                    selector::select
             ));
         } catch (StackOverflowError error) {
             String msg = "Recursive type definitions are not supported.";

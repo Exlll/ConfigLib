@@ -50,12 +50,32 @@ final class SerializerSelector {
             Map.entry(URI.class, new UriSerializer())
     );
     private final ConfigurationProperties properties;
+    /**
+     * Holds the {@code SerializeWith} value of the last {@literal select}ed component. If the
+     * component is not annotated with {@code SerializeWith}, the value of this field is null.
+     */
+    private SerializeWith serializeWith;
+    /**
+     * The {@code currentNesting} is used to determine the nesting of a type and is incremented each
+     * time the {@code selectForType} method is called. It is reset when {@code select} is called.
+     * <p>
+     * For example, for a field {@code List<Set<String>>}, the nesting of {@code List} would be 0,
+     * the nesting of {@code Set} 1, and the nesting of {@code String} 2.
+     */
+    private int currentNesting = -1;
 
     public SerializerSelector(ConfigurationProperties properties) {
         this.properties = requireNonNull(properties, "configuration properties");
     }
 
-    public Serializer<?, ?> select(Type type) {
+    public Serializer<?, ?> select(TypeComponent<?> component) {
+        this.currentNesting = -1;
+        this.serializeWith = component.annotation(SerializeWith.class);
+        return selectForType(component.genericType());
+    }
+
+    private Serializer<?, ?> selectForType(Type type) {
+        this.currentNesting++;
         final Serializer<?, ?> custom = selectCustomSerializer(type);
         if (custom != null)
             return custom;
@@ -78,6 +98,8 @@ final class SerializerSelector {
     }
 
     private Serializer<?, ?> selectCustomSerializer(Type type) {
+        if ((serializeWith != null) && (currentNesting == serializeWith.nesting()))
+            return Reflect.callNoParamConstructor(serializeWith.serializer());
         if (type instanceof Class<?> cls) {
             if (properties.getSerializers().containsKey(cls))
                 return properties.getSerializers().get(cls);
@@ -133,7 +155,7 @@ final class SerializerSelector {
         } else if (elementType == double.class) {
             return new PrimitiveDoubleArraySerializer();
         }
-        var elementSerializer = select(elementType);
+        var elementSerializer = selectForType(elementType);
         var inputNulls = properties.inputNulls();
         var outputNulls = properties.outputNulls();
         return new ArraySerializer<>(elementType, elementSerializer, outputNulls, inputNulls);
@@ -147,10 +169,10 @@ final class SerializerSelector {
         final var outputNulls = properties.outputNulls();
 
         if (Reflect.isListType(rawType)) {
-            var elementSerializer = select(typeArgs[0]);
+            var elementSerializer = selectForType(typeArgs[0]);
             return new ListSerializer<>(elementSerializer, outputNulls, inputNulls);
         } else if (Reflect.isSetType(rawType)) {
-            var elementSerializer = select(typeArgs[0]);
+            var elementSerializer = selectForType(typeArgs[0]);
             return properties.serializeSetsAsLists()
                     ? new SetAsListSerializer<>(elementSerializer, outputNulls, inputNulls)
                     : new SetSerializer<>(elementSerializer, outputNulls, inputNulls);
@@ -158,8 +180,8 @@ final class SerializerSelector {
             if ((typeArgs[0] instanceof Class<?> cls) &&
                 (DEFAULT_SERIALIZERS.containsKey(cls) ||
                  Reflect.isEnumType(cls))) {
-                var keySerializer = select(typeArgs[0]);
-                var valSerializer = select(typeArgs[1]);
+                var keySerializer = selectForClass(cls);
+                var valSerializer = selectForType(typeArgs[1]);
                 return new MapSerializer<>(keySerializer, valSerializer, outputNulls, inputNulls);
             }
             String msg = baseExceptionMessage(type) +

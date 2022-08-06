@@ -127,6 +127,19 @@ public final class TestUtils {
         }
     }
 
+    public static final class IdentitySerializer implements Serializer<Object, Object> {
+        @Override
+        public Object serialize(Object element) {
+            return element;
+        }
+
+        @Override
+        public Object deserialize(Object element) {
+            return element;
+        }
+    }
+
+
     @SafeVarargs
     public static <E> Set<E> asSet(E... elements) {
         return new LinkedHashSet<>(Arrays.asList(elements));
