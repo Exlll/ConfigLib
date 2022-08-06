@@ -7,6 +7,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.util.*;
 
 import static de.exlll.configlib.Validator.requireConfigurationOrRecord;
+import static de.exlll.configlib.Validator.requireNonNull;
 
 final class CommentNodeExtractor {
     private final FieldFilter fieldFilter;
@@ -14,8 +15,8 @@ final class CommentNodeExtractor {
     private final boolean outputNull;
 
     CommentNodeExtractor(ConfigurationProperties properties) {
-        this.fieldFilter = Validator.requireNonNull(properties.getFieldFilter(), "field filter");
-        this.nameFormatter = Validator.requireNonNull(properties.getNameFormatter(), "name formatter");
+        this.fieldFilter = requireNonNull(properties.getFieldFilter(), "field filter");
+        this.nameFormatter = requireNonNull(properties.getNameFormatter(), "name formatter");
         this.outputNull = properties.outputNulls();
     }
 
@@ -48,33 +49,22 @@ final class CommentNodeExtractor {
                 if ((componentValue == null) && !outputNull)
                     continue;
 
-                // pattern switch not yet supported in Java 17
-                final AnnotatedElement element = (component instanceof ConfigurationField cf)
-                        ? cf.component()
-                        : (component instanceof ConfigurationRecordComponent crc)
-                        ? crc.component()
-                        : null;
-
-                // The element cannot be null because we require a configuration or record
-                // at the beginning of this method.
-                assert element != null;
-
                 final var componentName = component.componentName();
                 final var commentNode = createNodeIfCommentPresent(
-                        element,
+                        component.component(),
                         componentName,
                         elementNameStack
                 );
                 commentNode.ifPresent(result::add);
 
-                if ((componentValue == null) ||
-                    (!Reflect.isConfiguration(component.componentType()) &&
-                     !component.componentType().isRecord()))
-                    continue;
-
-                stateStack.addLast(new State(state.iterator, state.componentHolder));
-                elementNameStack.addLast(nameFormatter.format(componentName));
-                state = stateFromObject(componentValue);
+                final var componentType = component.componentType();
+                if ((componentValue != null) &&
+                    (Reflect.isConfiguration(componentType) ||
+                     componentType.isRecord())) {
+                    stateStack.addLast(state);
+                    elementNameStack.addLast(nameFormatter.format(componentName));
+                    state = stateFromObject(componentValue);
+                }
             }
         }
 

@@ -8,8 +8,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.RecordComponent;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 class TypeComponentTest {
 
@@ -18,6 +17,7 @@ class TypeComponentTest {
         private static final ConfigurationField COMPONENT = new ConfigurationField(FIELD);
 
         static final class C {
+            @Comment("")
             int field = 20;
         }
 
@@ -40,6 +40,11 @@ class TypeComponentTest {
         void declaringType() {
             assertThat(COMPONENT.declaringType(), equalTo(C.class));
         }
+
+        @Test
+        void annotation() {
+            assertThat(COMPONENT.annotation(Comment.class), notNullValue());
+        }
     }
 
     static final class ConfigurationRecordComponentTest {
@@ -47,7 +52,7 @@ class TypeComponentTest {
         private static final ConfigurationRecordComponent COMPONENT =
                 new ConfigurationRecordComponent(RECORD_COMPONENT);
 
-        record R(float comp) {}
+        record R(@Comment("") float comp) {}
 
         @Test
         void componentName() {
@@ -67,6 +72,11 @@ class TypeComponentTest {
         @Test
         void declaringType() {
             assertThat(COMPONENT.declaringType(), equalTo(R.class));
+        }
+
+        @Test
+        void annotation() {
+            assertThat(COMPONENT.annotation(Comment.class), notNullValue());
         }
     }
 }

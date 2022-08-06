@@ -1,5 +1,7 @@
 package de.exlll.configlib;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.RecordComponent;
 
@@ -11,7 +13,7 @@ import static de.exlll.configlib.Validator.requireNonNull;
  *
  * @param <T> the type of the component
  */
-sealed interface TypeComponent<T> {
+sealed interface TypeComponent<T extends AnnotatedElement> {
     /**
      * Returns the component itself.
      *
@@ -49,6 +51,19 @@ sealed interface TypeComponent<T> {
      * @return the declaring type
      */
     Class<?> declaringType();
+
+    /**
+     * Returns the annotation of the given type or null if the component is not annotated
+     * with such an annotation.
+     *
+     * @param annotationType the type of annotation
+     * @param <A>            the type of annotation
+     * @return the annotation or null
+     * @throws NullPointerException if {@code annotationType} is null
+     */
+    default <A extends Annotation> A annotation(Class<A> annotationType) {
+        return component().getAnnotation(annotationType);
+    }
 
     record ConfigurationField(Field component) implements TypeComponent<Field> {
         public ConfigurationField(Field component) {
@@ -103,4 +118,3 @@ sealed interface TypeComponent<T> {
         }
     }
 }
-
