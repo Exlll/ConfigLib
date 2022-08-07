@@ -14,7 +14,7 @@ import static de.exlll.configlib.Validator.requireNonNull;
  *
  * @param <T> the type of the component
  */
-interface TypeComponent<T extends AnnotatedElement> {
+sealed interface TypeComponent<T extends AnnotatedElement> {
     /**
      * Returns the component itself.
      *
