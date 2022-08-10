@@ -51,7 +51,11 @@ final class SerializerSelector {
     );
     private final ConfigurationProperties properties;
     /**
-     * Holds the {@code SerializeWith} value of the last {@literal select}ed component. If the
+     * Holds the last {@link #select}ed component.
+     */
+    private TypeComponent<?> component;
+    /**
+     * Holds the {@code SerializeWith} value of the last {@link #select}ed component. If the
      * component is not annotated with {@code SerializeWith}, the value of this field is null.
      */
     private SerializeWith serializeWith;
@@ -69,8 +73,9 @@ final class SerializerSelector {
     }
 
     public Serializer<?, ?> select(TypeComponent<?> component) {
-        this.currentNesting = -1;
+        this.component = component;
         this.serializeWith = component.annotation(SerializeWith.class);
+        this.currentNesting = -1;
         return selectForType(component.annotatedType());
     }
 
@@ -102,8 +107,10 @@ final class SerializerSelector {
 
     private Serializer<?, ?> selectCustomSerializer(AnnotatedType annotatedType) {
         // SerializeWith annotation
-        if ((serializeWith != null) && (currentNesting == serializeWith.nesting()))
-            return Reflect.callNoParamConstructor(serializeWith.serializer());
+        if ((serializeWith != null) && (currentNesting == serializeWith.nesting())) {
+            final var context = new SerializerContextImpl(properties, component, annotatedType);
+            return Serializers.newCustomSerializer(serializeWith.serializer(), context);
+        }
 
         // Serializer registered for Type via configurations properties
         final Type type = annotatedType.getType();

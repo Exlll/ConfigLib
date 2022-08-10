@@ -347,4 +347,74 @@ class ReflectTest {
         assertFalse(Reflect.hasDefaultConstructor(R1.class));
         assertTrue(Reflect.hasDefaultConstructor(R2.class));
     }
+
+
+    @Test
+    void hasConstructor1() {
+        record R1() {}
+
+        assertTrue(Reflect.hasConstructor(R1.class));
+        assertFalse(Reflect.hasConstructor(R1.class, int.class));
+    }
+
+    @Test
+    void hasConstructor2() {
+        record R1(int i) {}
+
+        assertFalse(Reflect.hasConstructor(R1.class));
+        assertTrue(Reflect.hasConstructor(R1.class, int.class));
+        assertFalse(Reflect.hasConstructor(R1.class, int.class, float.class));
+    }
+
+    @Test
+    void hasConstructor3() {
+        record R1(int i, float f) {}
+
+        assertFalse(Reflect.hasConstructor(R1.class));
+        assertFalse(Reflect.hasConstructor(R1.class, int.class));
+        assertTrue(Reflect.hasConstructor(R1.class, int.class, float.class));
+    }
+
+    @Test
+    void callConstructor1() {
+        record R1(int i) {}
+        R1 r1 = Reflect.callConstructor(R1.class, new Class[]{int.class}, 10);
+        assertEquals(10, r1.i);
+    }
+
+    @Test
+    void callConstructor2() {
+        record R1(int i, float f) {}
+        R1 r1 = Reflect.callConstructor(R1.class, new Class[]{int.class, float.class}, 10, 20f);
+        assertEquals(10, r1.i);
+        assertEquals(20, r1.f);
+    }
+
+    @Test
+    void callMissingConstructor() {
+        record R1(int i, float f) {}
+        assertThrowsRuntimeException(
+                () -> Reflect.callConstructor(
+                        R1.class,
+                        new Class[]{int.class, float.class, String.class},
+                        10, 20f, ""
+                ),
+                "Type 'R1' doesn't have a constructor with parameters: int, float, java.lang.String."
+        );
+    }
+
+    @Test
+    void callThrowingConstructor() {
+        record R1(int i, float f) {
+            R1 {throw new RuntimeException("");}
+        }
+        assertThrowsRuntimeException(
+                () -> Reflect.callConstructor(
+                        R1.class,
+                        new Class[]{int.class, float.class},
+                        10, 20f
+                ),
+                "Constructor of type 'R1' with parameters 'int, float' threw an exception."
+        );
+    }
 }

@@ -35,7 +35,7 @@ class TypeComponentTest {
 
         @Test
         void componentAnnotatedType() {
-            assertThat(COMPONENT.annotatedType(), equalTo(FIELD.getAnnotatedType()));
+            assertThat(COMPONENT.annotatedType(), is(FIELD.getAnnotatedType()));
         }
 
         @Test
@@ -73,7 +73,7 @@ class TypeComponentTest {
 
         @Test
         void componentAnnotatedType() {
-            assertThat(COMPONENT.annotatedType(), equalTo(RECORD_COMPONENT.getAnnotatedType()));
+            assertThat(COMPONENT.annotatedType(), is(RECORD_COMPONENT.getAnnotatedType()));
         }
 
         @Test

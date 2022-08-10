@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.awt.Point;
 import java.io.File;
+import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -30,9 +31,9 @@ import static org.hamcrest.Matchers.*;
 
 @SuppressWarnings("unused")
 class SerializerSelectorTest {
-    private static final SerializerSelector SELECTOR = new SerializerSelector(
-            ConfigurationProperties.newBuilder().build()
-    );
+    private static final ConfigurationProperties DEFAULT_PROPS =
+            ConfigurationProperties.newBuilder().build();
+    private static final SerializerSelector SELECTOR = new SerializerSelector(DEFAULT_PROPS);
     private static final SerializerSelector SELECTOR_POINT = new SerializerSelector(
             ConfigurationProperties.newBuilder().addSerializer(Point.class, POINT_SERIALIZER).build()
     );
@@ -587,5 +588,55 @@ class SerializerSelectorTest {
             var serializer = (ListSerializer<?, ?>) SELECTOR.select(forField(A.class, "list"));
             assertThat(serializer.getElementSerializer(), instanceOf(StringSerializer.class));
         }
+
+        @Test
+        void selectCustomSerializerWithContext() {
+            class A {
+                @SerializeWith(serializer = SerializerWithContext.class)
+                String s;
+            }
+
+            var component = forField(A.class, "s");
+            var field = getField(A.class, "s");
+            var serializer = (SerializerWithContext) SELECTOR.select(component);
+            var context = serializer.ctx;
+
+            assertThat(context.properties(), sameInstance(DEFAULT_PROPS));
+            assertThat(context.component(), is(component));
+            assertThat(context.annotatedType(), is(field.getAnnotatedType()));
+        }
+
+        @Test
+        void selectCustomSerializerWithContextAndNesting() {
+            class A {
+                @SerializeWith(serializer = SerializerWithContext.class, nesting = 1)
+                List<String> l;
+            }
+
+            var component = forField(A.class, "l");
+            var field = getField(A.class, "l");
+            var outerSerializer = (ListSerializer<?, ?>) SELECTOR.select(component);
+            var innerSerializer = (SerializerWithContext) outerSerializer.getElementSerializer();
+            var context = innerSerializer.ctx;
+
+            assertThat(context.properties(), sameInstance(DEFAULT_PROPS));
+            assertThat(context.component(), is(component));
+
+            var annotatedType = (AnnotatedParameterizedType) field.getAnnotatedType();
+            var argument = annotatedType.getAnnotatedActualTypeArguments()[0];
+
+            assertThat(context.annotatedType(), is(not(annotatedType)));
+            assertThat(context.annotatedType(), is(argument));
+        }
+    }
+
+    private record SerializerWithContext(SerializerContext ctx)
+            implements Serializer<String, String> {
+
+        @Override
+        public String serialize(String element) {return null;}
+
+        @Override
+        public String deserialize(String element) {return null;}
     }
 }

@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,6 +37,40 @@ final class Reflect {
         @SuppressWarnings("unchecked")
         T defaultValue = (T) DEFAULT_VALUES.get(clazz);
         return defaultValue;
+    }
+
+    static <T> T callConstructor(Class<T> cls, Class<?>[] argumentTypes, Object... arguments) {
+        try {
+            Constructor<T> constructor = cls.getDeclaredConstructor(argumentTypes);
+            constructor.setAccessible(true);
+            return constructor.newInstance(arguments);
+        } catch (NoSuchMethodException e) {
+            String msg = "Type '%s' doesn't have a constructor with parameters: %s."
+                    .formatted(cls.getSimpleName(), argumentTypeNamesJoined(argumentTypes));
+            throw new RuntimeException(msg, e);
+        } catch (IllegalAccessException e) {
+            // cannot happen because we set the constructor to be accessible.
+            throw new RuntimeException(e);
+        } catch (InstantiationException e) {
+            String msg = "Type '%s' is not instantiable.".formatted(cls.getSimpleName());
+            throw new RuntimeException(msg, e);
+        } catch (InvocationTargetException e) {
+            String msg = "Constructor of type '%s' with parameters '%s' threw an exception."
+                    .formatted(cls.getSimpleName(), argumentTypeNamesJoined(argumentTypes));
+            throw new RuntimeException(msg, e);
+        }
+    }
+
+    private static String argumentTypeNamesJoined(Class<?>[] argumentTypes) {
+        return Arrays.stream(argumentTypes)
+                .map(Class::getName)
+                .collect(Collectors.joining(", "));
+    }
+
+    static boolean hasConstructor(Class<?> type, Class<?>... argumentTypes) {
+        final Predicate<Constructor<?>> predicate =
+                ctor -> Arrays.equals(ctor.getParameterTypes(), argumentTypes);
+        return Arrays.stream(type.getDeclaredConstructors()).anyMatch(predicate);
     }
 
     static <T> T callNoParamConstructor(Class<T> cls) {
@@ -113,11 +148,8 @@ final class Reflect {
     }
 
     static boolean hasDefaultConstructor(Class<?> type) {
-        for (Constructor<?> constructor : type.getDeclaredConstructors()) {
-            if (constructor.getParameterCount() == 0)
-                return true;
-        }
-        return false;
+        return Arrays.stream(type.getDeclaredConstructors())
+                .anyMatch(ctor -> ctor.getParameterCount() == 0);
     }
 
     static Object getValue(Field field, Object instance) {

@@ -22,6 +22,15 @@ import java.util.stream.Stream;
 final class Serializers {
     private Serializers() {}
 
+    static <S extends Serializer<?, ?>> S newCustomSerializer(
+            Class<S> serializerType,
+            SerializerContext context
+    ) {
+        return Reflect.hasConstructor(serializerType, SerializerContext.class)
+                ? Reflect.callConstructor(serializerType, new Class[]{SerializerContext.class}, context)
+                : Reflect.callNoParamConstructor(serializerType);
+    }
+
     static final class BooleanSerializer implements Serializer<Boolean, Boolean> {
         @Override
         public Boolean serialize(Boolean element) {

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -1017,4 +1018,40 @@ class SerializersTest {
             return element.toString();
         }
     }
+
+    private static final class StringToIntSerializerWithCtx implements Serializer<String, Integer> {
+        private static final StringToIntSerializer INSTANCE = new StringToIntSerializer();
+        private final SerializerContext context;
+
+        public StringToIntSerializerWithCtx(SerializerContext context) {
+            this.context = context;
+        }
+
+        @Override
+        public Integer serialize(String element) {
+            return Integer.valueOf(element);
+        }
+
+        @Override
+        public String deserialize(Integer element) {
+            return element.toString();
+        }
+    }
+
+    @Test
+    void newCustomSerializerWithoutContext() {
+        Serializer<String, Integer> serializer =
+                Serializers.newCustomSerializer(StringToIntSerializer.class, null);
+        assertThat(serializer, instanceOf(StringToIntSerializer.class));
+    }
+
+    @Test
+    void newCustomSerializerWithContext() {
+        SerializerContext ctx = Mockito.mock(SerializerContext.class);
+        StringToIntSerializerWithCtx serializer =
+                Serializers.newCustomSerializer(StringToIntSerializerWithCtx.class, ctx);
+        assertThat(serializer, instanceOf(StringToIntSerializerWithCtx.class));
+        assertThat(serializer.context, sameInstance(ctx));
+    }
+
 }
