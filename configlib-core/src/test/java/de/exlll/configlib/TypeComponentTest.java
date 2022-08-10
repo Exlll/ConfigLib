@@ -5,9 +5,7 @@ import de.exlll.configlib.TypeComponent.ConfigurationRecordComponent;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
 
@@ -36,10 +34,8 @@ class TypeComponentTest {
         }
 
         @Test
-        void componentGenericType() {
-            ParameterizedType type = (ParameterizedType) COMPONENT.genericType();
-            Type argument = type.getActualTypeArguments()[0];
-            assertThat(argument, equalTo(String.class));
+        void componentAnnotatedType() {
+            assertThat(COMPONENT.annotatedType(), equalTo(FIELD.getAnnotatedType()));
         }
 
         @Test
@@ -76,10 +72,8 @@ class TypeComponentTest {
         }
 
         @Test
-        void componentGenericType() {
-            ParameterizedType type = (ParameterizedType) COMPONENT.genericType();
-            Type argument = type.getActualTypeArguments()[0];
-            assertThat(argument, equalTo(Integer.class));
+        void componentAnnotatedType() {
+            assertThat(COMPONENT.annotatedType(), equalTo(RECORD_COMPONENT.getAnnotatedType()));
         }
 
         @Test

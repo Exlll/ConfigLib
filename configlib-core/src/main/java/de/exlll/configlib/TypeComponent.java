@@ -1,10 +1,7 @@
 package de.exlll.configlib;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.RecordComponent;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 
 import static de.exlll.configlib.Validator.requireNonNull;
 
@@ -37,11 +34,11 @@ sealed interface TypeComponent<T extends AnnotatedElement> {
     Class<?> type();
 
     /**
-     * Returns the generic type of the component.
+     * Returns the annotated type of the component.
      *
-     * @return generic type of the component
+     * @return annotated type of component
      */
-    Type genericType();
+    AnnotatedType annotatedType();
 
     /**
      * Returns the value the component is holding.
@@ -89,8 +86,8 @@ sealed interface TypeComponent<T extends AnnotatedElement> {
         }
 
         @Override
-        public Type genericType() {
-            return component.getGenericType();
+        public AnnotatedType annotatedType() {
+            return component.getAnnotatedType();
         }
 
         @Override
@@ -116,13 +113,13 @@ sealed interface TypeComponent<T extends AnnotatedElement> {
         }
 
         @Override
-        public Class<?> type() {
-            return component.getType();
+        public AnnotatedType annotatedType() {
+            return component.getAnnotatedType();
         }
 
         @Override
-        public Type genericType() {
-            return component.getGenericType();
+        public Class<?> type() {
+            return component.getType();
         }
 
         @Override

@@ -71,18 +71,21 @@ final class SerializerSelector {
     public Serializer<?, ?> select(TypeComponent<?> component) {
         this.currentNesting = -1;
         this.serializeWith = component.annotation(SerializeWith.class);
-        return selectForType(component.genericType());
+        return selectForType(component.annotatedType());
     }
 
-    private Serializer<?, ?> selectForType(Type type) {
+    private Serializer<?, ?> selectForType(AnnotatedType annotatedType) {
         this.currentNesting++;
-        final Serializer<?, ?> custom = selectCustomSerializer(type);
+
+        final Serializer<?, ?> custom = selectCustomSerializer(annotatedType);
         if (custom != null)
             return custom;
-        if (type instanceof Class<?> cls) {
-            return selectForClass(cls);
-        } else if (type instanceof ParameterizedType pType) {
-            return selectForParameterizedType(pType);
+
+        final Type type = annotatedType.getType();
+        if (type instanceof Class<?>) {
+            return selectForClass(annotatedType);
+        } else if (type instanceof ParameterizedType) {
+            return selectForParameterizedType((AnnotatedParameterizedType) annotatedType);
         } else if (type instanceof WildcardType) {
             String msg = baseExceptionMessage(type) + "Wildcard types cannot be serialized.";
             throw new ConfigurationException(msg);
@@ -97,13 +100,19 @@ final class SerializerSelector {
         throw new ConfigurationException(baseExceptionMessage(type));
     }
 
-    private Serializer<?, ?> selectCustomSerializer(Type type) {
+    private Serializer<?, ?> selectCustomSerializer(AnnotatedType annotatedType) {
+        // SerializeWith annotation
         if ((serializeWith != null) && (currentNesting == serializeWith.nesting()))
             return Reflect.callNoParamConstructor(serializeWith.serializer());
+
+        // Serializer registered for Type via configurations properties
+        final Type type = annotatedType.getType();
         if (type instanceof Class<?> cls) {
             if (properties.getSerializers().containsKey(cls))
                 return properties.getSerializers().get(cls);
         }
+
+        // Serializer registered for condition via configurations properties
         for (var entry : properties.getSerializersByCondition().entrySet()) {
             if (entry.getKey().test(type))
                 return entry.getValue();
@@ -111,7 +120,8 @@ final class SerializerSelector {
         return null;
     }
 
-    private Serializer<?, ?> selectForClass(Class<?> cls) {
+    private Serializer<?, ?> selectForClass(AnnotatedType annotatedType) {
+        final Class<?> cls = (Class<?>) annotatedType.getType();
         if (DEFAULT_SERIALIZERS.containsKey(cls))
             return DEFAULT_SERIALIZERS.get(cls);
         if (Reflect.isEnumType(cls)) {
@@ -120,8 +130,9 @@ final class SerializerSelector {
             final var enumType = (Class<? extends Enum<?>>) cls;
             return new Serializers.EnumSerializer(enumType);
         }
-        if (Reflect.isArrayType(cls))
-            return selectForArray(cls.getComponentType());
+        if (Reflect.isArrayType(cls)) {
+            return selectForArray((AnnotatedArrayType) annotatedType);
+        }
         if (cls.isRecord()) {
             // The following cast won't fail because we just checked that it's a record.
             @SuppressWarnings("unchecked")
@@ -137,7 +148,9 @@ final class SerializerSelector {
         throw new ConfigurationException(msg);
     }
 
-    private Serializer<?, ?> selectForArray(Class<?> elementType) {
+    private Serializer<?, ?> selectForArray(AnnotatedArrayType annotatedType) {
+        final AnnotatedType annotatedElementType = annotatedType.getAnnotatedGenericComponentType();
+        final Class<?> elementType = (Class<?>) annotatedElementType.getType();
         if (elementType == boolean.class) {
             return new PrimitiveBooleanArraySerializer();
         } else if (elementType == char.class) {
@@ -155,16 +168,17 @@ final class SerializerSelector {
         } else if (elementType == double.class) {
             return new PrimitiveDoubleArraySerializer();
         }
-        var elementSerializer = selectForType(elementType);
+        var elementSerializer = selectForType(annotatedElementType);
         var inputNulls = properties.inputNulls();
         var outputNulls = properties.outputNulls();
         return new ArraySerializer<>(elementType, elementSerializer, outputNulls, inputNulls);
     }
 
-    private Serializer<?, ?> selectForParameterizedType(ParameterizedType type) {
+    private Serializer<?, ?> selectForParameterizedType(AnnotatedParameterizedType annotatedType) {
         // the raw type returned by Java is always a class
+        final var type = (ParameterizedType) annotatedType.getType();
         final var rawType = (Class<?>) type.getRawType();
-        final var typeArgs = type.getActualTypeArguments();
+        final var typeArgs = annotatedType.getAnnotatedActualTypeArguments();
         final var inputNulls = properties.inputNulls();
         final var outputNulls = properties.outputNulls();
 
@@ -177,10 +191,10 @@ final class SerializerSelector {
                     ? new SetAsListSerializer<>(elementSerializer, outputNulls, inputNulls)
                     : new SetSerializer<>(elementSerializer, outputNulls, inputNulls);
         } else if (Reflect.isMapType(rawType)) {
-            if ((typeArgs[0] instanceof Class<?> cls) &&
+            if ((typeArgs[0].getType() instanceof Class<?> cls) &&
                 (DEFAULT_SERIALIZERS.containsKey(cls) ||
                  Reflect.isEnumType(cls))) {
-                var keySerializer = selectForClass(cls);
+                var keySerializer = selectForClass(typeArgs[0]);
                 var valSerializer = selectForType(typeArgs[1]);
                 return new MapSerializer<>(keySerializer, valSerializer, outputNulls, inputNulls);
             }
@@ -195,6 +209,6 @@ final class SerializerSelector {
     }
 
     private String baseExceptionMessage(Type type) {
-        return "Cannot select serializer for type '" + type + "'.\n";
+        return "Cannot select serializer for type '%s'.\n".formatted(type);
     }
 }

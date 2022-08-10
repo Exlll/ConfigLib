@@ -370,7 +370,7 @@ class SerializerSelectorTest {
                 () -> SELECTOR.select(component),
                 ("Cannot select serializer for type '%s'.\n" +
                  "Map keys can only be of simple or enum type.")
-                        .formatted(component.genericType())
+                        .formatted(component.annotatedType().getType())
         );
     }
 
@@ -384,7 +384,7 @@ class SerializerSelectorTest {
                 () -> SELECTOR.select(component),
                 ("Cannot select serializer for type '%s'.\n" +
                  "Map keys can only be of simple or enum type.")
-                        .formatted(component.genericType())
+                        .formatted(component.annotatedType().getType())
         );
     }
 
@@ -399,7 +399,7 @@ class SerializerSelectorTest {
                 () -> SELECTOR.select(component),
                 ("Cannot select serializer for type '%s'.\n" +
                  "Parameterized types other than lists, sets, and maps cannot be serialized.")
-                        .formatted(component.genericType())
+                        .formatted(component.annotatedType().getType())
         );
     }
 
