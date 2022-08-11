@@ -13,9 +13,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Comment {
     /**
-     * Returns the comments of the annotated field or record component.
+     * Returns the comments of the annotated configuration element.
      *
-     * @return field or record component comments
+     * @return configuration element comments
      */
     String[] value();
 }

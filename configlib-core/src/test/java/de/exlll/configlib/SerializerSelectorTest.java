@@ -38,25 +38,25 @@ class SerializerSelectorTest {
             ConfigurationProperties.newBuilder().addSerializer(Point.class, POINT_SERIALIZER).build()
     );
 
-    private static TypeComponent<?> findByCondition(Predicate<Field> condition) {
+    private static ConfigurationElement<?> findByCondition(Predicate<Field> condition) {
         for (Field field : ExampleConfigurationA2.class.getDeclaredFields()) {
             if (condition.test(field))
-                return new TypeComponent.ConfigurationField(field);
+                return new ConfigurationElements.FieldElement(field);
         }
         throw new RuntimeException("missing field");
     }
 
-    private static TypeComponent<?> findByType(Class<?> type) {
+    private static ConfigurationElement<?> findByType(Class<?> type) {
         return findByCondition(field -> field.getType() == type);
     }
 
-    private static TypeComponent<?> findByName(String name) {
+    private static ConfigurationElement<?> findByName(String name) {
         return findByCondition(field -> field.getName().equals(name));
     }
 
-    private static TypeComponent<?> forField(Class<?> type, String fieldName) {
+    private static ConfigurationElement<?> forField(Class<?> type, String fieldName) {
         Field field = getField(type, fieldName);
-        return new TypeComponent.ConfigurationField(field);
+        return new ConfigurationElements.FieldElement(field);
     }
 
     @ParameterizedTest
@@ -366,12 +366,12 @@ class SerializerSelectorTest {
         class A {
             Map<List<String>, String> mlss;
         }
-        TypeComponent<?> component = forField(A.class, "mlss");
+        ConfigurationElement<?> element = forField(A.class, "mlss");
         assertThrowsConfigurationException(
-                () -> SELECTOR.select(component),
+                () -> SELECTOR.select(element),
                 ("Cannot select serializer for type '%s'.\n" +
                  "Map keys can only be of simple or enum type.")
-                        .formatted(component.annotatedType().getType())
+                        .formatted(element.annotatedType().getType())
         );
     }
 
@@ -380,12 +380,12 @@ class SerializerSelectorTest {
         class A {
             Map<Point, String> mps;
         }
-        TypeComponent<?> component = forField(A.class, "mps");
+        ConfigurationElement<?> element = forField(A.class, "mps");
         assertThrowsConfigurationException(
-                () -> SELECTOR.select(component),
+                () -> SELECTOR.select(element),
                 ("Cannot select serializer for type '%s'.\n" +
                  "Map keys can only be of simple or enum type.")
-                        .formatted(component.annotatedType().getType())
+                        .formatted(element.annotatedType().getType())
         );
     }
 
@@ -395,12 +395,12 @@ class SerializerSelectorTest {
         class A {
             Box<String> box;
         }
-        TypeComponent<?> component = forField(A.class, "box");
+        ConfigurationElement<?> element = forField(A.class, "box");
         assertThrowsConfigurationException(
-                () -> SELECTOR.select(component),
+                () -> SELECTOR.select(element),
                 ("Cannot select serializer for type '%s'.\n" +
                  "Parameterized types other than lists, sets, and maps cannot be serialized.")
-                        .formatted(component.annotatedType().getType())
+                        .formatted(element.annotatedType().getType())
         );
     }
 
@@ -409,9 +409,9 @@ class SerializerSelectorTest {
         class A {
             List<?>[] ga;
         }
-        TypeComponent<?> component = forField(A.class, "ga");
+        ConfigurationElement<?> element = forField(A.class, "ga");
         assertThrowsConfigurationException(
-                () -> SELECTOR.select(component),
+                () -> SELECTOR.select(element),
                 "Cannot select serializer for type 'java.util.List<?>[]'.\n" +
                 "Generic array types cannot be serialized."
         );
@@ -422,9 +422,9 @@ class SerializerSelectorTest {
         class A {
             List<? extends String> les;
         }
-        TypeComponent<?> component = forField(A.class, "les");
+        ConfigurationElement<?> element = forField(A.class, "les");
         assertThrowsConfigurationException(
-                () -> SELECTOR.select(component),
+                () -> SELECTOR.select(element),
                 "Cannot select serializer for type '? extends java.lang.String'.\n" +
                 "Wildcard types cannot be serialized."
         );
@@ -435,9 +435,9 @@ class SerializerSelectorTest {
         class A {
             List<?> lw;
         }
-        TypeComponent<?> component = forField(A.class, "lw");
+        ConfigurationElement<?> element = forField(A.class, "lw");
         assertThrowsConfigurationException(
-                () -> SELECTOR.select(component),
+                () -> SELECTOR.select(element),
                 "Cannot select serializer for type '?'.\n" +
                 "Wildcard types cannot be serialized."
         );
@@ -448,9 +448,9 @@ class SerializerSelectorTest {
         class A<T> {
             T t;
         }
-        TypeComponent<?> component = forField(A.class, "t");
+        ConfigurationElement<?> element = forField(A.class, "t");
         assertThrowsConfigurationException(
-                () -> SELECTOR.select(component),
+                () -> SELECTOR.select(element),
                 "Cannot select serializer for type 'T'.\n" +
                 "Type variables cannot be serialized."
         );
@@ -596,13 +596,13 @@ class SerializerSelectorTest {
                 String s;
             }
 
-            var component = forField(A.class, "s");
+            var element = forField(A.class, "s");
             var field = getField(A.class, "s");
-            var serializer = (SerializerWithContext) SELECTOR.select(component);
+            var serializer = (SerializerWithContext) SELECTOR.select(element);
             var context = serializer.ctx;
 
             assertThat(context.properties(), sameInstance(DEFAULT_PROPS));
-            assertThat(context.component(), is(component));
+            assertThat(context.element(), is(element));
             assertThat(context.annotatedType(), is(field.getAnnotatedType()));
         }
 
@@ -613,14 +613,14 @@ class SerializerSelectorTest {
                 List<String> l;
             }
 
-            var component = forField(A.class, "l");
+            var element = forField(A.class, "l");
             var field = getField(A.class, "l");
-            var outerSerializer = (ListSerializer<?, ?>) SELECTOR.select(component);
+            var outerSerializer = (ListSerializer<?, ?>) SELECTOR.select(element);
             var innerSerializer = (SerializerWithContext) outerSerializer.getElementSerializer();
             var context = innerSerializer.ctx;
 
             assertThat(context.properties(), sameInstance(DEFAULT_PROPS));
-            assertThat(context.component(), is(component));
+            assertThat(context.element(), is(element));
 
             var annotatedType = (AnnotatedParameterizedType) field.getAnnotatedType();
             var argument = annotatedType.getAnnotatedActualTypeArguments()[0];

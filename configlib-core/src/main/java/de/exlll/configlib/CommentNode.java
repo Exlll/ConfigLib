@@ -3,8 +3,8 @@ package de.exlll.configlib;
 import java.util.List;
 
 /**
- * Holds the comments of a field or record component as well as a list of element names.
- * The list of element names contains the names of all fields or record components which led
+ * Holds the comments of a configuration element as well as a list of element names.
+ * The list of element names contains the names of all configuration elements which led
  * to the current element starting from the root of the configuration object.
  * <p>
  * For example, for the following situation, if an instance of {@code A} is our root, the

@@ -1,34 +1,34 @@
 package de.exlll.configlib;
 
-import de.exlll.configlib.TypeComponent.ConfigurationField;
+import de.exlll.configlib.ConfigurationElements.FieldElement;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-final class ConfigurationSerializer<T> extends TypeSerializer<T, ConfigurationField> {
+final class ConfigurationSerializer<T> extends TypeSerializer<T, FieldElement> {
     ConfigurationSerializer(Class<T> configurationType, ConfigurationProperties properties) {
         super(Validator.requireConfiguration(configurationType), properties);
     }
 
     @Override
-    public T deserialize(Map<?, ?> element) {
+    public T deserialize(Map<?, ?> serializedConfiguration) {
         final T result = Reflect.callNoParamConstructor(type);
 
-        for (final var component : components()) {
-            final var formattedName = formatter.format(component.name());
+        for (final var element : elements()) {
+            final var formattedName = formatter.format(element.name());
 
-            if (!element.containsKey(formattedName))
+            if (!serializedConfiguration.containsKey(formattedName))
                 continue;
 
-            final var serializedValue = element.get(formattedName);
-            final var field = component.component();
+            final var serializedValue = serializedConfiguration.get(formattedName);
+            final var field = element.element();
 
             if ((serializedValue == null) && properties.inputNulls()) {
                 requireNonPrimitiveFieldType(field);
                 Reflect.setValue(field, result, null);
             } else if (serializedValue != null) {
-                Object deserializeValue = deserialize(component, serializedValue);
+                Object deserializeValue = deserialize(element, serializedValue);
                 Reflect.setValue(field, result, deserializeValue);
             }
         }
@@ -37,7 +37,7 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, ConfigurationFi
     }
 
     @Override
-    protected void requireSerializableComponents() {
+    protected void requireSerializableElements() {
         if (serializers.isEmpty()) {
             String msg = "Configuration class '" + type.getSimpleName() + "' " +
                          "does not contain any (de-)serializable fields.";
@@ -46,16 +46,16 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, ConfigurationFi
     }
 
     @Override
-    protected String baseDeserializeExceptionMessage(ConfigurationField component, Object value) {
+    protected String baseDeserializeExceptionMessage(FieldElement element, Object value) {
         return "Deserialization of value '%s' with type '%s' for field '%s' failed."
-                .formatted(value, value.getClass(), component.component());
+                .formatted(value, value.getClass(), element.element());
     }
 
     @Override
-    protected List<ConfigurationField> components() {
+    protected List<FieldElement> elements() {
         return FieldExtractors.CONFIGURATION.extract(type)
                 .filter(properties.getFieldFilter())
-                .map(ConfigurationField::new)
+                .map(FieldElement::new)
                 .toList();
     }
 

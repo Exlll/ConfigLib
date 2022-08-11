@@ -144,10 +144,8 @@ class ConfigurationProperties {
         /**
          * Adds a serializer for the condition. The serializer is selected when the condition
          * evaluates to true. The {@code test} method of the condition object is invoked with
-         * the generic type of a field or record component. Serializers added by this method
-         * take precedence over all other serializers expect the ones that were added for a
-         * specific type by the {@link #addSerializer(Class, Serializer)} method.
-         * The conditions are checked in the order in which they were added.
+         * the generic element type. The conditions are checked in the order in which they were
+         * added.
          *
          * @param condition  the condition
          * @param serializer the serializer
@@ -165,7 +163,7 @@ class ConfigurationProperties {
         }
 
         /**
-         * Sets whether fields, record components, or collection elements whose value
+         * Sets whether configuration elements, or collection elements whose value
          * is null should be output while serializing the configuration.
          * <p>
          * The default value is {@code false}.
@@ -179,7 +177,7 @@ class ConfigurationProperties {
         }
 
         /**
-         * Sets whether fields, record components, or collection elements should
+         * Sets whether configuration elements, or collection elements should
          * allow null values to bet set while deserializing the configuration.
          * <p>
          * If this option is set to false, null values read from a configuration
@@ -224,7 +222,7 @@ class ConfigurationProperties {
     }
 
     /**
-     * Returns the field filter used to filter the fields of a configuration.
+     * Returns the field filter used to filter the fields of a configuration class.
      *
      * @return the field filter
      */
@@ -233,8 +231,7 @@ class ConfigurationProperties {
     }
 
     /**
-     * Returns the name formatter used to format the names of configuration fields and
-     * record components.
+     * Returns the name formatter used to format the names of configuration elements.
      *
      * @return the formatter
      */
@@ -253,9 +250,7 @@ class ConfigurationProperties {
     }
 
     /**
-     * Returns an unmodifiable map of serializers by condition. The serializers returned by this
-     * method take precedence over any default serializers provided by this library expect the ones
-     * that were added for a specific type.
+     * Returns an unmodifiable map of serializers by condition.
      *
      * @return serializers by condition
      */

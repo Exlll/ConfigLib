@@ -128,7 +128,8 @@ Two things are noticeable here:
 In the following sections the term _configuration type_ refers to any record type or to any
 non-generic class that is directly or indirectly (i.e. through subclassing) annotated with
 `@de.exlll.configlib.Configuration`. Accordingly, the term _configuration_ refers to an instance of
-such a type.
+such a type. A _configuration element_ is either a class field or a record component of a
+configuration type.
 
 ### Declaring configuration types
 
@@ -143,7 +144,7 @@ class with non-null default values.
 
 ### Supported types
 
-A configuration type may only contain fields or components of the following types:
+A configuration type may only contain configuration elements of the following types:
 
 | Type class                  | Types                                                              |
 |-----------------------------|--------------------------------------------------------------------|
@@ -232,7 +233,7 @@ Both ways have three methods in common:
   canonical constructor is called.
 * The `update` method is a combination of `load` and `save` and the method you'd usually want to
   use: it takes care of creating the configuration file if it does not exist and otherwise updates
-  it to reflect changes to (the fields or components of) the configuration type.
+  it to reflect changes to (the configuration elements of) the configuration type.
 
 <details>
  <summary>Example of <code>update</code> behavior when configuration file exists</summary>
@@ -358,12 +359,13 @@ described in the [Import](#import) section.
 
 ### Comments
 
-The fields or components of a configuration can be annotated with the `@Comment` annotation. This
-annotation takes an array of strings. Each of these strings is written onto a new line as a comment.
-The strings can contain `\n` characters. Empty strings are written as newlines (not as comments).
+The configuration elements of a configuration type can be annotated with the `@Comment` annotation.
+This annotation takes an array of strings. Each of these strings is written onto a new line as a
+comment. The strings can contain `\n` characters. Empty strings are written as newlines (not as
+comments).
 
-If a configuration type _C_ that defines comments is used (as a field or component) within another
-configuration type, the comments of _C_ are written with the proper indentation. However, if
+If a configuration type _C_ that defines comments is used (as a configuration element) within
+another configuration type, the comments of _C_ are written with the proper indentation. However, if
 instances of _C_ are stored inside a collection, their comments are not printed when the collection
 is written.
 
@@ -431,11 +433,10 @@ nor updated during deserialization. You can filter out additional fields by prov
 
 #### Missing values
 
-When a configuration file is read, values that correspond to a field of a configuration type or to a
-component of a record type might be missing.
-That can happen, for example, when somebody deleted that field from the configuration file, when the
-definition of a configuration or record type is changed, or when the `NameFormatter` that was used
-to create that file is replaced.
+When a configuration file is read, values that correspond to a configuration element might be
+missing. That can happen, for example, when somebody deleted that field from the configuration file,
+when the definition of a configuration or record type is changed, or when the `NameFormatter` that
+was used to create that file is replaced.
 
 In such cases, fields of configuration types keep the default value you assigned to them and record
 components are initialized with the default value of their corresponding type.
@@ -450,13 +451,13 @@ configuration if the values the users set are of the wrong type.
 Although strongly discouraged, null values are supported and `ConfigurationProperties` let you
 configure how they are handled when serializing and deserializing a configuration:
 
-* By setting `outputNulls` to false, class fields, record components, and collection elements that
+* By setting `outputNulls` to false, configuration elements, and collection elements that
   are null are not output. Any comments that belong to such fields are also not written.
 * By setting `inputNulls` to false, null values read from the configuration file are treated as
   missing and are, therefore, handled as described in the section above.
 * By setting `inputNulls` to true, null values read from the configuration file override the
-  corresponding default values of a configuration type with null or set the component value of a
-  record type to null. If the field or component type is primitive, an exception is thrown.
+  corresponding default values of a configuration class with null or set the component value of a
+  record type to null. If the configuration element type is primitive, an exception is thrown.
 
 The following code forbids null values to be output but allows null values to be input. By default,
 both are forbidden which makes the call to `outputNulls` in this case redundant.
@@ -468,12 +469,13 @@ YamlConfigurationProperties.newBuilder()
         .build();
 ```
 
-### Field and component name formatting
+### Formatting the names of configuration elements
 
-You can define how fields and component names are formatted by configuring the configuration
-properties with a custom formatter. Formatters are implementations of the `NameFormatter`
-interface. You can implement this interface yourself or use one of the several formatters this
-library provides. These pre-defined formatters can be found in the `NameFormatters` class.
+You can define how the names of configuration elements are formatted by configuring the
+configuration properties with a custom formatter. Formatters are implementations of
+the `NameFormatter` interface. You can implement this interface yourself or use one of the several
+formatters this library provides. These pre-defined formatters can be found in the `NameFormatters`
+class.
 
 The following code formats fields using the `IDENTITY` formatter (which is the default).
 
@@ -511,17 +513,17 @@ properties. This also means that `Set`s are valid target types.
 
 #### Serializer selection
 
-To convert the value of a field or record component `F` with (source) type `S` into a serializable
+To convert the value of a configuration element `E` with (source) type `S` into a serializable
 value of some target type, a serializer has to be selected. Serializers are instances of
 the `de.exlll.configlib.Serializer` interface and are selected based on `S`. Put differently,
-serializers are always selected based on the compile-time type of `F` and never on the runtime type
+serializers are always selected based on the compile-time type of `E` and never on the runtime type
 of its value.
 
 <details>
  <summary>Why should I care about this?</summary>
 
-This distinction makes a difference (and might lead to confusion) when you have fields or record
-components whose type is a configuration type, and you extend that configuration type. Concretely,
+This distinction makes a difference (and might lead to confusion) when you have configuration
+elements whose type is a configuration type, and you extend that configuration type. Concretely,
 assume you have written two configuration classes `A` and `B` where `B extends A`. Then, if you
 use `A a = new B()` in your main configuration, only the fields of a `A` will be stored when you
 save your main configuration. That is because the serializer of field `a` was selected based on the
@@ -559,9 +561,9 @@ public final class PointSerializer implements Serializer<Point, String> {
 
 Custom serializers takes precedence over the serializers provided by this library.
 
-### Changing the type of fields or record components
+### Changing the type of configuration elements
 
-Changing the type of fields or record components is not supported. If you change the type of one of
+Changing the type of configuration elements is not supported. If you change the type of one of
 these but your configuration file still contains a value of the old type, a type mismatch will
 occur when loading a configuration from that file. Instead, remove the old element and add a new one
 with a different name.

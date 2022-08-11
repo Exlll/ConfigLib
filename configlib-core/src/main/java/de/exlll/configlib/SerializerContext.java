@@ -18,17 +18,16 @@ public interface SerializerContext {
     ConfigurationProperties properties();
 
     /**
-     * Returns the {@code TypeComponent} (i.e. the field or record component) which led to the
-     * selection of the serializer.
+     * Returns the {@code ConfigurationElement} for which this serializer was selected.
      *
-     * @return component which led to the selection of the serializer
+     * @return element for which this serializer was selected
      */
-    TypeComponent<?> component();
+    ConfigurationElement<?> element();
 
     /**
      * Returns the {@code AnnotatedType} which led to the selection of the serializer. The annotated
      * type returned by this method might be different from the one returned by
-     * {@link TypeComponent#annotatedType()}. Specifically, the type is different when the
+     * {@link ConfigurationElement#annotatedType()}. Specifically, the type is different when the
      * serializer is applied to a nested type via {@link SerializeWith} in which case the annotated
      * type represents the type at that nesting level.
      *

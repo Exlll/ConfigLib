@@ -390,7 +390,7 @@ class CommentNodeExtractorTest {
     }
 
     @Test
-    void extractIgnoresCommentIfComponentNullAndOutputNull1() {
+    void extractIgnoresCommentIfElementNullAndOutputNull1() {
         record R1(@Comment("Hello") int i) {}
         record R2(R1 r1) {}
         record R3(@Comment("World") R1 r1) {}
@@ -425,7 +425,7 @@ class CommentNodeExtractorTest {
     }
 
     @Test
-    void extractIgnoresCommentIfComponentNullAndOutputNull2() {
+    void extractIgnoresCommentIfElementtNullAndOutputNull2() {
         record R(@Comment("Hello") String s1, @Comment("World") String s2) {}
         ConfigurationProperties properties = ConfigurationProperties.newBuilder()
                 .outputNulls(false)

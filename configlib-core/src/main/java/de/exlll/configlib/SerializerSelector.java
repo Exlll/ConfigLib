@@ -51,12 +51,12 @@ final class SerializerSelector {
     );
     private final ConfigurationProperties properties;
     /**
-     * Holds the last {@link #select}ed component.
+     * Holds the last {@link #select}ed configuration element.
      */
-    private TypeComponent<?> component;
+    private ConfigurationElement<?> element;
     /**
-     * Holds the {@code SerializeWith} value of the last {@link #select}ed component. If the
-     * component is not annotated with {@code SerializeWith}, the value of this field is null.
+     * Holds the {@code SerializeWith} value of the last {@link #select}ed configuration element.
+     * If the element is not annotated with {@code SerializeWith}, the value of this field is null.
      */
     private SerializeWith serializeWith;
     /**
@@ -72,11 +72,11 @@ final class SerializerSelector {
         this.properties = requireNonNull(properties, "configuration properties");
     }
 
-    public Serializer<?, ?> select(TypeComponent<?> component) {
-        this.component = component;
-        this.serializeWith = component.annotation(SerializeWith.class);
+    public Serializer<?, ?> select(ConfigurationElement<?> element) {
+        this.element = element;
+        this.serializeWith = element.annotation(SerializeWith.class);
         this.currentNesting = -1;
-        return selectForType(component.annotatedType());
+        return selectForType(element.annotatedType());
     }
 
     private Serializer<?, ?> selectForType(AnnotatedType annotatedType) {
@@ -108,7 +108,7 @@ final class SerializerSelector {
     private Serializer<?, ?> selectCustomSerializer(AnnotatedType annotatedType) {
         // SerializeWith annotation
         if ((serializeWith != null) && (currentNesting == serializeWith.nesting())) {
-            final var context = new SerializerContextImpl(properties, component, annotatedType);
+            final var context = new SerializerContextImpl(properties, element, annotatedType);
             return Serializers.newCustomSerializer(serializeWith.serializer(), context);
         }
 

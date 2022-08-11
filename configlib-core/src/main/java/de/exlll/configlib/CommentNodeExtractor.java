@@ -1,7 +1,7 @@
 package de.exlll.configlib;
 
-import de.exlll.configlib.TypeComponent.ConfigurationField;
-import de.exlll.configlib.TypeComponent.ConfigurationRecordComponent;
+import de.exlll.configlib.ConfigurationElements.FieldElement;
+import de.exlll.configlib.ConfigurationElements.RecordComponentElement;
 
 import java.lang.reflect.AnnotatedElement;
 import java.util.*;
@@ -20,22 +20,25 @@ final class CommentNodeExtractor {
         this.outputNull = properties.outputNulls();
     }
 
-    private record State(Iterator<? extends TypeComponent<?>> iterator, Object componentHolder) {}
+    private record State(
+            Iterator<? extends ConfigurationElement<?>> iterator,
+            Object elementHolder
+    ) {}
 
     /**
-     * Extracts {@code CommentNode}s of the given configuration or record in a DFS manner.
+     * Extracts {@code CommentNode}s of the given configuration type in a DFS manner.
      * The nodes are returned in the order in which they were found.
      *
-     * @param componentHolder the componentHolder from which the nodes are extracted
+     * @param elementHolder the elementHolder from which the nodes are extracted
      * @return the nodes in the order in which they are found
-     * @throws IllegalArgumentException if {@code componentHolder} is not a configuration or record
-     * @throws NullPointerException     if {@code componentHolder} is null
+     * @throws IllegalArgumentException if {@code elementHolder} is not a configuration type
+     * @throws NullPointerException     if {@code elementHolder} is null
      */
-    public Queue<CommentNode> extractCommentNodes(final Object componentHolder) {
-        requireConfigurationOrRecord(componentHolder.getClass());
+    public Queue<CommentNode> extractCommentNodes(final Object elementHolder) {
+        requireConfigurationOrRecord(elementHolder.getClass());
         final Queue<CommentNode> result = new ArrayDeque<>();
         final var elementNameStack = new ArrayDeque<>(List.of(""));
-        final var stateStack = new ArrayDeque<>(List.of(stateFromObject(componentHolder)));
+        final var stateStack = new ArrayDeque<>(List.of(stateFromObject(elementHolder)));
 
         State state;
         while (!stateStack.isEmpty()) {
@@ -43,27 +46,27 @@ final class CommentNodeExtractor {
             elementNameStack.removeLast();
 
             while (state.iterator.hasNext()) {
-                final var component = state.iterator.next();
-                final var componentValue = component.value(state.componentHolder);
+                final var element = state.iterator.next();
+                final var elementValue = element.value(state.elementHolder);
 
-                if ((componentValue == null) && !outputNull)
+                if ((elementValue == null) && !outputNull)
                     continue;
 
-                final var componentName = component.name();
+                final var elementName = element.name();
                 final var commentNode = createNodeIfCommentPresent(
-                        component.component(),
-                        componentName,
+                        element.element(),
+                        elementName,
                         elementNameStack
                 );
                 commentNode.ifPresent(result::add);
 
-                final var componentType = component.type();
-                if ((componentValue != null) &&
-                    (Reflect.isConfiguration(componentType) ||
-                     componentType.isRecord())) {
+                final var elementType = element.type();
+                if ((elementValue != null) &&
+                    (Reflect.isConfiguration(elementType) ||
+                     elementType.isRecord())) {
                     stateStack.addLast(state);
-                    elementNameStack.addLast(nameFormatter.format(componentName));
-                    state = stateFromObject(componentValue);
+                    elementNameStack.addLast(nameFormatter.format(elementName));
+                    state = stateFromObject(elementValue);
                 }
             }
         }
@@ -71,12 +74,12 @@ final class CommentNodeExtractor {
         return result;
     }
 
-    private State stateFromObject(final Object componentHolder) {
-        final var type = componentHolder.getClass();
+    private State stateFromObject(final Object elementHolder) {
+        final var type = elementHolder.getClass();
         final var iter = type.isRecord()
-                ? configurationRecordComponents(componentHolder)
-                : configurationFields(componentHolder);
-        return new State(iter, componentHolder);
+                ? recordComponentElements(elementHolder)
+                : fieldElements(elementHolder);
+        return new State(iter, elementHolder);
     }
 
     private Optional<CommentNode> createNodeIfCommentPresent(
@@ -97,16 +100,16 @@ final class CommentNodeExtractor {
         return Optional.empty();
     }
 
-    private Iterator<ConfigurationField> configurationFields(Object configuration) {
+    private Iterator<FieldElement> fieldElements(Object configuration) {
         return FieldExtractors.CONFIGURATION.extract(configuration.getClass())
                 .filter(fieldFilter)
-                .map(ConfigurationField::new)
+                .map(FieldElement::new)
                 .iterator();
     }
 
-    private Iterator<ConfigurationRecordComponent> configurationRecordComponents(Object record) {
+    private Iterator<RecordComponentElement> recordComponentElements(Object record) {
         return Arrays.stream(record.getClass().getRecordComponents())
-                .map(ConfigurationRecordComponent::new)
+                .map(RecordComponentElement::new)
                 .iterator();
     }
 }

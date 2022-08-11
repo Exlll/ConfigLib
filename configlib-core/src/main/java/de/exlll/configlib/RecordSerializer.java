@@ -1,42 +1,41 @@
 package de.exlll.configlib;
 
-import de.exlll.configlib.TypeComponent.ConfigurationRecordComponent;
+import de.exlll.configlib.ConfigurationElements.RecordComponentElement;
 
 import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-final class RecordSerializer<R> extends
-        TypeSerializer<R, ConfigurationRecordComponent> {
+final class RecordSerializer<R> extends TypeSerializer<R, RecordComponentElement> {
     RecordSerializer(Class<R> recordType, ConfigurationProperties properties) {
         super(Validator.requireRecord(recordType), properties);
     }
 
     @Override
-    public R deserialize(Map<?, ?> element) {
-        final var components = components();
-        final var constructorArguments = new Object[components.size()];
+    public R deserialize(Map<?, ?> serializedConfiguration) {
+        final var elements = elements();
+        final var constructorArguments = new Object[elements.size()];
 
-        for (int i = 0, size = components.size(); i < size; i++) {
-            final var component = components.get(i);
-            final var formattedName = formatter.format(component.name());
+        for (int i = 0, size = elements.size(); i < size; i++) {
+            final var element = elements.get(i);
+            final var formattedName = formatter.format(element.name());
 
-            if (!element.containsKey(formattedName)) {
-                constructorArguments[i] = Reflect.getDefaultValue(component.type());
+            if (!serializedConfiguration.containsKey(formattedName)) {
+                constructorArguments[i] = Reflect.getDefaultValue(element.type());
                 continue;
             }
 
-            final var serializedValue = element.get(formattedName);
-            final var recordComponent = component.component();
+            final var serializedValue = serializedConfiguration.get(formattedName);
+            final var recordComponent = element.element();
 
             if ((serializedValue == null) && properties.inputNulls()) {
                 requireNonPrimitiveComponentType(recordComponent);
                 constructorArguments[i] = null;
             } else if (serializedValue == null) {
-                constructorArguments[i] = Reflect.getDefaultValue(component.type());
+                constructorArguments[i] = Reflect.getDefaultValue(element.type());
             } else {
-                constructorArguments[i] = deserialize(component, serializedValue);
+                constructorArguments[i] = deserialize(element, serializedValue);
             }
         }
 
@@ -44,7 +43,7 @@ final class RecordSerializer<R> extends
     }
 
     @Override
-    protected void requireSerializableComponents() {
+    protected void requireSerializableElements() {
         if (serializers.isEmpty()) {
             String msg = "Record type '%s' does not define any components."
                     .formatted(type.getSimpleName());
@@ -53,15 +52,15 @@ final class RecordSerializer<R> extends
     }
 
     @Override
-    protected String baseDeserializeExceptionMessage(ConfigurationRecordComponent component, Object value) {
+    protected String baseDeserializeExceptionMessage(RecordComponentElement element, Object value) {
         return "Deserialization of value '%s' with type '%s' for component '%s' of record '%s' failed."
-                .formatted(value, value.getClass(), component.component(), component.declaringType());
+                .formatted(value, value.getClass(), element.element(), element.declaringType());
     }
 
     @Override
-    protected List<ConfigurationRecordComponent> components() {
+    protected List<RecordComponentElement> elements() {
         return Arrays.stream(type.getRecordComponents())
-                .map(ConfigurationRecordComponent::new)
+                .map(RecordComponentElement::new)
                 .toList();
     }
 

@@ -6,12 +6,12 @@ import static de.exlll.configlib.Validator.requireNonNull;
 
 record SerializerContextImpl(
         ConfigurationProperties properties,
-        TypeComponent<?> component,
+        ConfigurationElement<?> element,
         AnnotatedType annotatedType
 ) implements SerializerContext {
     SerializerContextImpl {
         properties = requireNonNull(properties, "configuration properties");
-        component = requireNonNull(component, "type component");
+        element = requireNonNull(element, "configuration element");
         annotatedType = requireNonNull(annotatedType, "annotated type");
     }
 }
