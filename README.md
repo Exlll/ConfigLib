@@ -14,14 +14,14 @@ the [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial) page on the wik
 * Automatic creation, saving, loading, and updating of configuration files
 * Support for comments through annotations
 * Support for all primitive types, their wrapper types, and strings
-* Support for enums, records, and POJOs (+ inheritance!)
+* Support for all Java enums, records, and POJOs (+ inheritance!)
 * Support for (nested) lists, sets, arrays, and maps
 * Support for `BigInteger` and `BigDecimal`
 * Support for `LocalDate`, `LocalTime`, `LocalDateTime`, and `Instant`
 * Support for `UUID`, `File`, `Path`, `URL`, and `URI`
 * Support for Bukkit's `ConfigurationSerializable` types (e.g. `ItemStack`)
+* Option to format the names of configuration elements
 * Option to exclude fields from being converted
-* Option to format field and component names before conversion
 * Option to customize null handling
 * Option to customize serialization by providing your own serializers
 * Option to add headers and footers to configuration files
@@ -125,7 +125,7 @@ Two things are noticeable here:
 
 ## General information
 
-In the following sections the term _configuration type_ refers to any record type or to any
+In the following sections the term _configuration type_ refers to any Java record type or to any
 non-generic class that is directly or indirectly (i.e. through subclassing) annotated with
 `@de.exlll.configlib.Configuration`. Accordingly, the term _configuration_ refers to an instance of
 such a type. A _configuration element_ is either a class field or a record component of a
@@ -133,10 +133,10 @@ configuration type.
 
 ### Declaring configuration types
 
-To declare a configuration type, either define a record or annotate a class with `@Configuration`
-and make sure that it has a no-args constructor. The no-args constructor can be set `private`. Inner
-classes (i.e. the ones that are nested but not `static`) have an implicit synthetic constructor with
-at least one argument and are therefore not supported.
+To declare a configuration type, either define a Java record or annotate a class
+with `@Configuration` and make sure that it has a no-args constructor. The no-args constructor can
+be `private`. Inner classes (i.e. the ones that are nested but not `static`) have an implicit
+synthetic constructor with at least one argument and are, therefore, not supported.
 
 Now simply add components to your record or fields to your class whose type is any of the supported
 types listed in the next section. You can (and should) initialize all fields of a configuration
@@ -163,6 +163,9 @@ A configuration type may only contain configuration elements of the following ty
 (*) Map keys can only be of simple or enum type, i.e. they cannot be in the `Collections`,
 `Configurations`, or `ConfigurationSerializable` type class.
 
+For all types that are not listed in the table above, you can provide your
+own [custom serializer](#custom-serializers).
+
 #### Examples of supported types
 
 The following class contains examples of types that this library supports:
@@ -174,7 +177,7 @@ public final class SupportedTypes {
     String supported;
     LocalTime supported;
     UUID supported;
-    ExampleEnum supported;  // where 'ExampleEnum' is some Java enum type
+    ExampleEnum supported;    // where 'ExampleEnum' is some Java enum type
     ExampleConfig supported;  // where 'ExampleConfig' is a class annotated with @Configuration
     ExampleRecord supported;  // where 'ExampleRecord' is a Java record
 
@@ -218,6 +221,11 @@ public final class UnsupportedTypes<T> {
     Map<Byte, Byte>[] unsupported;         // generic array type
 }
 ```
+
+**NOTE:** Even though this library does not support these types, it is still possible to serialize
+them by providing a custom serializer via
+[the `@SerializeWith` annotation](#the-serializewith-annotation). That serializer then has to
+be applied to top-level type (i.e. `nesting` must be set to `0`, which is the default).
 
 </details>
 
@@ -307,10 +315,10 @@ method are:
 ```java 
 // overload 1
 YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder().build();
-Config c1 = YamlConfigurations.load(configurationFile, Config.class, properties);
+Config config1 = YamlConfigurations.load(configurationFile, Config.class, properties);
 
 // overload 2
-Config c2 = YamlConfigurations.load(
+Config config2 = YamlConfigurations.load(
     configurationFile,
     Config.class,
     builder -> builder.inputNulls(true).outputNulls(false)
@@ -392,8 +400,8 @@ public final class ExampleConfiguration {
 Similarly, if you define the following record configuration and save it ...
 
 ```java 
-record User(@Comment("The name") String name, @Comment("The address") Address address) {}
 record Address(@Comment("The street") String street) {}
+record User(@Comment("The name") String name, @Comment("The address") Address address) {}
 
 User user = new User("John Doe", new Address("10 Downing St"));
 ```
@@ -434,8 +442,8 @@ nor updated during deserialization. You can filter out additional fields by prov
 #### Missing values
 
 When a configuration file is read, values that correspond to a configuration element might be
-missing. That can happen, for example, when somebody deleted that field from the configuration file,
-when the definition of a configuration or record type is changed, or when the `NameFormatter` that
+missing. That can happen, for example, when somebody deleted that value from the configuration file,
+when you add configuration elements to your configuration type, or when the `NameFormatter` that
 was used to create that file is replaced.
 
 In such cases, fields of configuration types keep the default value you assigned to them and record
@@ -485,7 +493,7 @@ YamlConfigurationProperties.newBuilder()
         .build();
 ```
 
-### Type conversion and custom serializers
+### Type conversion and serializer selection
 
 Before instances of the types listed in the [supported types](#supported-types) section can be
 stored, they need to be converted into serializable types (i.e. into types the underlying YAML
@@ -516,14 +524,14 @@ properties. This also means that `Set`s are valid target types.
 To convert the value of a configuration element `E` with (source) type `S` into a serializable
 value of some target type, a serializer has to be selected. Serializers are instances of
 the `de.exlll.configlib.Serializer` interface and are selected based on `S`. Put differently,
-serializers are always selected based on the compile-time type of `E` and never on the runtime type
-of its value.
+serializers are, by default, always selected based on the compile-time type of `E` and never on the
+runtime type of its value.
 
 <details>
  <summary>Why should I care about this?</summary>
 
 This distinction makes a difference (and might lead to confusion) when you have configuration
-elements whose type is a configuration type, and you extend that configuration type. Concretely,
+elements that are configuration classes, and you extend those classes. Concretely,
 assume you have written two configuration classes `A` and `B` where `B extends A`. Then, if you
 use `A a = new B()` in your main configuration, only the fields of a `A` will be stored when you
 save your main configuration. That is because the serializer of field `a` was selected based on the
@@ -532,13 +540,113 @@ instances of `B` (or some other subclass of `A`) in it.
 
 </details>
 
-#### Custom serializers
+You can override the default selection by annotating a configuration
+element with [`@SerializeWith`](#the-serializewith-annotation) or by adding your own serializer
+for `S` to the configuration properties. When you do so, it can happen that there multiple
+serializers available for a particular configuration element and its type. In that case, one of them
+chosen according to the following precedence rules:
 
-If you want to add support for a type that is not a record or whose class is not annotated
-with `@Configuration`, you can register a custom serializer. Serializers are instances of
-the `de.exlll.configlib.Serializer` interface. When implementing that interface you have to make
-sure that you convert your source type into one of the valid target types listed in the table above.
-The serializer then has to be registered through a `ConfigurationProperties` object.
+1. If the element is annotated with `@SerializeWith` and the `nesting` matches, the serializer
+   referenced by the annotation is selected.
+2. Otherwise, if the `ConfigurationProperties` contain a serializer for the type in question, that
+   serializer is returned.
+3. Otherwise, if this library defines a serializer for that type, that serializer is selected.
+4. Ultimately, if no serializer can be found, an exception is thrown.
+
+For lists, sets, and maps, the algorithm is recursively applied to their generic type arguments
+recursively first.
+
+##### The `SerializeWith` annotation
+
+The `SerializeWith` annotation can be applied to configuration elements (i.e. class fields and
+record components) and enforces the use of the specified serializer for that element.
+
+```java 
+@SerializeWith(serializer = MyPointSerializer.class)
+Point point;
+```
+
+The serializer referenced by this annotation is selected regardless of whether the type of the
+configuration element matches the type the serializer expects.
+
+If the configuration element is an array, list, set, or map a nesting level can be set to apply the
+serializer not to the top-level type but to its elements. For maps, the serializer is applied to
+the values and not the keys.
+
+```java 
+@SerializeWith(serializer = MySetSerializer.class, nesting = 1)
+List<Set<String>> list;
+```
+
+Setting `nesting` to an invalid value, i.e. a negative one or one that is greater than the number
+of levels the element actually has, results in the serializer not being selected.
+
+<details>
+ <summary>More <code>nesting</code> examples</summary>
+
+In this example...
+
+```java 
+@SerializeWith(serializer = MySetSerializer.class, nesting = 1)
+List<Set<String>> list;
+```
+
+* a nesting of `0` would apply the serializer to `list` (which is of
+  type `List<Set<String>>`),
+* a nesting of `1` would apply it to the `Set<String>` elements within `list`, and
+* a nesting of `2` would apply it to the strings within the sets of `list`.
+
+However, since the referenced serializer `MySetSerializer` most likely expects `Set`s as input,
+setting `nesting` to `0` or `2` would result in an exception being thrown when the configuration
+is serialized.
+
+Some more examples:
+
+```java 
+// MyListSerializer is applied to 'list'
+@SerializeWith(serializer = MyListSerializer.class)
+List<Set<String>> list;
+
+// MySetSerializer is applied to the Set<String> elements of 'list'
+@SerializeWith(serializer = MySetSerializer.class, nesting = 1)
+List<Set<String>> list;
+
+// MyStringSerializer is applied to the strings within the set elements of 'list'
+@SerializeWith(serializer = MyStringSerializer.class, nesting = 2)
+List<Set<String>> list;
+
+// MyMap0Serializer is applied to 'map'
+@SerializeWith(serializer = MyMap0Serializer.class)
+Map<Integer, Map<String, Double>> map;
+
+// MyMap1Serializer is applied to the Map<String, Double> values of 'map'
+@SerializeWith(serializer = MyMap1Serializer.class, nesting = 1)
+Map<Integer, Map<String, Double>> map;
+
+// MyDoubleSerializer is applied to the doubles within the nested values of 'map'
+@SerializeWith(serializer = MyDoubleSerializer.class, nesting = 2)
+Map<Integer, Map<String, Double>> map; 
+```
+
+</details>
+
+### Custom serializers
+
+If you want to add support for a type that is not a Java record or whose class is not annotated
+with `@Configuration`, or if you don't like how one of the supported types is serialized by default,
+you can write your own custom serializer.
+
+Serializers are instances of the `de.exlll.configlib.Serializer` interface. When implementing that
+interface you have to make sure that...
+
+* your class either has a constructor with no parameters or one with exactly one parameter of
+  type [`SerializerContext`](#the-serializercontext-interface), and
+* you convert your source type into one of the valid target types listed
+  in [type conversion](#type-conversion-and-serializer-selection) section.
+
+The serializer then has to be registered through a `ConfigurationProperties` object or alternatively
+be applied to a configuration element
+with [the `@SerializeWith` annotation](#the-serializewith-annotation).
 
 The following `Serializer` serializes instances of `java.awt.Point` into strings and vice versa.
 
@@ -559,7 +667,19 @@ public final class PointSerializer implements Serializer<Point, String> {
 }
 ```
 
-Custom serializers takes precedence over the serializers provided by this library.
+```java 
+YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
+        .addSerializer(Point.class, new PointSerializer())
+        .build(); 
+```
+
+##### The `SerializerContext` interface
+
+Instead of a no-args constructor custom serializers are allowed to declare a constructor with one
+parameter of type `SerializerContext`. If such a constructor exists, an instance of that class is
+passed to it when the serializer is instantiated by this library. The context object gives access
+to the configuration properties, configuration element, and the annotated type for which the
+serializer was selected.
 
 ### Changing the type of configuration elements
 
@@ -649,7 +769,9 @@ If you want serialization support for Bukkit classes like `ItemStack`, replace `
 with `configlib-paper` (see [here](#support-for-bukkit-classes-like-itemstack)).
 
 <details>
- <summary>Import via <code>jitpack.io</code></summary>
+ <summary>
+    Import via <a href="https://jitpack.io/#Exlll/ConfigLib">jitpack.io</a>
+ </summary>
 
 **Maven**
 
