@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.awt.Point;
 import java.io.File;
+import java.lang.annotation.*;
 import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -512,7 +513,7 @@ class SerializerSelectorTest {
         );
     }
 
-    static final class SerializeWithTests {
+    static final class SerializeWithOnConfigurationElementsTests {
         static class Z {
             @SerializeWith(serializer = IdentitySerializer.class)
             String string;
@@ -684,15 +685,137 @@ class SerializerSelectorTest {
             assertThat(context.annotatedType(), is(not(annotatedType)));
             assertThat(context.annotatedType(), is(argument));
         }
+
+        private record SerializerWithContext(SerializerContext ctx)
+                implements Serializer<String, String> {
+
+            @Override
+            public String serialize(String element) {return null;}
+
+            @Override
+            public String deserialize(String element) {return null;}
+        }
     }
 
-    private record SerializerWithContext(SerializerContext ctx)
-            implements Serializer<String, String> {
+    static final class SerializeWithOnTypesTest {
+        @SerializeWith(serializer = IdentitySerializer.class)
+        static final class MyType1 {}
 
-        @Override
-        public String serialize(String element) {return null;}
+        @SerializeWith(serializer = IdentitySerializer.class)
+        static abstract class MyType2 {}
 
-        @Override
-        public String deserialize(String element) {return null;}
+        @SerializeWith(serializer = IdentitySerializer.class)
+        interface MyType3 {}
+
+        @SerializeWith(serializer = IdentitySerializer.class)
+        record MyType4() {}
+
+        @SerializeWith(serializer = IdentitySerializer.class)
+        static class MyType5 {}
+
+        static class MyType6 extends MyType5 {}
+
+        record Config(
+                MyType1 myType1,
+                MyType2 myType2,
+                MyType3 myType3,
+                MyType4 myType4,
+                MyType5 myType5,
+                MyType6 myType6
+        ) {}
+
+        @ParameterizedTest
+        @ValueSource(strings = {"myType1", "myType2", "myType3", "myType4", "myType5"})
+        void selectCustomSerializerForTypes(String fieldName) {
+            var element = forField(Config.class, fieldName);
+            var serializer = (IdentitySerializer) SELECTOR.select(element);
+            assertThat(serializer.context().element(), is(element));
+        }
+
+        @Test
+        void serializeWithNotInherited() {
+            assertThrowsConfigurationException(
+                    () -> SELECTOR.select(forField(Config.class, "myType6")),
+                    ("Missing serializer for type %s.\nEither annotate the type with " +
+                     "@Configuration or provide a custom serializer by adding it to the properties.")
+                            .formatted(MyType6.class)
+
+            );
+        }
+
+        @Test
+        void serializeWithHasLowerPrecedenceThanSerializersAddedViaConfigurationProperties() {
+            var serializer = new IdentifiableSerializer<>(1);
+            var properties = ConfigurationProperties.newBuilder()
+                    .addSerializer(MyType1.class, serializer)
+                    .build();
+            var selector = new SerializerSelector(properties);
+            var actual = (IdentifiableSerializer<?, ?>) selector.select(forField(Config.class, "myType1"));
+            assertThat(actual, sameInstance(serializer));
+        }
+    }
+
+    static final class SerializeWithMetaAnnotationTest {
+        @Target(ElementType.TYPE)
+        @Retention(RetentionPolicy.RUNTIME)
+        @Inherited
+        @SerializeWith(serializer = IdentitySerializer.class)
+        @interface MetaSerializeWith {}
+
+        @MetaSerializeWith
+        static final class MyType1 {}
+
+        @MetaSerializeWith
+        static abstract class MyType2 {}
+
+        @MetaSerializeWith
+        interface MyType3 {}
+
+        @MetaSerializeWith
+        record MyType4() {}
+
+        @MetaSerializeWith
+        static class MyType5 {}
+
+        static class MyType6 extends MyType5 {}
+
+        @MetaSerializeWith
+        @SerializeWith(serializer = PointSerializer.class)
+        static final class MyType7 {}
+
+        record Config(
+                MyType1 myType1,
+                MyType2 myType2,
+                MyType3 myType3,
+                MyType4 myType4,
+                MyType5 myType5,
+                MyType6 myType6,
+                MyType7 myType7
+        ) {}
+
+        @ParameterizedTest
+        @ValueSource(strings = {"myType1", "myType2", "myType3", "myType4", "myType5"})
+        void selectCustomSerializerForTypes(String fieldName) {
+            var element = forField(Config.class, fieldName);
+            var serializer = (IdentitySerializer) SELECTOR.select(element);
+            assertThat(serializer.context().element(), is(element));
+        }
+
+        @Test
+        void metaSerializeWithNotInherited() {
+            assertThrowsConfigurationException(
+                    () -> SELECTOR.select(forField(Config.class, "myType6")),
+                    ("Missing serializer for type %s.\nEither annotate the type with " +
+                     "@Configuration or provide a custom serializer by adding it to the properties.")
+                            .formatted(MyType6.class)
+
+            );
+        }
+
+        @Test
+        void metaSerializeWithHasLowerPrecedenceThanSerializeWith() {
+            var serializer = SELECTOR.select(forField(Config.class, "myType7"));
+            assertThat(serializer, instanceOf(PointSerializer.class));
+        }
     }
 }

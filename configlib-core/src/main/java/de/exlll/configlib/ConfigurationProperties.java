@@ -146,7 +146,10 @@ class ConfigurationProperties {
          * @throws NullPointerException if any argument is null
          * @see #addSerializerFactory(Class, Function)
          */
-        public final <T> B addSerializer(Class<T> serializedType, Serializer<T, ?> serializer) {
+        public final <T> B addSerializer(
+                Class<T> serializedType,
+                Serializer<? super T, ?> serializer
+        ) {
             requireNonNull(serializedType, "serialized type");
             requireNonNull(serializer, "serializer");
             serializersByType.put(serializedType, serializer);

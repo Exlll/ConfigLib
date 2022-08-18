@@ -1,9 +1,6 @@
 package de.exlll.configlib;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Indicates that the annotated element should be serialized with the given serializer. Serializers
@@ -44,7 +41,12 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  */
-@Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
+@Target({
+        ElementType.ANNOTATION_TYPE, // usage as meta-annotation
+        ElementType.TYPE,            // usage on types
+        ElementType.FIELD,           // usage on configuration elements
+        ElementType.RECORD_COMPONENT
+})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SerializeWith {
     /**

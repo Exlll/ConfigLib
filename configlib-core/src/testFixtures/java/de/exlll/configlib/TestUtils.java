@@ -127,17 +127,19 @@ public final class TestUtils {
         }
     }
 
-    public static final class IdentitySerializer implements Serializer<Object, Object> {
-        @Override
-        public Object serialize(Object element) {
-            return element;
-        }
+    public record IdentitySerializer(SerializerContext context)
+            implements Serializer<Object, Object> {
 
         @Override
-        public Object deserialize(Object element) {
-            return element;
+            public Object serialize(Object element) {
+                return element;
+            }
+
+            @Override
+            public Object deserialize(Object element) {
+                return element;
+            }
         }
-    }
 
 
     @SafeVarargs

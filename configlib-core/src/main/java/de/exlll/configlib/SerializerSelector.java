@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static de.exlll.configlib.Validator.requireNonNull;
@@ -55,11 +56,6 @@ final class SerializerSelector {
      */
     private ConfigurationElement<?> element;
     /**
-     * Holds the {@code SerializeWith} value of the last {@link #select}ed configuration element.
-     * If the element is not annotated with {@code SerializeWith}, the value of this field is null.
-     */
-    private SerializeWith serializeWith;
-    /**
      * The {@code currentNesting} is used to determine the nesting of a type and is incremented each
      * time the {@code selectForType} method is called. It is reset when {@code select} is called.
      * <p>
@@ -74,7 +70,6 @@ final class SerializerSelector {
 
     public Serializer<?, ?> select(ConfigurationElement<?> element) {
         this.element = element;
-        this.serializeWith = element.annotation(SerializeWith.class);
         this.currentNesting = -1;
         return selectForType(element.annotatedType());
     }
@@ -106,38 +101,87 @@ final class SerializerSelector {
     }
 
     private Serializer<?, ?> selectCustomSerializer(AnnotatedType annotatedType) {
-        // SerializeWith annotation
-        if ((serializeWith != null) && (currentNesting == serializeWith.nesting())) {
-            final var context = new SerializerContextImpl(properties, element, annotatedType);
-            return Serializers.newCustomSerializer(serializeWith.serializer(), context);
-        }
-
-        // Serializer registered for Type via configurations properties
-        final Type type = annotatedType.getType();
-        if (type instanceof Class<?> cls) {
-            if (properties.getSerializerFactories().containsKey(cls))
-                return newSerializerFromFactory(annotatedType, cls);
-            if (properties.getSerializers().containsKey(cls))
-                return properties.getSerializers().get(cls);
-        }
-
-        // Serializer registered for condition via configurations properties
-        for (var entry : properties.getSerializersByCondition().entrySet()) {
-            if (entry.getKey().test(type))
-                return entry.getValue();
-        }
-        return null;
+        return findConfigurationElementSerializer(annotatedType)
+                .or(() -> findSerializerFactoryForType(annotatedType))
+                .or(() -> findSerializerForType(annotatedType))
+                .or(() -> findSerializerOnType(annotatedType))
+                .or(() -> findMetaSerializerOnType(annotatedType))
+                .or(() -> findSerializerByCondition(annotatedType))
+                .orElse(null);
     }
 
-    private Serializer<?, ?> newSerializerFromFactory(AnnotatedType annotatedType, Class<?> cls) {
-        final var context = new SerializerContextImpl(properties, element, annotatedType);
-        final var factory = properties.getSerializerFactories().get(cls);
-        final var serializer = factory.apply(context);
-        if (serializer == null) {
-            String msg = "Serializer factories must not return null.";
-            throw new ConfigurationException(msg);
+    private Optional<Serializer<?, ?>> findConfigurationElementSerializer(AnnotatedType annotatedType) {
+        // SerializeWith annotation on configuration elements
+        final var annotation = element.annotation(SerializeWith.class);
+        if ((annotation != null) && (currentNesting == annotation.nesting())) {
+            return Optional.of(newSerializerFromAnnotation(annotatedType, annotation));
         }
-        return serializer;
+        return Optional.empty();
+    }
+
+    private Optional<Serializer<?, ?>> findSerializerFactoryForType(AnnotatedType annotatedType) {
+        // Serializer factory registered for Type via configurations properties
+        if ((annotatedType.getType() instanceof Class<?> cls) &&
+            properties.getSerializerFactories().containsKey(cls)) {
+            final var context = new SerializerContextImpl(properties, element, annotatedType);
+            final var factory = properties.getSerializerFactories().get(cls);
+            final var serializer = factory.apply(context);
+            if (serializer == null) {
+                String msg = "Serializer factories must not return null.";
+                throw new ConfigurationException(msg);
+            }
+            return Optional.of(serializer);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Serializer<?, ?>> findSerializerForType(AnnotatedType annotatedType) {
+        // Serializer registered for Type via configurations properties
+        if ((annotatedType.getType() instanceof Class<?> cls) &&
+            properties.getSerializers().containsKey(cls)) {
+            return Optional.of(properties.getSerializers().get(cls));
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Serializer<?, ?>> findSerializerOnType(AnnotatedType annotatedType) {
+        // SerializeWith annotation on type
+        if ((annotatedType.getType() instanceof Class<?> cls) &&
+            (cls.getDeclaredAnnotation(SerializeWith.class) != null)) {
+            final var annotation = cls.getDeclaredAnnotation(SerializeWith.class);
+            return Optional.of(newSerializerFromAnnotation(annotatedType, annotation));
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Serializer<?, ?>> findMetaSerializerOnType(AnnotatedType annotatedType) {
+        // SerializeWith meta annotation on type
+        if ((annotatedType.getType() instanceof Class<?> cls)) {
+            for (final var meta : cls.getDeclaredAnnotations()) {
+                final var metaType = meta.annotationType();
+                final var annotation = metaType.getDeclaredAnnotation(SerializeWith.class);
+                if (annotation != null)
+                    return Optional.of(newSerializerFromAnnotation(annotatedType, annotation));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Serializer<?, ?>> findSerializerByCondition(AnnotatedType annotatedType) {
+        // Serializer registered for condition via configurations properties
+        for (var entry : properties.getSerializersByCondition().entrySet()) {
+            if (entry.getKey().test(annotatedType.getType()))
+                return Optional.of(entry.getValue());
+        }
+        return Optional.empty();
+    }
+
+    private Serializer<?, ?> newSerializerFromAnnotation(
+            AnnotatedType annotatedType,
+            SerializeWith annotation
+    ) {
+        final var context = new SerializerContextImpl(properties, element, annotatedType);
+        return Serializers.newCustomSerializer(annotation.serializer(), context);
     }
 
     private Serializer<?, ?> selectForClass(AnnotatedType annotatedType) {
