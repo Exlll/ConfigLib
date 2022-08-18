@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static de.exlll.configlib.Validator.requireNonNull;
@@ -14,6 +15,8 @@ import static de.exlll.configlib.Validator.requireNonNull;
  */
 class ConfigurationProperties {
     private final Map<Class<?>, Serializer<?, ?>> serializersByType;
+    private final Map<Class<?>, Function<? super SerializerContext, ? extends Serializer<?, ?>>>
+            serializerFactoriesByType;
     private final Map<Predicate<? super Type>, Serializer<?, ?>> serializersByCondition;
     private final NameFormatter formatter;
     private final FieldFilter filter;
@@ -29,6 +32,7 @@ class ConfigurationProperties {
      */
     protected ConfigurationProperties(Builder<?> builder) {
         this.serializersByType = Map.copyOf(builder.serializersByType);
+        this.serializerFactoriesByType = Map.copyOf(builder.serializerFactoriesByType);
         this.serializersByCondition = Collections.unmodifiableMap(new LinkedHashMap<>(
                 builder.serializersByCondition
         ));
@@ -76,6 +80,8 @@ class ConfigurationProperties {
      */
     public static abstract class Builder<B extends Builder<B>> {
         private final Map<Class<?>, Serializer<?, ?>> serializersByType = new HashMap<>();
+        private final Map<Class<?>, Function<? super SerializerContext, ? extends Serializer<?, ?>>>
+                serializerFactoriesByType = new HashMap<>();
         private final Map<Predicate<? super Type>, Serializer<?, ?>> serializersByCondition =
                 new LinkedHashMap<>();
         private NameFormatter formatter = NameFormatters.IDENTITY;
@@ -88,6 +94,7 @@ class ConfigurationProperties {
 
         protected Builder(ConfigurationProperties properties) {
             this.serializersByType.putAll(properties.serializersByType);
+            this.serializerFactoriesByType.putAll(properties.serializerFactoriesByType);
             this.serializersByCondition.putAll(properties.serializersByCondition);
             this.formatter = properties.formatter;
             this.filter = properties.filter;
@@ -124,20 +131,51 @@ class ConfigurationProperties {
         }
 
         /**
-         * Adds a serializer for the given type. If this library already provides a serializer
-         * for the given type (e.g. {@code BigInteger}, {@code LocalDate}, etc.) the serializer
-         * added by this method takes precedence.
+         * Adds a serializer for the given type.
+         * <p>
+         * If this library already provides a serializer for the given type (e.g. {@code BigInteger},
+         * {@code LocalDate}, etc.) the serializer added by this method takes precedence.
+         * <p>
+         * If a factory is added via the {@link #addSerializerFactory(Class, Function)} method for
+         * the same type, the serializer created by that factory takes precedence.
          *
          * @param serializedType the class of the type that is serialized
          * @param serializer     the serializer
          * @param <T>            the type that is serialized
          * @return this builder
          * @throws NullPointerException if any argument is null
+         * @see #addSerializerFactory(Class, Function)
          */
         public final <T> B addSerializer(Class<T> serializedType, Serializer<T, ?> serializer) {
             requireNonNull(serializedType, "serialized type");
             requireNonNull(serializer, "serializer");
             serializersByType.put(serializedType, serializer);
+            return getThis();
+        }
+
+        /**
+         * Adds a serializer factory for the given type.
+         * <p>
+         * If this library already provides a serializer for the given type (e.g. {@code BigInteger},
+         * {@code LocalDate}, etc.) the serializer created by the factory takes precedence.
+         * <p>
+         * If a serializer is added via {@link #addSerializer(Class, Serializer)} method for the
+         * same type, the serializer created by the factory added by this method takes precedence.
+         *
+         * @param serializedType    the class of the type that is serialized
+         * @param serializerFactory the factory that creates a new serializer
+         * @param <T>               the type that is serialized
+         * @return this builder
+         * @throws NullPointerException if any argument is null
+         * @see #addSerializer(Class, Serializer)
+         */
+        public final <T> B addSerializerFactory(
+                Class<T> serializedType,
+                Function<? super SerializerContext, ? extends Serializer<T, ?>> serializerFactory
+        ) {
+            requireNonNull(serializedType, "serialized type");
+            requireNonNull(serializerFactory, "serializer factory");
+            serializerFactoriesByType.put(serializedType, serializerFactory);
             return getThis();
         }
 
@@ -250,6 +288,17 @@ class ConfigurationProperties {
     }
 
     /**
+     * Returns an unmodifiable map of serializer factories by type. The serializers created by the
+     * factories take precedence over any default serializers provided by this library.
+     *
+     * @return serializer factories by type
+     */
+    public final Map<Class<?>, Function<? super SerializerContext, ? extends Serializer<?, ?>>>
+    getSerializerFactories() {
+        return serializerFactoriesByType;
+    }
+
+    /**
      * Returns an unmodifiable map of serializers by condition.
      *
      * @return serializers by condition
@@ -257,7 +306,6 @@ class ConfigurationProperties {
     final Map<Predicate<? super Type>, Serializer<?, ?>> getSerializersByCondition() {
         return serializersByCondition;
     }
-
 
     /**
      * Returns whether null values should be output.
@@ -276,7 +324,6 @@ class ConfigurationProperties {
     public final boolean inputNulls() {
         return inputNulls;
     }
-
 
     /**
      * Returns whether sets should be serialized as lists.

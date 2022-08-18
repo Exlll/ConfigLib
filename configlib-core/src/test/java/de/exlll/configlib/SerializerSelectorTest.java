@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static de.exlll.configlib.TestUtils.*;
@@ -270,6 +271,61 @@ class SerializerSelectorTest {
     }
 
     @Test
+    void selectSerializerFactoryByCustomType() {
+        final var configurationElement = findByType(Point.class);
+
+        Function<SerializerContext, Serializer<Point, ?>> factory = ctx -> {
+            assertThat(ctx.element(), is(configurationElement));
+            assertThat(ctx.annotatedType(), is(configurationElement.annotatedType()));
+            return POINT_SERIALIZER;
+        };
+
+        var properties = ConfigurationProperties.newBuilder()
+                .addSerializerFactory(Point.class, factory)
+                .build();
+        SerializerSelector selector = new SerializerSelector(properties);
+        var pointSerializer = selector.select(configurationElement);
+        assertThat(pointSerializer, sameInstance(POINT_SERIALIZER));
+    }
+
+    @Test
+    void selectSerializerFactoryByCustomTypeTakesPrecedence() {
+        var properties = ConfigurationProperties.newBuilder()
+                .addSerializerFactory(BigInteger.class, ignored -> CUSTOM_BIG_INTEGER_SERIALIZER)
+                .build();
+        SerializerSelector selector = new SerializerSelector(properties);
+        var bigIntegerSerializer = selector.select(findByType(BigInteger.class));
+        assertThat(bigIntegerSerializer, instanceOf(TestUtils.CustomBigIntegerSerializer.class));
+        assertThat(bigIntegerSerializer, sameInstance(CUSTOM_BIG_INTEGER_SERIALIZER));
+    }
+
+    @Test
+    void selectSerializerFactoryTakesPrecedence() {
+        var serializer1 = IdentifiableSerializer.of(1);
+        var serializer2 = IdentifiableSerializer.of(2);
+        var properties = ConfigurationProperties.newBuilder()
+                .addSerializer(int.class, serializer1)
+                .addSerializerFactory(int.class, ignored -> serializer2)
+                .build();
+        SerializerSelector selector = new SerializerSelector(properties);
+        var serializer = selector.select(findByType(int.class));
+        assertThat(serializer, instanceOf(IdentifiableSerializer.class));
+        assertThat(serializer, sameInstance(serializer2));
+    }
+
+    @Test
+    void selectSerializerFactoryRequiresNonNull() {
+        var properties = ConfigurationProperties.newBuilder()
+                .addSerializerFactory(Point.class, ignored -> null)
+                .build();
+        SerializerSelector selector = new SerializerSelector(properties);
+        assertThrowsConfigurationException(
+                () -> selector.select(findByType(Point.class)),
+                "Serializer factories must not return null."
+        );
+    }
+
+    @Test
     void selectSerializerByCondition() {
         var properties = ConfigurationProperties.newBuilder()
                 .addSerializerByCondition(t -> t == Point.class, POINT_SERIALIZER)
@@ -291,7 +347,7 @@ class SerializerSelectorTest {
     }
 
     @Test
-    void selectSerializerByCustomTypeTakesPrecedenceOverCustomType() {
+    void selectSerializerByCustomTypeTakesPrecedenceOverCondition() {
         var serializer1 = IdentifiableSerializer.of(1);
         var serializer2 = IdentifiableSerializer.of(2);
         var properties = ConfigurationProperties.newBuilder()

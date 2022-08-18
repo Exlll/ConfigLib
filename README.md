@@ -550,6 +550,8 @@ chosen according to the following precedence rules:
    referenced by the annotation is selected.
 2. Otherwise, if the `ConfigurationProperties` contain a serializer for the type in question, that
    serializer is returned.
+    * Serializers created by factories that were added through `addSerializerFactory` for some type
+      take precedence over serializers added by `addSerializer` for the same type.
 3. Otherwise, if this library defines a serializer for that type, that serializer is selected.
 4. Ultimately, if no serializer can be found, an exception is thrown.
 
@@ -637,16 +639,14 @@ with `@Configuration`, or if you don't like how one of the supported types is se
 you can write your own custom serializer.
 
 Serializers are instances of the `de.exlll.configlib.Serializer` interface. When implementing that
-interface you have to make sure that...
-
-* your class either has a constructor with no parameters or one with exactly one parameter of
-  type [`SerializerContext`](#the-serializercontext-interface), and
-* you convert your source type into one of the valid target types listed
-  in [type conversion](#type-conversion-and-serializer-selection) section.
+interface you have to make sure that you convert your source type into one of the valid target types
+listed in [type conversion](#type-conversion-and-serializer-selection) section.
 
 The serializer then has to be registered through a `ConfigurationProperties` object or alternatively
-be applied to a configuration element
-with [the `@SerializeWith` annotation](#the-serializewith-annotation).
+be applied to a configuration element with [`@SerializeWith`](#the-serializewith-annotation). If you
+want to use the `@SerializeWith` annotation, your serializer class must either have a constructor
+with no parameters or one with exactly one parameter of
+type [`SerializerContext`](#the-serializercontext-interface).
 
 The following `Serializer` serializes instances of `java.awt.Point` into strings and vice versa.
 
@@ -675,11 +675,33 @@ YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder(
 
 ##### The `SerializerContext` interface
 
-Instead of a no-args constructor custom serializers are allowed to declare a constructor with one
-parameter of type `SerializerContext`. If such a constructor exists, an instance of that class is
-passed to it when the serializer is instantiated by this library. The context object gives access
-to the configuration properties, configuration element, and the annotated type for which the
-serializer was selected.
+Instances of the `SerializerContext` interface contain contextual information for custom
+serializers. A context object gives access to the configuration properties, configuration element,
+and the annotated type for which the serializer was selected.
+
+The context object can be accessed when adding a serializer factory through
+the `addSerializerFactory` method:
+
+```java
+public final class PointSerializer implements Serializer<Point, String> {
+    private final SerializerContext context;
+
+    public PointSerializer(SerializerContext context) {
+        this.context = context;
+    }
+    // implementation ...
+}
+```
+
+```java 
+YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
+        .addSerializerFactory(Point.class, PointSerializer::new)
+        .build();
+```
+
+Custom serializers used with `@SerializeWith` are allowed to declare a constructor with one
+parameter of type `SerializerContext`. If such a constructor exists, a context object is passed to
+it when the serializer is instantiated by this library.
 
 ### Changing the type of configuration elements
 

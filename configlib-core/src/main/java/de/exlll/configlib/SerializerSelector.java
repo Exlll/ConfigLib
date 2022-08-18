@@ -115,6 +115,8 @@ final class SerializerSelector {
         // Serializer registered for Type via configurations properties
         final Type type = annotatedType.getType();
         if (type instanceof Class<?> cls) {
+            if (properties.getSerializerFactories().containsKey(cls))
+                return newSerializerFromFactory(annotatedType, cls);
             if (properties.getSerializers().containsKey(cls))
                 return properties.getSerializers().get(cls);
         }
@@ -125,6 +127,17 @@ final class SerializerSelector {
                 return entry.getValue();
         }
         return null;
+    }
+
+    private Serializer<?, ?> newSerializerFromFactory(AnnotatedType annotatedType, Class<?> cls) {
+        final var context = new SerializerContextImpl(properties, element, annotatedType);
+        final var factory = properties.getSerializerFactories().get(cls);
+        final var serializer = factory.apply(context);
+        if (serializer == null) {
+            String msg = "Serializer factories must not return null.";
+            throw new ConfigurationException(msg);
+        }
+        return serializer;
     }
 
     private Serializer<?, ?> selectForClass(AnnotatedType annotatedType) {
