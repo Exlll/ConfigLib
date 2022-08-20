@@ -539,7 +539,7 @@ class SerializerSelectorTest {
         }
 
         @Test
-        void selectCustomSerializerfieldAsElement() {
+        void selectCustomSerializerForField() {
             var serializer = SELECTOR.select(fieldAsElement(Z.class, "string"));
             assertThat(serializer, instanceOf(IdentitySerializer.class));
         }
@@ -689,6 +689,63 @@ class SerializerSelectorTest {
 
             @Override
             public String deserialize(String element) {return null;}
+        }
+
+        @Test
+        void selectCustomSerializerWithOnUnsupportedTypes() {
+            record Box<T>(T element) {}
+
+            @SuppressWarnings("rawtypes")
+            final class UnsupportedTypes<T> {
+                @SerializeWith(serializer = IdentitySerializer.class)
+                Map<Point, String> mapPointString1;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                Map<List<String>, String> mapListStringString;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                Box<String> boxString;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                List<? extends String> listWildcardExtendsString;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                List<?> listWildcard;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                List<?>[] arrayListWildcard;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                T typeVariable;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                List listRaw;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                List[] arrayListRaw;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                List<String>[] arrayListString;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                Set<Integer>[] arraySetInteger;
+                @SerializeWith(serializer = IdentitySerializer.class)
+                Map<Byte, Byte>[] arrayMapByteByte;
+            }
+
+            final class Config {
+                @SerializeWith(serializer = IdentitySerializer.class)
+                UnsupportedTypes<Point> unsupportedTypes;
+            }
+
+            assertInstanceOfIdentitySerializer(Config.class, "unsupportedTypes");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "mapPointString1");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "mapListStringString");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "boxString");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "listWildcardExtendsString");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "listWildcard");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "arrayListWildcard");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "typeVariable");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "listRaw");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "arrayListRaw");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "arrayListString");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "arraySetInteger");
+            assertInstanceOfIdentitySerializer(UnsupportedTypes.class, "arrayMapByteByte");
+        }
+
+        static void assertInstanceOfIdentitySerializer(Class<?> type, String fieldName) {
+            var serializer = SELECTOR.select(fieldAsElement(type, fieldName));
+            assertThat(serializer, instanceOf(IdentitySerializer.class));
         }
     }
 

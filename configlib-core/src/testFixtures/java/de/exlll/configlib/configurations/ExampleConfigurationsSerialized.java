@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import static de.exlll.configlib.TestUtils.*;
-import static java.util.Arrays.asList;
 
 public final class ExampleConfigurationsSerialized {
     public static final Map<String, ?> EXAMPLE_CONFIGURATION_B1_1 = entriesAsMap(
@@ -498,5 +497,74 @@ public final class ExampleConfigurationsSerialized {
             entry("setNullInteger", List.of(1L)),
             entry("mapNullEnmKey", entriesAsMap(entry("A", "2"))),
             entry("mapNullBigIntegerValue", entriesAsMap(entry("B", "1")))
+    );
+
+    private static final Map<String, ?> POLY1_1 = asMap(
+            "type", "de.exlll.configlib.configurations.ExampleConfigurationCustom$Poly1Impl1",
+            "i", 10L
+    );
+    private static final Map<String, ?> POLY1_2 = asMap(
+            "type", "de.exlll.configlib.configurations.ExampleConfigurationCustom$Poly1Impl2",
+            "s", "s"
+    );
+    private static final Map<String, ?> POLY2_1 = asMap(
+            "==", "POLY2_IMPL1",
+            "i", 10L
+    );
+    private static final Map<String, ?> POLY2_2 = asMap(
+            "==", "POLY2_IMPL2",
+            "s", "s"
+    );
+    private static final Map<String, ?> POLY3_1 = asMap(
+            "type", "de.exlll.configlib.configurations.ExampleConfigurationCustom$Poly3Impl1",
+            "d", 20d,
+            "i", 10L
+    );
+    private static final Map<String, ?> POLY3_2 = asMap(
+            "type", "de.exlll.configlib.configurations.ExampleConfigurationCustom$Poly3Impl2",
+            "d", 20d,
+            "s", "s"
+    );
+    private static final Map<String, ?> POLY4 = asMap(
+            "type", "de.exlll.configlib.configurations.ExampleConfigurationCustom$Poly4",
+            "d", 20d
+    );
+    private static final Map<String, ?> POLY4_1 = asMap(
+            "type", "de.exlll.configlib.configurations.ExampleConfigurationCustom$Poly4Impl1",
+            "d", 20d,
+            "i", 10L
+    );
+    private static final Map<String, ?> POLY4_2 = asMap(
+            "type", "de.exlll.configlib.configurations.ExampleConfigurationCustom$Poly4Impl2",
+            "d", 20d,
+            "s", "s"
+    );
+    private static final Map<String, ?> POLY5 = asMap(
+            "type", "de.exlll.configlib.configurations.ExampleConfigurationCustom$Poly5",
+            "d", 20d
+    );
+
+    public static final Map<String, ?> EXAMPLE_CONFIGURATION_CUSTOM = entriesAsMap(
+            entry("listListString0", asList(asList("1"))),
+            entry("listListString1", asList(asList("1"), asList("1"))),
+            entry("listListString2", asList(asList("1", "1"))),
+            entry("listListString3", asList(asList("11"))),
+            entry("listListString4", asList(asList("1"))),
+            entry("mapIntegerMapIntegerString0", asMap(1L, asMap(2L, "3"))),
+            entry("mapIntegerMapIntegerString1", asMap(2, asMap(2, "3"))),
+            entry("mapIntegerMapIntegerString2", asMap(1L, asMap(4, "3"))),
+            entry("mapIntegerMapIntegerString3", asMap(1L, asMap(2L, "33"))),
+            entry("mapIntegerMapIntegerString4", asMap(1L, asMap(2L, "3"))),
+            entry("poly1_1", POLY1_1),
+            entry("poly2_1", POLY2_1),
+            entry("poly3_1", POLY3_1),
+            entry("poly4", POLY4),
+            entry("poly4_1", POLY4_1),
+            entry("poly5", POLY5),
+            entry("listSetPoly1", asList(asList(POLY1_1), asList(POLY1_1, POLY1_2))),
+            entry("listSetPoly2", asList(asList(POLY2_1), asList(POLY2_1, POLY2_2))),
+            entry("listSetPoly3", asList(asList(POLY3_1), asList(POLY3_1, POLY3_2))),
+            entry("listSetPoly4", asList(asList(POLY4), asList(POLY4_1, POLY4_2))),
+            entry("listSetPoly5", asList(asList(POLY5), asList(POLY5)))
     );
 }

@@ -2,6 +2,7 @@ package de.exlll.configlib;
 
 import com.google.common.jimfs.Jimfs;
 import de.exlll.configlib.configurations.ExampleConfigurationA2;
+import de.exlll.configlib.configurations.ExampleConfigurationCustom;
 import de.exlll.configlib.configurations.ExampleConfigurationNulls;
 import de.exlll.configlib.configurations.ExampleInitializer;
 import org.junit.jupiter.api.AfterEach;
@@ -14,21 +15,9 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static de.exlll.configlib.configurations.ExampleEqualityAsserter.assertExampleConfigurationsA2Equal;
-import static de.exlll.configlib.configurations.ExampleEqualityAsserter.assertExampleConfigurationsNullsEqual;
+import static de.exlll.configlib.configurations.ExampleEqualityAsserter.*;
 
 final class ExampleConfigurationYamlTests {
-    private static final ConfigurationProperties PROPERTIES_ALLOW_NULL = ConfigurationProperties.newBuilder()
-            .addSerializer(Point.class, TestUtils.POINT_SERIALIZER)
-            .outputNulls(true)
-            .inputNulls(true)
-            .build();
-    private static final ConfigurationProperties PROPERTIES_DENY_NULL = ConfigurationProperties.newBuilder()
-            .addSerializer(Point.class, TestUtils.POINT_SERIALIZER)
-            .outputNulls(false)
-            .inputNulls(false)
-            .build();
-
     private final FileSystem fs = Jimfs.newFileSystem();
     private final Path yamlFile = fs.getPath("/tmp/config.yml");
 
@@ -80,5 +69,15 @@ final class ExampleConfigurationYamlTests {
         store.save(cfg1, yamlFile);
         ExampleConfigurationNulls cfg2 = store.load(yamlFile);
         assertExampleConfigurationsNullsEqual(cfg1, cfg2);
+    }
+
+    @Test
+    void yamlStoreSavesAndLoadsExampleConfigurationCustom() {
+        var properties = YamlConfigurationProperties.newBuilder().build();
+        var store = new YamlConfigurationStore<>(ExampleConfigurationCustom.class, properties);
+        ExampleConfigurationCustom config1 = new ExampleConfigurationCustom();
+        store.save(config1, yamlFile);
+        ExampleConfigurationCustom config2 = store.load(yamlFile);
+        assertExampleConfigurationsCustomEqual(config1, config2);
     }
 }

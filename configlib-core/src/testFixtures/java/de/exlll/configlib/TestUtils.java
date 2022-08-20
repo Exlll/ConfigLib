@@ -131,16 +131,38 @@ public final class TestUtils {
             implements Serializer<Object, Object> {
 
         @Override
-            public Object serialize(Object element) {
-                return element;
-            }
-
-            @Override
-            public Object deserialize(Object element) {
-                return element;
-            }
+        public Object serialize(Object element) {
+            return element;
         }
 
+        @Override
+        public Object deserialize(Object element) {
+            return element;
+        }
+    }
+
+    public record ThrowingSerializer(SerializerContext context)
+            implements Serializer<Object, Object> {
+
+        public ThrowingSerializer {
+            throw new UnsupportedOperationException(context.toString());
+        }
+
+        @Override
+        public Object serialize(Object element) {
+            throw new UnsupportedOperationException(element.toString());
+        }
+
+        @Override
+        public Object deserialize(Object element) {
+            throw new UnsupportedOperationException(element.toString());
+        }
+    }
+
+    @SafeVarargs
+    public static <E> List<E> asList(E... elements) {
+        return new ArrayList<>(Arrays.asList(elements));
+    }
 
     @SafeVarargs
     public static <E> Set<E> asSet(E... elements) {

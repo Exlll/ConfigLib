@@ -254,4 +254,25 @@ class ExampleConfigurationTests {
         ExampleRecord2 deserialize2 = serializer.deserialize(EXAMPLE_RECORD2_2);
         assertExampleRecord2Equal(ExampleInitializer.EXAMPLE_RECORD2_2, deserialize2);
     }
+
+    @Test
+    void serializeExampleConfigurationCustom() {
+        ConfigurationSerializer<ExampleConfigurationCustom> serializer =
+                new ConfigurationSerializer<>(ExampleConfigurationCustom.class, PROPERTIES_ALLOW_NULL);
+
+        ExampleConfigurationCustom config = new ExampleConfigurationCustom();
+        Map<?, ?> serialized = serializer.serialize(config);
+        assertEquals(EXAMPLE_CONFIGURATION_CUSTOM, serialized);
+    }
+
+    @Test
+    void deserializeExampleConfigurationCustom() {
+        ConfigurationSerializer<ExampleConfigurationCustom> serializer =
+                new ConfigurationSerializer<>(ExampleConfigurationCustom.class, PROPERTIES_ALLOW_NULL);
+
+        assertExampleConfigurationsCustomEqual(
+                serializer.deserialize(EXAMPLE_CONFIGURATION_CUSTOM),
+                new ExampleConfigurationCustom()
+        );
+    }
 }

@@ -80,7 +80,7 @@ public final class Example {
         var configFile = Paths.get("/tmp/config.yml");
         var config = new UserConfiguration();
 
-        // Save a new instance to the configuration file
+        // Save an instance to the configuration file
         YamlConfigurations.save(configFile, UserConfiguration.class, config);
 
         // Load a new instance from the configuration file
@@ -88,7 +88,7 @@ public final class Example {
         System.out.println(config.admin.username);
         System.out.println(config.blockedUsers);
 
-        // Modify and save the configuration file
+        // Modify the configuration and save it again
         config.blockedUsers.add(new User("user3", "pass3"));
         YamlConfigurations.save(configFile, UserConfiguration.class, config);
     }
@@ -446,8 +446,8 @@ missing. That can happen, for example, when somebody deleted that value from the
 when you add configuration elements to your configuration type, or when the `NameFormatter` that
 was used to create that file is replaced.
 
-In such cases, fields of configuration types keep the default value you assigned to them and record
-components are initialized with the default value of their corresponding type.
+In such cases, fields of configuration classes keep the default value you assigned to them and
+record components are initialized with the default value of their corresponding type.
 
 #### Null values
 
@@ -792,7 +792,7 @@ public final class RecursiveTypDefinitions {
 
 </details>
 
-## Project structure
+## Project and repository structure
 
 This project contains three classes of modules:
 
@@ -810,6 +810,13 @@ This project contains three classes of modules:
     * The `configlib-paper` module additionally contains the `ConfigLib.BUKKIT_DEFAULT_PROPERTIES`
       object which adds support for the serialization of Bukkit classes like `ItemStack` as
       described [here](#support-for-bukkit-classes-like-itemstack).
+
+The GitHub repository of this project uses two branches:
+
+* The `master` branch contains the functionality of the latest release version.
+* The `dev` branch contains the newest, possibly unstable features and refactorings.
+
+If you plan to contribute to this project, please base your commits on the `dev` branch.
 
 ## Import
 
@@ -876,7 +883,9 @@ dependencies { implementation("com.github.Exlll.ConfigLib:configlib-yaml:v4.1.0"
 </details>
 
 <details>
- <summary>Import via GitHub</summary>
+ <summary>
+    Import via GitHub
+ </summary>
 
 Importing via GitHub requires authentication. Check
 this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have any trouble with that.

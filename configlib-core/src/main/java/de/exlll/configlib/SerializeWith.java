@@ -75,7 +75,8 @@ public @interface SerializeWith {
      *
      * @return the type of serializer to use
      */
-    Class<? extends Serializer<?, ?>> serializer();
+    @SuppressWarnings("rawtypes")
+    Class<? extends Serializer> serializer();
 
     /**
      * Returns the nesting level at which to apply the serializer.

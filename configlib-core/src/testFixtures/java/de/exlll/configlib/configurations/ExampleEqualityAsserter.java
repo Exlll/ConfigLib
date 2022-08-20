@@ -489,6 +489,36 @@ public final class ExampleEqualityAsserter {
         assertEquals(b2_2, b2_1);
     }
 
+    public static void assertExampleConfigurationsCustomEqual(
+            ExampleConfigurationCustom c1,
+            ExampleConfigurationCustom c2
+    ) {
+        assertThat(c1.getListListString0(), is(c2.getListListString0()));
+        assertThat(c1.getListListString1(), is(c2.getListListString1()));
+        assertThat(c1.getListListString2(), is(c2.getListListString2()));
+        assertThat(c1.getListListString3(), is(c2.getListListString3()));
+        assertThat(c1.getListListString4(), is(c2.getListListString4()));
+
+        assertThat(c1.getMapIntegerMapIntegerString0(), is(c2.getMapIntegerMapIntegerString0()));
+        assertThat(c1.getMapIntegerMapIntegerString1(), is(c2.getMapIntegerMapIntegerString1()));
+        assertThat(c1.getMapIntegerMapIntegerString2(), is(c2.getMapIntegerMapIntegerString2()));
+        assertThat(c1.getMapIntegerMapIntegerString3(), is(c2.getMapIntegerMapIntegerString3()));
+        assertThat(c1.getMapIntegerMapIntegerString4(), is(c2.getMapIntegerMapIntegerString4()));
+
+        assertThat(c1.getPoly1_1(), is(c2.getPoly1_1()));
+        assertThat(c1.getPoly2_1(), is(c2.getPoly2_1()));
+        assertThat(c1.getPoly3_1(), is(c2.getPoly3_1()));
+        assertThat(c1.getPoly4(), is(c2.getPoly4()));
+        assertThat(c1.getPoly4_1(), is(c2.getPoly4_1()));
+        assertThat(c1.getPoly5(), is(c2.getPoly5()));
+
+        assertThat(c1.getListSetPoly1(), is(c2.getListSetPoly1()));
+        assertThat(c1.getListSetPoly2(), is(c2.getListSetPoly2()));
+        assertThat(c1.getListSetPoly3(), is(c2.getListSetPoly3()));
+        assertThat(c1.getListSetPoly4(), is(c2.getListSetPoly4()));
+        assertThat(c1.getListSetPoly5(), is(c2.getListSetPoly5()));
+    }
+
     public static <T, C extends Collection<T[]>> void assertDeepEquals(
             C collection1,
             C collection2,
