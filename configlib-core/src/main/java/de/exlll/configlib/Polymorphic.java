@@ -13,7 +13,8 @@ import java.lang.annotation.Target;
  * <p>
  * For correct deserialization, if an instance of polymorphic type (or one of its implementations /
  * subclasses) is serialized, an additional property that holds type information is added to its
- * serialization.
+ * serialization. The type information can be customized using the {@link PolymorphicTypes}
+ * annotation.
  *
  * <pre>
  * {@code
@@ -39,6 +40,8 @@ import java.lang.annotation.Target;
  * List<B> bs = List.of(new Impl1(...), new Impl2(...), ...);
  * }
  * </pre>
+ *
+ * @see PolymorphicTypes
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

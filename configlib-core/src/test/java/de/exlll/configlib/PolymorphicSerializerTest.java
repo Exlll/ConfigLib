@@ -80,6 +80,111 @@ class PolymorphicSerializerTest {
         );
     }
 
+    static final class PolymorphicTypesTest {
+        @Polymorphic
+        @PolymorphicTypes({
+                @PolymorphicTypes.Type(type = Impl1.class, alias = "IMPL_1"),
+                @PolymorphicTypes.Type(type = Impl2.class, alias = "IMPL_2"),
+                @PolymorphicTypes.Type(type = Impl3.class, alias = " "), // blank alias
+                /* @PolymorphicTypes.Type(type = Impl4.class) */         // missing
+        })
+        interface A {}
+
+        record Impl1(int i) implements A {}
+
+        record Impl2(double d) implements A {}
+
+        record Impl3(String s) implements A {}
+
+        record Impl4(long l) implements A {}
+
+        record Config(List<A> as) {}
+
+        @Test
+        void serializeUsesTypeAliasIfPresent() {
+            @SuppressWarnings("unchecked")
+            var serializer = (ListSerializer<A, ?>)
+                    SELECTOR.select(fieldAsElement(Config.class, "as"));
+            List<?> serialized = serializer.serialize(List.of(
+                    new Impl1(1),
+                    new Impl2(2d),
+                    new Impl3("3"),
+                    new Impl4(4)
+            ));
+            assertThat(serialized, is(List.of(
+                    asMap("type", "IMPL_1", "i", 1L),
+                    asMap("type", "IMPL_2", "d", 2d),
+                    asMap("type", Impl3.class.getName(), "s", "3"),
+                    asMap("type", Impl4.class.getName(), "l", 4L)
+            )));
+        }
+
+        @Test
+        void deserializeUsesTypeAliasIfPresent() {
+            @SuppressWarnings("unchecked")
+            var serializer = (ListSerializer<?, Map<?, ?>>)
+                    SELECTOR.select(fieldAsElement(Config.class, "as"));
+            List<?> serialized = serializer.deserialize(List.of(
+                    asMap("type", "IMPL_1", "i", 1L),
+                    asMap("type", "IMPL_2", "d", 2d),
+                    asMap("type", Impl3.class.getName(), "s", "3"),
+                    asMap("type", Impl4.class.getName(), "l", 4L)
+            ));
+            assertThat(serialized.size(), is(4));
+            assertThat(serialized.get(0), is(new Impl1(1)));
+            assertThat(serialized.get(1), is(new Impl2(2)));
+            assertThat(serialized.get(2), is(new Impl3("3")));
+            assertThat(serialized.get(3), is(new Impl4(4)));
+        }
+
+        @Test
+        void typesMustNotAppearMoreThanOnce() {
+            @Polymorphic
+            @PolymorphicTypes({
+                    @PolymorphicTypes.Type(type = Impl1.class, alias = "1a"),
+                    @PolymorphicTypes.Type(type = Impl1.class, alias = "1b")
+            })
+            interface E {}
+            record Config(E e) {}
+
+            RuntimeException exception = Assertions.assertThrows(
+                    RuntimeException.class,
+                    () -> SELECTOR.select(fieldAsElement(Config.class, "e"))
+            );
+            ConfigurationException configurationException = (ConfigurationException)
+                    exception.getCause().getCause();
+            Assertions.assertEquals(
+                    "The @PolymorphicTypes annotation must not contain multiple definitions for " +
+                    "the same subtype. Type '%s' appears more than once."
+                            .formatted(Impl1.class.getName()),
+                    configurationException.getMessage()
+            );
+        }
+
+        @Test
+        void aliasesMustNotAppearMoreThanOnce() {
+            @Polymorphic
+            @PolymorphicTypes({
+                    @PolymorphicTypes.Type(type = Impl1.class, alias = "2"),
+                    @PolymorphicTypes.Type(type = Impl2.class, alias = "2")
+            })
+            interface E {}
+            record Config(E e) {}
+
+            RuntimeException exception = Assertions.assertThrows(
+                    RuntimeException.class,
+                    () -> SELECTOR.select(fieldAsElement(Config.class, "e"))
+            );
+            ConfigurationException configurationException = (ConfigurationException)
+                    exception.getCause().getCause();
+            Assertions.assertEquals(
+                    "The @PolymorphicTypes annotation must not use the same alias for multiple " +
+                    "types. Alias '2' appears more than once.",
+                    configurationException.getMessage()
+            );
+        }
+    }
+
     static final class PolymorphicSerializerPropertyTest {
         private static final String CUSTOM_PROPERTY = DEFAULT_PROPERTY + DEFAULT_PROPERTY;
 
@@ -90,8 +195,6 @@ class PolymorphicSerializerTest {
         interface B {}
 
         record R(int i) implements A {}
-
-        record S(int i) implements B {}
 
         record Config(A a, B b, List<A> as, List<B> bs) {}
 
