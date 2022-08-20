@@ -541,10 +541,11 @@ instances of `B` (or some other subclass of `A`) in it.
 </details>
 
 You can override the default selection by annotating a configuration
-element with [`@SerializeWith`](#the-serializewith-annotation) or by adding your own serializer
-for `S` to the configuration properties. When you do so, it can happen that there multiple
-serializers available for a particular configuration element and its type. In that case, one of them
-chosen according to the following precedence rules:
+element with [`@SerializeWith`](#the-serializewith-annotation), by annotating a type
+with `@SerializeWith`, or by adding your own serializer for `S` to the configuration properties.
+When you do so, it can happen that there multiple serializers available for a particular
+configuration element and its type. In that case, one of them chosen according to the following
+precedence rules:
 
 1. If the element is annotated with `@SerializeWith` and the `nesting` matches, the serializer
    referenced by the annotation is selected.
@@ -552,28 +553,38 @@ chosen according to the following precedence rules:
    serializer is returned.
     * Serializers created by factories that were added through `addSerializerFactory` for some type
       take precedence over serializers added by `addSerializer` for the same type.
-3. Otherwise, if this library defines a serializer for that type, that serializer is selected.
-4. Ultimately, if no serializer can be found, an exception is thrown.
+3. If the type is annotated `@SerializeWith`, the serializer referenced by the annotation is
+   selected.
+4. If the type is annotated with an annotation which is annotated with `@SerializeWith`, the
+   serializer referenced by `@SerializeWith` is returned.
+5. If this library defines a serializer for that type, that serializer is selected.
+6. Ultimately, if no serializer can be found, an exception is thrown.
 
-For lists, sets, and maps, the algorithm is recursively applied to their generic type arguments
-recursively first.
+For lists, sets, and maps, the algorithm is applied to their generic type arguments recursively
+first.
 
 ##### The `SerializeWith` annotation
 
-The `SerializeWith` annotation can be applied to configuration elements (i.e. class fields and
-record components) and enforces the use of the specified serializer for that element.
+The `SerializeWith` annotation enforces the use of the specified serializer for a configuration
+element or type. It can be applied to configuration elements (i.e. class fields and
+record components), to types, and to other annotations.
 
 ```java 
 @SerializeWith(serializer = MyPointSerializer.class)
 Point point;
 ```
 
-The serializer referenced by this annotation is selected regardless of whether the type of the
-configuration element matches the type the serializer expects.
+```java 
+@SerializeWith(serializer = SomeClassSerializer.class)
+public final class SomeClass {/* ... */} 
+```
 
-If the configuration element is an array, list, set, or map a nesting level can be set to apply the
-serializer not to the top-level type but to its elements. For maps, the serializer is applied to
-the values and not the keys.
+The serializer referenced by this annotation is selected regardless of whether the annotated type or
+type of configuration element matches the type the serializer expects.
+
+If the annotation is applied to a configuration element and that element is an array, list, set, or
+map, a nesting level can be set to apply the serializer not to the top-level type but to its
+elements. For maps, the serializer is applied to the values and not the keys.
 
 ```java 
 @SerializeWith(serializer = MySetSerializer.class, nesting = 1)
@@ -581,7 +592,8 @@ List<Set<String>> list;
 ```
 
 Setting `nesting` to an invalid value, i.e. a negative one or one that is greater than the number
-of levels the element actually has, results in the serializer not being selected.
+of levels the element actually has, results in the serializer not being selected. For type
+annotations, the `nesting` has no effect.
 
 <details>
  <summary>More <code>nesting</code> examples</summary>
@@ -643,10 +655,10 @@ interface you have to make sure that you convert your source type into one of th
 listed in [type conversion](#type-conversion-and-serializer-selection) section.
 
 The serializer then has to be registered through a `ConfigurationProperties` object or alternatively
-be applied to a configuration element with [`@SerializeWith`](#the-serializewith-annotation). If you
-want to use the `@SerializeWith` annotation, your serializer class must either have a constructor
-with no parameters or one with exactly one parameter of
-type [`SerializerContext`](#the-serializercontext-interface).
+be applied to a configuration element or type
+with [`@SerializeWith`](#the-serializewith-annotation). If you want to use the `@SerializeWith`
+annotation, your serializer class must either have a constructor with no parameters or one with
+exactly one parameter of type [`SerializerContext`](#the-serializercontext-interface).
 
 The following `Serializer` serializes instances of `java.awt.Point` into strings and vice versa.
 

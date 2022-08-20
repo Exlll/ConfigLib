@@ -223,11 +223,23 @@ final class Reflect {
         return Map.class.isAssignableFrom(cls);
     }
 
-    static boolean isConfiguration(Class<?> cls) {
+    static boolean isConfigurationClass(Class<?> cls) {
         return cls.getAnnotation(Configuration.class) != null;
+    }
+
+    static boolean isConfigurationType(Class<?> type) {
+        return type.isRecord() || (type.getAnnotation(Configuration.class) != null);
     }
 
     static boolean isIgnored(Field field) {
         return field.getAnnotation(Ignore.class) != null;
+    }
+
+    static Class<?> getClassByName(String className) {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

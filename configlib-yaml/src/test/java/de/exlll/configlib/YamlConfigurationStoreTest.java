@@ -36,6 +36,41 @@ class YamlConfigurationStoreTest {
     }
 
     @Test
+    void saveRequiresNonNullArguments() {
+        YamlConfigurationStore<A> store = newDefaultStore(A.class);
+
+        assertThrowsNullPointerException(
+                () -> store.save(null, yamlFile),
+                "configuration"
+        );
+
+        assertThrowsNullPointerException(
+                () -> store.save(new A(), null),
+                "configuration file"
+        );
+    }
+
+    @Test
+    void loadRequiresNonNullArguments() {
+        YamlConfigurationStore<A> store = newDefaultStore(A.class);
+
+        assertThrowsNullPointerException(
+                () -> store.load(null),
+                "configuration file"
+        );
+    }
+
+    @Test
+    void updateRequiresNonNullArguments() {
+        YamlConfigurationStore<A> store = newDefaultStore(A.class);
+
+        assertThrowsNullPointerException(
+                () -> store.update(null),
+                "configuration file"
+        );
+    }
+
+    @Test
     void save() {
         YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
                 .header("The\nHeader")

@@ -3,12 +3,12 @@ package de.exlll.configlib;
 import java.lang.annotation.*;
 
 /**
- * Indicates that the annotated element should be serialized with the given serializer. Serializers
- * provided by this annotation take precedence over all other serializers.
+ * Indicates that the annotated configuration element or type should be serialized using the
+ * referenced serializer.
  * <p>
- * If the annotated element is an array, list, set, or map a nesting level can be set to apply the
- * serializer not to the top-level type but to its elements. For maps, the serializer is applied to
- * the values and not the keys.
+ * If this annotation is applied to a configuration element, and that element is an array, list,
+ * set, or map a nesting level can be set to apply the serializer not to the top-level type but to
+ * its elements. For maps, the serializer is applied to the values and not the keys.
  * <p>
  * The following example shows how {@code nesting} can be used to apply the serializer at
  * different levels.
@@ -58,6 +58,9 @@ public @interface SerializeWith {
 
     /**
      * Returns the nesting level at which to apply the serializer.
+     * <p>
+     * If this annotation is applied to a type or another annotation, the value
+     * returned by this method has no effect.
      *
      * @return the nesting level
      */

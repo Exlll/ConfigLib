@@ -262,4 +262,9 @@ public final class TestUtils {
             throw new RuntimeException(e);
         }
     }
+
+    public static ConfigurationElement<?> fieldAsElement(Class<?> type, String fieldName) {
+        Field field = getField(type, fieldName);
+        return new ConfigurationElements.FieldElement(field);
+    }
 }

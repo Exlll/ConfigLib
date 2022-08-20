@@ -18,9 +18,9 @@ final class Validator {
         return element;
     }
 
-    static <T> Class<T> requireConfiguration(Class<T> cls) {
+    static <T> Class<T> requireConfigurationClass(Class<T> cls) {
         requireNonNull(cls, "type");
-        if (!Reflect.isConfiguration(cls)) {
+        if (!Reflect.isConfigurationClass(cls)) {
             String msg = "Class '" + cls.getSimpleName() + "' must be a configuration.";
             throw new ConfigurationException(msg);
         }
@@ -36,13 +36,13 @@ final class Validator {
         return cls;
     }
 
-    static <T> Class<T> requireConfigurationOrRecord(Class<T> cls) {
-        requireNonNull(cls, "type");
-        if (!Reflect.isConfiguration(cls) && !cls.isRecord()) {
-            String msg = "Class '" + cls.getSimpleName() + "' must be a configuration or record.";
+    static <T> Class<T> requireConfigurationType(Class<T> type) {
+        requireNonNull(type, "type");
+        if (!Reflect.isConfigurationType(type)) {
+            String msg = "Class '" + type.getSimpleName() + "' must be a configuration or record.";
             throw new ConfigurationException(msg);
         }
-        return cls;
+        return type;
     }
 
     static void requirePrimitiveOrWrapperNumberType(Class<?> cls) {

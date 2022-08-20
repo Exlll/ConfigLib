@@ -233,11 +233,29 @@ class ReflectTest {
         @Configuration
         class C {}
         class D extends C {}
+        record R() {}
 
-        assertThat(Reflect.isConfiguration(A.class), is(false));
-        assertThat(Reflect.isConfiguration(B.class), is(false));
-        assertThat(Reflect.isConfiguration(C.class), is(true));
-        assertThat(Reflect.isConfiguration(D.class), is(true));
+        assertThat(Reflect.isConfigurationClass(A.class), is(false));
+        assertThat(Reflect.isConfigurationClass(B.class), is(false));
+        assertThat(Reflect.isConfigurationClass(C.class), is(true));
+        assertThat(Reflect.isConfigurationClass(D.class), is(true));
+        assertThat(Reflect.isConfigurationClass(R.class), is(false));
+    }
+
+    @Test
+    void isConfigurationType() {
+        class A {}
+        class B extends A {}
+        @Configuration
+        class C {}
+        class D extends C {}
+        record R() {}
+
+        assertThat(Reflect.isConfigurationType(A.class), is(false));
+        assertThat(Reflect.isConfigurationType(B.class), is(false));
+        assertThat(Reflect.isConfigurationType(C.class), is(true));
+        assertThat(Reflect.isConfigurationType(D.class), is(true));
+        assertThat(Reflect.isConfigurationType(R.class), is(true));
     }
 
     @Test

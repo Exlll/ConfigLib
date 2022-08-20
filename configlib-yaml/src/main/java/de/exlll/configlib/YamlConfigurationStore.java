@@ -49,6 +49,8 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
 
     @Override
     public void save(T configuration, Path configurationFile) {
+        requireNonNull(configuration, "configuration");
+        requireNonNull(configurationFile, "configuration file");
         tryCreateParentDirectories(configurationFile);
         var extractedCommentNodes = extractor.extractCommentNodes(configuration);
         var yamlFileWriter = new YamlFileWriter(configurationFile, properties);
@@ -80,6 +82,7 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
 
     @Override
     public T load(Path configurationFile) {
+        requireNonNull(configurationFile, "configuration file");
         try (var reader = Files.newBufferedReader(configurationFile)) {
             var yaml = YAML_LOADER.loadFromReader(reader);
             var conf = requireYamlMap(yaml, configurationFile);
@@ -110,6 +113,7 @@ public final class YamlConfigurationStore<T> implements FileConfigurationStore<T
 
     @Override
     public T update(Path configurationFile) {
+        requireNonNull(configurationFile, "configuration file");
         if (Files.exists(configurationFile)) {
             T configuration = load(configurationFile);
             save(configuration, configurationFile);

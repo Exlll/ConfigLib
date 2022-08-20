@@ -6,7 +6,7 @@ import de.exlll.configlib.ConfigurationElements.RecordComponentElement;
 import java.lang.reflect.AnnotatedElement;
 import java.util.*;
 
-import static de.exlll.configlib.Validator.requireConfigurationOrRecord;
+import static de.exlll.configlib.Validator.requireConfigurationType;
 import static de.exlll.configlib.Validator.requireNonNull;
 
 final class CommentNodeExtractor {
@@ -35,7 +35,7 @@ final class CommentNodeExtractor {
      * @throws NullPointerException     if {@code elementHolder} is null
      */
     public Queue<CommentNode> extractCommentNodes(final Object elementHolder) {
-        requireConfigurationOrRecord(elementHolder.getClass());
+        requireConfigurationType(elementHolder.getClass());
         final Queue<CommentNode> result = new ArrayDeque<>();
         final var elementNameStack = new ArrayDeque<>(List.of(""));
         final var stateStack = new ArrayDeque<>(List.of(stateFromObject(elementHolder)));
@@ -61,9 +61,7 @@ final class CommentNodeExtractor {
                 commentNode.ifPresent(result::add);
 
                 final var elementType = element.type();
-                if ((elementValue != null) &&
-                    (Reflect.isConfiguration(elementType) ||
-                     elementType.isRecord())) {
+                if ((elementValue != null) && Reflect.isConfigurationType(elementType)) {
                     stateStack.addLast(state);
                     elementNameStack.addLast(nameFormatter.format(elementName));
                     state = stateFromObject(elementValue);

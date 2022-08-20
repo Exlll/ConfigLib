@@ -194,21 +194,14 @@ final class SerializerSelector {
             final var enumType = (Class<? extends Enum<?>>) cls;
             return new Serializers.EnumSerializer(enumType);
         }
-        if (Reflect.isArrayType(cls)) {
+        if (Reflect.isArrayType(cls))
             return selectForArray((AnnotatedArrayType) annotatedType);
-        }
-        if (cls.isRecord()) {
-            // The following cast won't fail because we just checked that it's a record.
-            @SuppressWarnings("unchecked")
-            final var recordType = (Class<? extends Record>) cls;
-            return new RecordSerializer<>(recordType, properties);
-        }
-        if (Reflect.isConfiguration(cls))
-            return new ConfigurationSerializer<>(cls, properties);
+        if (Reflect.isConfigurationType(cls))
+            return TypeSerializer.newSerializerFor(cls, properties);
 
         String msg = "Missing serializer for type " + cls + ".\n" +
-                     "Either annotate the type with @Configuration or provide a custom " +
-                     "serializer by adding it to the properties.";
+                     "Either annotate the type with @Configuration, make it a Java record, " +
+                     "or provide a custom serializer for it.";
         throw new ConfigurationException(msg);
     }
 

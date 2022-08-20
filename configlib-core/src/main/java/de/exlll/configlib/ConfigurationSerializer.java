@@ -8,7 +8,7 @@ import java.util.Map;
 
 final class ConfigurationSerializer<T> extends TypeSerializer<T, FieldElement> {
     ConfigurationSerializer(Class<T> configurationType, ConfigurationProperties properties) {
-        super(Validator.requireConfiguration(configurationType), properties);
+        super(Validator.requireConfigurationClass(configurationType), properties);
     }
 
     @Override

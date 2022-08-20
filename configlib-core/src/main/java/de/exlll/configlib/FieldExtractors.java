@@ -16,9 +16,9 @@ enum FieldExtractors implements FieldExtractor {
         @Override
         public Stream<Field> extract(Class<?> cls) {
             Validator.requireNonNull(cls, "configuration class");
-            Validator.requireConfiguration(cls);
+            Validator.requireConfigurationClass(cls);
 
-            List<Class<?>> classes = extractClassesWhile(cls, Reflect::isConfiguration);
+            List<Class<?>> classes = extractClassesWhile(cls, Reflect::isConfigurationClass);
             List<Field> fields = classes.stream()
                     .flatMap(c -> Arrays.stream(c.getDeclaredFields()))
                     .filter(FieldFilters.DEFAULT)

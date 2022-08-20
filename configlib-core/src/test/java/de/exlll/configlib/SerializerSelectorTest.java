@@ -56,11 +56,6 @@ class SerializerSelectorTest {
         return findByCondition(field -> field.getName().equals(name));
     }
 
-    private static ConfigurationElement<?> forField(Class<?> type, String fieldName) {
-        Field field = getField(type, fieldName);
-        return new ConfigurationElements.FieldElement(field);
-    }
-
     @ParameterizedTest
     @ValueSource(classes = {boolean.class, Boolean.class})
     void selectSerializerBoolean(Class<?> cls) {
@@ -248,9 +243,9 @@ class SerializerSelectorTest {
             Object object;
         }
         assertThrowsConfigurationException(
-                () -> SELECTOR.select(forField(A.class, "object")),
+                () -> SELECTOR.select(fieldAsElement(A.class, "object")),
                 "Missing serializer for type class java.lang.Object.\nEither annotate the type with " +
-                "@Configuration or provide a custom serializer by adding it to the properties."
+                "@Configuration, make it a Java record, or provide a custom serializer for it."
         );
     }
 
@@ -407,7 +402,7 @@ class SerializerSelectorTest {
         class A {
             Map<E, Set<List<E>>> mesle;
         }
-        var serializer = (MapSerializer<?, ?, ?, ?>) SELECTOR.select(forField(A.class, "mesle"));
+        var serializer = (MapSerializer<?, ?, ?, ?>) SELECTOR.select(fieldAsElement(A.class, "mesle"));
 
         var keySerializer = (EnumSerializer) serializer.getKeySerializer();
         assertThat(keySerializer.getEnumCls(), equalTo(E.class));
@@ -423,7 +418,7 @@ class SerializerSelectorTest {
         class A {
             Map<List<String>, String> mlss;
         }
-        ConfigurationElement<?> element = forField(A.class, "mlss");
+        ConfigurationElement<?> element = fieldAsElement(A.class, "mlss");
         assertThrowsConfigurationException(
                 () -> SELECTOR.select(element),
                 ("Cannot select serializer for type '%s'.\n" +
@@ -437,7 +432,7 @@ class SerializerSelectorTest {
         class A {
             Map<Point, String> mps;
         }
-        ConfigurationElement<?> element = forField(A.class, "mps");
+        ConfigurationElement<?> element = fieldAsElement(A.class, "mps");
         assertThrowsConfigurationException(
                 () -> SELECTOR.select(element),
                 ("Cannot select serializer for type '%s'.\n" +
@@ -452,7 +447,7 @@ class SerializerSelectorTest {
         class A {
             Box<String> box;
         }
-        ConfigurationElement<?> element = forField(A.class, "box");
+        ConfigurationElement<?> element = fieldAsElement(A.class, "box");
         assertThrowsConfigurationException(
                 () -> SELECTOR.select(element),
                 ("Cannot select serializer for type '%s'.\n" +
@@ -466,7 +461,7 @@ class SerializerSelectorTest {
         class A {
             List<?>[] ga;
         }
-        ConfigurationElement<?> element = forField(A.class, "ga");
+        ConfigurationElement<?> element = fieldAsElement(A.class, "ga");
         assertThrowsConfigurationException(
                 () -> SELECTOR.select(element),
                 "Cannot select serializer for type 'java.util.List<?>[]'.\n" +
@@ -479,7 +474,7 @@ class SerializerSelectorTest {
         class A {
             List<? extends String> les;
         }
-        ConfigurationElement<?> element = forField(A.class, "les");
+        ConfigurationElement<?> element = fieldAsElement(A.class, "les");
         assertThrowsConfigurationException(
                 () -> SELECTOR.select(element),
                 "Cannot select serializer for type '? extends java.lang.String'.\n" +
@@ -492,7 +487,7 @@ class SerializerSelectorTest {
         class A {
             List<?> lw;
         }
-        ConfigurationElement<?> element = forField(A.class, "lw");
+        ConfigurationElement<?> element = fieldAsElement(A.class, "lw");
         assertThrowsConfigurationException(
                 () -> SELECTOR.select(element),
                 "Cannot select serializer for type '?'.\n" +
@@ -505,7 +500,7 @@ class SerializerSelectorTest {
         class A<T> {
             T t;
         }
-        ConfigurationElement<?> element = forField(A.class, "t");
+        ConfigurationElement<?> element = fieldAsElement(A.class, "t");
         assertThrowsConfigurationException(
                 () -> SELECTOR.select(element),
                 "Cannot select serializer for type 'T'.\n" +
@@ -544,65 +539,65 @@ class SerializerSelectorTest {
         }
 
         @Test
-        void selectCustomSerializerForField() {
-            var serializer = SELECTOR.select(forField(Z.class, "string"));
+        void selectCustomSerializerfieldAsElement() {
+            var serializer = SELECTOR.select(fieldAsElement(Z.class, "string"));
             assertThat(serializer, instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForListsWithNesting0() {
-            var serializer = SELECTOR.select(forField(Z.class, "list1"));
+            var serializer = SELECTOR.select(fieldAsElement(Z.class, "list1"));
             assertThat(serializer, instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForListsWithNesting1() {
-            var serializer = (ListSerializer<?, ?>) SELECTOR.select(forField(Z.class, "list2"));
+            var serializer = (ListSerializer<?, ?>) SELECTOR.select(fieldAsElement(Z.class, "list2"));
             assertThat(serializer.getElementSerializer(), instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForListsWithNesting2() {
-            var serializer1 = (ListSerializer<?, ?>) SELECTOR.select(forField(Z.class, "list3"));
+            var serializer1 = (ListSerializer<?, ?>) SELECTOR.select(fieldAsElement(Z.class, "list3"));
             var serializer2 = (SetAsListSerializer<?, ?>) serializer1.getElementSerializer();
             assertThat(serializer2.getElementSerializer(), instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForSetsWithNesting0() {
-            var serializer = SELECTOR.select(forField(Z.class, "set1"));
+            var serializer = SELECTOR.select(fieldAsElement(Z.class, "set1"));
             assertThat(serializer, instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForSetsWithNesting1() {
-            var serializer = (SetAsListSerializer<?, ?>) SELECTOR.select(forField(Z.class, "set2"));
+            var serializer = (SetAsListSerializer<?, ?>) SELECTOR.select(fieldAsElement(Z.class, "set2"));
             assertThat(serializer.getElementSerializer(), instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForSetsWithNesting2() {
-            var serializer1 = (SetAsListSerializer<?, ?>) SELECTOR.select(forField(Z.class, "set3"));
+            var serializer1 = (SetAsListSerializer<?, ?>) SELECTOR.select(fieldAsElement(Z.class, "set3"));
             var serializer2 = (ListSerializer<?, ?>) serializer1.getElementSerializer();
             assertThat(serializer2.getElementSerializer(), instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForMapsWithNesting0() {
-            var serializer = SELECTOR.select(forField(Z.class, "map1"));
+            var serializer = SELECTOR.select(fieldAsElement(Z.class, "map1"));
             assertThat(serializer, instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForMapsWithNesting1() {
-            var serializer = (MapSerializer<?, ?, ?, ?>) SELECTOR.select(forField(Z.class, "map2"));
+            var serializer = (MapSerializer<?, ?, ?, ?>) SELECTOR.select(fieldAsElement(Z.class, "map2"));
             assertThat(serializer.getKeySerializer(), instanceOf(NumberSerializer.class));
             assertThat(serializer.getValueSerializer(), instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForMapsWithNesting2() {
-            var serializer1 = (MapSerializer<?, ?, ?, ?>) SELECTOR.select(forField(Z.class, "map3"));
+            var serializer1 = (MapSerializer<?, ?, ?, ?>) SELECTOR.select(fieldAsElement(Z.class, "map3"));
             var serializer2 = (MapSerializer<?, ?, ?, ?>) serializer1.getValueSerializer();
             assertThat(serializer2.getKeySerializer(), instanceOf(StringSerializer.class));
             assertThat(serializer2.getValueSerializer(), instanceOf(IdentitySerializer.class));
@@ -610,19 +605,19 @@ class SerializerSelectorTest {
 
         @Test
         void selectCustomSerializerForArraysWithNesting0() {
-            var serializer = SELECTOR.select(forField(Z.class, "array1"));
+            var serializer = SELECTOR.select(fieldAsElement(Z.class, "array1"));
             assertThat(serializer, instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForArraysWithNesting1() {
-            var serializer = (ArraySerializer<?, ?>) SELECTOR.select(forField(Z.class, "array2"));
+            var serializer = (ArraySerializer<?, ?>) SELECTOR.select(fieldAsElement(Z.class, "array2"));
             assertThat(serializer.getElementSerializer(), instanceOf(IdentitySerializer.class));
         }
 
         @Test
         void selectCustomSerializerForArraysWithNesting2() {
-            var serializer1 = (ArraySerializer<?, ?>) SELECTOR.select(forField(Z.class, "array3"));
+            var serializer1 = (ArraySerializer<?, ?>) SELECTOR.select(fieldAsElement(Z.class, "array3"));
             var serializer2 = (ArraySerializer<?, ?>) serializer1.getElementSerializer();
             assertThat(serializer2.getElementSerializer(), instanceOf(IdentitySerializer.class));
         }
@@ -639,10 +634,10 @@ class SerializerSelectorTest {
                 @SerializeWith(serializer = IdentitySerializer.class, nesting = 2)
                 List<String> list;
             }
-            assertThat(SELECTOR.select(forField(A.class, "s1")), instanceOf(StringSerializer.class));
-            assertThat(SELECTOR.select(forField(A.class, "s2")), instanceOf(IdentitySerializer.class));
-            assertThat(SELECTOR.select(forField(A.class, "s3")), instanceOf(StringSerializer.class));
-            var serializer = (ListSerializer<?, ?>) SELECTOR.select(forField(A.class, "list"));
+            assertThat(SELECTOR.select(fieldAsElement(A.class, "s1")), instanceOf(StringSerializer.class));
+            assertThat(SELECTOR.select(fieldAsElement(A.class, "s2")), instanceOf(IdentitySerializer.class));
+            assertThat(SELECTOR.select(fieldAsElement(A.class, "s3")), instanceOf(StringSerializer.class));
+            var serializer = (ListSerializer<?, ?>) SELECTOR.select(fieldAsElement(A.class, "list"));
             assertThat(serializer.getElementSerializer(), instanceOf(StringSerializer.class));
         }
 
@@ -653,7 +648,7 @@ class SerializerSelectorTest {
                 String s;
             }
 
-            var element = forField(A.class, "s");
+            var element = fieldAsElement(A.class, "s");
             var field = getField(A.class, "s");
             var serializer = (SerializerWithContext) SELECTOR.select(element);
             var context = serializer.ctx;
@@ -670,7 +665,7 @@ class SerializerSelectorTest {
                 List<String> l;
             }
 
-            var element = forField(A.class, "l");
+            var element = fieldAsElement(A.class, "l");
             var field = getField(A.class, "l");
             var outerSerializer = (ListSerializer<?, ?>) SELECTOR.select(element);
             var innerSerializer = (SerializerWithContext) outerSerializer.getElementSerializer();
@@ -727,7 +722,7 @@ class SerializerSelectorTest {
         @ParameterizedTest
         @ValueSource(strings = {"myType1", "myType2", "myType3", "myType4", "myType5"})
         void selectCustomSerializerForTypes(String fieldName) {
-            var element = forField(Config.class, fieldName);
+            var element = fieldAsElement(Config.class, fieldName);
             var serializer = (IdentitySerializer) SELECTOR.select(element);
             assertThat(serializer.context().element(), is(element));
         }
@@ -735,9 +730,9 @@ class SerializerSelectorTest {
         @Test
         void serializeWithNotInherited() {
             assertThrowsConfigurationException(
-                    () -> SELECTOR.select(forField(Config.class, "myType6")),
+                    () -> SELECTOR.select(fieldAsElement(Config.class, "myType6")),
                     ("Missing serializer for type %s.\nEither annotate the type with " +
-                     "@Configuration or provide a custom serializer by adding it to the properties.")
+                     "@Configuration, make it a Java record, or provide a custom serializer for it.")
                             .formatted(MyType6.class)
 
             );
@@ -750,7 +745,7 @@ class SerializerSelectorTest {
                     .addSerializer(MyType1.class, serializer)
                     .build();
             var selector = new SerializerSelector(properties);
-            var actual = (IdentifiableSerializer<?, ?>) selector.select(forField(Config.class, "myType1"));
+            var actual = (IdentifiableSerializer<?, ?>) selector.select(fieldAsElement(Config.class, "myType1"));
             assertThat(actual, sameInstance(serializer));
         }
     }
@@ -796,7 +791,7 @@ class SerializerSelectorTest {
         @ParameterizedTest
         @ValueSource(strings = {"myType1", "myType2", "myType3", "myType4", "myType5"})
         void selectCustomSerializerForTypes(String fieldName) {
-            var element = forField(Config.class, fieldName);
+            var element = fieldAsElement(Config.class, fieldName);
             var serializer = (IdentitySerializer) SELECTOR.select(element);
             assertThat(serializer.context().element(), is(element));
         }
@@ -804,9 +799,9 @@ class SerializerSelectorTest {
         @Test
         void metaSerializeWithNotInherited() {
             assertThrowsConfigurationException(
-                    () -> SELECTOR.select(forField(Config.class, "myType6")),
+                    () -> SELECTOR.select(fieldAsElement(Config.class, "myType6")),
                     ("Missing serializer for type %s.\nEither annotate the type with " +
-                     "@Configuration or provide a custom serializer by adding it to the properties.")
+                     "@Configuration, make it a Java record, or provide a custom serializer for it.")
                             .formatted(MyType6.class)
 
             );
@@ -814,7 +809,7 @@ class SerializerSelectorTest {
 
         @Test
         void metaSerializeWithHasLowerPrecedenceThanSerializeWith() {
-            var serializer = SELECTOR.select(forField(Config.class, "myType7"));
+            var serializer = SELECTOR.select(fieldAsElement(Config.class, "myType7"));
             assertThat(serializer, instanceOf(PointSerializer.class));
         }
     }
