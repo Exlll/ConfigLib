@@ -162,8 +162,9 @@ class ConfigurationProperties {
          * If this library already provides a serializer for the given type (e.g. {@code BigInteger},
          * {@code LocalDate}, etc.) the serializer created by the factory takes precedence.
          * <p>
-         * If a serializer is added via {@link #addSerializer(Class, Serializer)} method for the
-         * same type, the serializer created by the factory added by this method takes precedence.
+         * If a serializer is added via the {@link #addSerializer(Class, Serializer)} method
+         * for the same type, the serializer created by the factory that was added by this
+         * method takes precedence.
          *
          * @param serializedType    the class of the type that is serialized
          * @param serializerFactory the factory that creates a new serializer

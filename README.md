@@ -223,9 +223,9 @@ public final class UnsupportedTypes<T> {
 ```
 
 **NOTE:** Even though this library does not support these types, it is still possible to serialize
-them by providing a custom serializer via
-[the `@SerializeWith` annotation](#the-serializewith-annotation). That serializer then has to
-be applied to top-level type (i.e. `nesting` must be set to `0`, which is the default).
+them by providing a custom serializer via the [`@SerializeWith`](#the-serializewith-annotation)
+annotation. That serializer then has to be applied to top-level type (i.e. `nesting` must be set
+to `0`, which is the default).
 
 </details>
 
@@ -644,6 +644,43 @@ Map<Integer, Map<String, Double>> map;
 
 </details>
 
+#### The `@Polymorphic` annotation
+
+The `@Polymorphic` annotation indicates that the annotated type is polymorphic. Serializers for
+polymorphic types are not selected based on the compile-time types of configuration elements, but
+instead are chosen at runtime based on the actual types of their values.
+
+This enables adding instances of subclasses / implementations of a polymorphic type to collections.
+The subtypes must be valid configurations.
+
+```java 
+@Polymorphic
+@Configuration
+static abstract class A { ... }
+
+static final class Impl1 extends A { ... }
+static final class Impl2 extends A { ... }
+    
+List<A> as = List.of(new Impl1(...), new Impl2(...), ...); 
+```
+
+For correct deserialization, if an instance of polymorphic type (or one of its implementations /
+subclasses) is serialized, an additional property that holds type information is added to its
+serialization. By default, that type information is the Java class name of the actual type. It is
+possible to provide type aliases by using the `PolymorphicTypes` annotation.
+
+```java 
+@Polymorphic
+@PolymorphicTypes({
+        @PolymorphicTypes.Type(type = Impl1.class, alias = "IMPL_1"),
+        @PolymorphicTypes.Type(type = Impl2.class, alias = "IMPL_2")
+})
+interface B { ... }
+
+record Impl1(...) implements B { ... }
+record Impl2(...) implements B { ... }
+```
+
 ### Custom serializers
 
 If you want to add support for a type that is not a Java record or whose class is not annotated
@@ -691,8 +728,8 @@ Instances of the `SerializerContext` interface contain contextual information fo
 serializers. A context object gives access to the configuration properties, configuration element,
 and the annotated type for which the serializer was selected.
 
-The context object can be accessed when adding a serializer factory through
-the `addSerializerFactory` method:
+Context objects can be obtained when adding serializer factories through the `addSerializerFactory`
+method:
 
 ```java
 public final class PointSerializer implements Serializer<Point, String> {
