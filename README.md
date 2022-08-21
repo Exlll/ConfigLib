@@ -862,7 +862,7 @@ with `configlib-paper` (see [here](#support-for-bukkit-classes-like-itemstack)).
 <dependency>
     <groupId>com.github.Exlll.ConfigLib</groupId>
     <artifactId>configlib-yaml</artifactId>
-    <version>v4.1.0</version>
+    <version>v4.2.0</version>
 </dependency>
 ```
 
@@ -871,13 +871,13 @@ with `configlib-paper` (see [here](#support-for-bukkit-classes-like-itemstack)).
 ```groovy
 repositories { maven { url 'https://jitpack.io' } }
 
-dependencies { implementation 'com.github.Exlll.ConfigLib:configlib-yaml:v4.1.0' }
+dependencies { implementation 'com.github.Exlll.ConfigLib:configlib-yaml:v4.2.0' }
 ```
 
 ```kotlin
 repositories { maven { url = uri("https://jitpack.io") } }
 
-dependencies { implementation("com.github.Exlll.ConfigLib:configlib-yaml:v4.1.0") }
+dependencies { implementation("com.github.Exlll.ConfigLib:configlib-yaml:v4.2.0") }
 ```
 
 </details>
@@ -901,7 +901,7 @@ this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have any troub
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-yaml</artifactId>
-    <version>4.1.0</version>
+    <version>4.2.0</version>
 </dependency>
 ```
 
@@ -910,13 +910,13 @@ this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have any troub
 ```groovy
 repositories { maven { url 'https://maven.pkg.github.com/Exlll/ConfigLib' } }
 
-dependencies { implementation 'de.exlll:configlib-yaml:4.1.0' }
+dependencies { implementation 'de.exlll:configlib-yaml:4.2.0' }
 ```
 
 ```kotlin
 repositories { maven { url = uri("https://maven.pkg.github.com/Exlll/ConfigLib") } }
 
-dependencies { implementation("de.exlll:configlib-yaml:4.1.0") }
+dependencies { implementation("de.exlll:configlib-yaml:4.2.0") }
 ```
 
 </details>

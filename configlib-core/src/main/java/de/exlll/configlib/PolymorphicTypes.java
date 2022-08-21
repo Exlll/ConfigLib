@@ -12,12 +12,11 @@ import java.lang.annotation.Target;
  * <pre>
  * {@code
  * @Polymorphic
- * @PolymorphicTypes({
+ * @PolymorphicTypes( {
  *         @PolymorphicTypes.Type(type = Impl1.class, alias = "IMPL_1"),
  *         @PolymorphicTypes.Type(type = Impl2.class, alias = "IMPL_2")
- * }
- * <code>})</code>
- * {@code
+ * })
+ *
  * interface A { ... }
  *
  * record Impl1(...) implements A { ... }

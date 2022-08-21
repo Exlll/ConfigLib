@@ -23,13 +23,13 @@ repositories {
 }
 
 dependencies {
-    testFixturesApi("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testFixturesApi("org.junit.jupiter:junit-jupiter-params:5.8.2")
-    testFixturesApi("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-    testFixturesApi("org.junit.platform:junit-platform-runner:1.8.2")
-    testFixturesApi("org.junit.platform:junit-platform-suite-api:1.8.2")
-    testFixturesApi("org.mockito:mockito-inline:4.2.0")
-    testFixturesApi("org.mockito:mockito-junit-jupiter:4.2.0")
+    testFixturesApi("org.junit.jupiter:junit-jupiter-api:5.9.0")
+    testFixturesApi("org.junit.jupiter:junit-jupiter-params:5.9.0")
+    testFixturesApi("org.junit.jupiter:junit-jupiter-engine:5.9.0")
+    testFixturesApi("org.junit.platform:junit-platform-runner:1.9.0")
+    testFixturesApi("org.junit.platform:junit-platform-suite-api:1.9.0")
+    testFixturesApi("org.mockito:mockito-inline:4.7.0")
+    testFixturesApi("org.mockito:mockito-junit-jupiter:4.7.0")
     testFixturesApi("org.hamcrest:hamcrest-all:1.3")
     testFixturesApi("com.google.jimfs:jimfs:1.2")
 }
