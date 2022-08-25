@@ -6,6 +6,7 @@ This library facilitates creating, saving, loading, updating, and commenting YAM
 files. It does so by automatically mapping instances of configuration classes to serializable maps
 which are first transformed into YAML and then saved to some specified file.
 
+Information on how to [import](#import) this library can be found at the end of this documentation.
 For a step-by-step tutorial that shows most features of this library in action check out
 the [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial) page on the wiki!
 
@@ -30,8 +31,8 @@ the [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial) page on the wik
 ## Usage example
 
 This section contains a short usage example to get you started. The whole range of features is
-discussed in the following sections. Information on how to import this library is located at the end
-of this documentation.
+discussed in the following sections. Information on how to [import](#import) this library is located
+at the end of this documentation.
 
 For a step-by-step tutorial with a more advanced example check out
 the [Tutorial](https://github.com/Exlll/ConfigLib/wiki/Tutorial) page on the wiki.
@@ -827,16 +828,15 @@ authentication, see this [issue](https://github.com/Exlll/ConfigLib/issues/12) i
 problems).
 
 This library has additional dependencies (namely, a YAML parser) which are not exposed by the
-artifact you import. The current repository provides plugin versions of this library which bundle
-all its dependencies, so you don't have to worry about them. Also, these versions make it easier for
-you to update this library if you have written multiple plugins that use it.
-
-The plugin versions can be downloaded from
+artifact you import. You can download _plugin versions_ of this library that bundle all its
+dependencies. The artifacts of these versions can be found on
 the [releases page](https://github.com/Exlll/ConfigLib/releases) where you can identify them by
-their `-paper-`, `-waterfall-`, and `-velocity-` infix and `-all` suffix. Except for the `-paper-`
-version, the other two plugin versions currently don't add any additional functionality. If you use
-these versions, don't forget to add them as a dependency in the `plugin.yml` (for Paper and
-Waterfall) or to the dependencies array (for Velocity) of your own plugin.
+their `-paper-`, `-waterfall-`, and `-velocity-` infix and `-all` suffix. Except for
+the `-paper-` version, the other plugin versions currently do not add any additional features.
+A benefit of these versions is that they make it easier for you to update this library if you have
+written multiple plugins that use it. If you plan to use these versions, don't forget to add the
+plugin as a dependency to the `plugin.yml` (for Paper and Waterfall) or to the dependencies array
+(for Velocity) of your own plugin.
 
 Alternatively, if you don't want to use an extra plugin, you can shade the `-yaml` version with its
 YAML parser yourself.
