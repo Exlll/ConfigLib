@@ -7,9 +7,8 @@ import java.util.stream.Collectors;
 
 import static de.exlll.configlib.Validator.requireNonNull;
 
-sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
-        implements Serializer<T, Map<?, ?>>
-        permits ConfigurationSerializer, RecordSerializer {
+abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
+        implements Serializer<T, Map<?, ?>>{
     protected final Class<T> type;
     protected final ConfigurationProperties properties;
     protected final NameFormatter formatter;

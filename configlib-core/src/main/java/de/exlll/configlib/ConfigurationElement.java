@@ -12,10 +12,8 @@ import java.lang.reflect.RecordComponent;
  *
  * @param <T> the type of the element
  */
-public sealed interface ConfigurationElement<T extends AnnotatedElement>
-        permits
-        ConfigurationElements.FieldElement,
-        ConfigurationElements.RecordComponentElement {
+public interface ConfigurationElement<T extends AnnotatedElement>
+{
     /**
      * Returns the element itself.
      *
