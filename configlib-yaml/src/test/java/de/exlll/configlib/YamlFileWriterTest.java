@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SuppressWarnings("unused")
 class YamlFileWriterTest {
     private final FileSystem fs = Jimfs.newFileSystem();
-    private final Path yamlFile = fs.getPath("/tmp/config.yml");
+    private final Path yamlFile = fs.getPath(TestUtils.createPlatformSpecificFilePath("/tmp/config.yml"));
 
     @BeforeEach
     void setUp() throws IOException {
