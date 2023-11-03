@@ -30,13 +30,9 @@ import static org.hamcrest.Matchers.*;
 
 class SerializersTest {
 
-    private final String tmpConfigPath = TestUtils.createPlatformSpecificFilePath("/tmp/config.yml");
-    /*
-        If found a way to implement the newline char test on the file name without
-         giving errors on windows. The following field ought to be changed to do so.
-     */
-    private final String tmpWithUnderscorePath = TestUtils.createPlatformSpecificFilePath("/tmp/with_underscore.yml");
-    private final String tmpPath = TestUtils.createPlatformSpecificFilePath("/tmp");
+    private final String TMP_CONFIG_PATH = createPlatformSpecificFilePath("/tmp/config.yml");
+    private final String TMP_WITH_UNDERSCORE_PATH = createPlatformSpecificFilePath("/tmp/with_underscore.yml");
+    private final String TMP_PATH = createPlatformSpecificFilePath("/tmp");
 
     @Test
     void booleanSerializer() {
@@ -470,34 +466,34 @@ class SerializersTest {
     void fileSerializer() {
         Serializer<File, String> serializer = new Serializers.FileSerializer();
 
-        File file1 = new File(tmpConfigPath);
-        File file2 = new File(tmpWithUnderscorePath);
-        File file3 = new File(tmpPath);
+        File file1 = new File(TMP_CONFIG_PATH);
+        File file2 = new File(TMP_WITH_UNDERSCORE_PATH);
+        File file3 = new File(TMP_PATH);
 
-        assertThat(serializer.serialize(file1), is(tmpConfigPath));
-        assertThat(serializer.serialize(file2), is(tmpWithUnderscorePath));
-        assertThat(serializer.serialize(file3), is(tmpPath));
+        assertThat(serializer.serialize(file1), is(TMP_CONFIG_PATH));
+        assertThat(serializer.serialize(file2), is(TMP_WITH_UNDERSCORE_PATH));
+        assertThat(serializer.serialize(file3), is(TMP_PATH));
 
-        assertThat(serializer.deserialize(tmpConfigPath), is(file1));
-        assertThat(serializer.deserialize(tmpWithUnderscorePath), is(file2));
-        assertThat(serializer.deserialize(tmpPath), is(file3));
+        assertThat(serializer.deserialize(TMP_CONFIG_PATH), is(file1));
+        assertThat(serializer.deserialize(TMP_WITH_UNDERSCORE_PATH), is(file2));
+        assertThat(serializer.deserialize(TMP_PATH), is(file3));
     }
 
     @Test
     void pathSerializer() {
         Serializer<Path, String> serializer = new Serializers.PathSerializer();
 
-        Path file1 = Path.of(tmpConfigPath);
-        Path file2 = Path.of(tmpWithUnderscorePath);
-        Path file3 = Path.of(tmpPath);
+        Path file1 = Path.of(TMP_CONFIG_PATH);
+        Path file2 = Path.of(TMP_WITH_UNDERSCORE_PATH);
+        Path file3 = Path.of(TMP_PATH);
 
-        assertThat(serializer.serialize(file1), is(tmpConfigPath));
-        assertThat(serializer.serialize(file2), is(tmpWithUnderscorePath));
-        assertThat(serializer.serialize(file3), is(tmpPath));
+        assertThat(serializer.serialize(file1), is(TMP_CONFIG_PATH));
+        assertThat(serializer.serialize(file2), is(TMP_WITH_UNDERSCORE_PATH));
+        assertThat(serializer.serialize(file3), is(TMP_PATH));
 
-        assertThat(serializer.deserialize(tmpConfigPath), is(file1));
-        assertThat(serializer.deserialize(tmpWithUnderscorePath), is(file2));
-        assertThat(serializer.deserialize(tmpPath), is(file3));
+        assertThat(serializer.deserialize(TMP_CONFIG_PATH), is(file1));
+        assertThat(serializer.deserialize(TMP_WITH_UNDERSCORE_PATH), is(file2));
+        assertThat(serializer.deserialize(TMP_PATH), is(file3));
     }
 
     @Test
