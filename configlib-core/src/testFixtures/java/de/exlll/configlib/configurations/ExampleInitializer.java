@@ -59,15 +59,15 @@ public final class ExampleInitializer {
     private static final UUID UUID_4 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c3");
     private static final UUID UUID_5 = UUID.fromString("d50f3bdd-ac66-4b74-a01f-4617b24d68c4");
 
-    private static final File FILE_1 = new File("/tmp");
-    private static final File FILE_2 = new File("/tmp/config.yml");
-    private static final File FILE_3 = new File("/tmp/with \n new \n lines.yml");
-    private static final File FILE_4 = new File("with \n new \n lines.yml");
+    private static final File FILE_1 = new File(createPlatformSpecificFilePath("/tmp"));
+    private static final File FILE_2 = new File(createPlatformSpecificFilePath("/tmp/config.yml"));
+    private static final File FILE_3 = new File(createPlatformSpecificFilePath("/tmp/with_underscore.yml"));
+    private static final File FILE_4 = new File(createPlatformSpecificFilePath("with_underscore.yml"));
 
-    private static final Path PATH_1 = Path.of("/tmp");
-    private static final Path PATH_2 = Path.of("/tmp/config.yml");
-    private static final Path PATH_3 = Path.of("/tmp/with \n new \n lines.yml");
-    private static final Path PATH_4 = Path.of("with \n new \n lines.yml");
+    private static final Path PATH_1 = Path.of(createPlatformSpecificFilePath("/tmp"));
+    private static final Path PATH_2 = Path.of(createPlatformSpecificFilePath("/tmp/config.yml"));
+    private static final Path PATH_3 = Path.of(createPlatformSpecificFilePath("/tmp/with_underscore.yml"));
+    private static final Path PATH_4 = Path.of(createPlatformSpecificFilePath("with_underscore.yml"));
 
     private static final URL URL_1 = createUrl("https://example.com");
     private static final URL URL_2 = createUrl("https://example.com?query=yes");

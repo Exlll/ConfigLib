@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.function.Executable;
 
 import java.awt.Point;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
@@ -288,5 +289,27 @@ public final class TestUtils {
     public static ConfigurationElement<?> fieldAsElement(Class<?> type, String fieldName) {
         Field field = getField(type, fieldName);
         return new ConfigurationElements.FieldElement(field);
+    }
+
+    /*
+        There were absolute path errors when trying to pass the unit tests
+        on different platforms like Windows. Currently, Jimfs(1.3.0) lacks support
+        for both absolutes paths and relative paths on Windows, see:
+        - https://github.com/google/jimfs/issues/69
+        - https://github.com/google/jimfs/blob/master/jimfs/src/main/java/com/google/common/jimfs/WindowsPathType.java
+
+        So, in order to run unit tests on Windows. We have to translate the current
+        path declarations to fulfill the non-unix system's needs.
+    */
+    public static String createPlatformSpecificFilePath(String path) {
+        final String platform = System.getProperty("os.name");
+
+        if (!platform.contains("Windows")) return path;
+
+        return String.format("C:%s", path.replace("/", File.separator));
+    }
+
+    public static List<String> createListOfPlatformSpecificFilePaths(String... paths) {
+        return Stream.of(paths).map(TestUtils::createPlatformSpecificFilePath).toList();
     }
 }

@@ -16,7 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class YamlConfigurationStoreTest {
     private final FileSystem fs = Jimfs.newFileSystem();
-    private final Path yamlFile = fs.getPath("/tmp/config.yml");
+
+    private final String yamlFilePath = createPlatformSpecificFilePath("/tmp/config.yml");
+    private final Path yamlFile = fs.getPath(yamlFilePath);
+
+    private final String abcFilePath = createPlatformSpecificFilePath("/a/b/c.yml");
 
     @BeforeEach
     void setUp() throws IOException {
@@ -93,7 +97,7 @@ class YamlConfigurationStoreTest {
                 # The
                 # Footer\
                 """;
-        assertEquals(expected, TestUtils.readFile(yamlFile));
+        assertEquals(expected, readFile(yamlFile));
     }
 
     @Test
@@ -120,7 +124,7 @@ class YamlConfigurationStoreTest {
                 # The
                 # Footer\
                 """;
-        assertEquals(expected, TestUtils.readFile(yamlFile));
+        assertEquals(expected, readFile(yamlFile));
     }
 
     @Configuration
@@ -208,7 +212,7 @@ class YamlConfigurationStoreTest {
 
         assertThrowsConfigurationException(
                 () -> store.load(yamlFile),
-                "The configuration file at /tmp/config.yml does not contain valid YAML."
+                String.format("The configuration file at %s does not contain valid YAML.", yamlFilePath)
         );
     }
 
@@ -220,7 +224,7 @@ class YamlConfigurationStoreTest {
 
         assertThrowsConfigurationException(
                 () -> store.load(yamlFile),
-                "The configuration file at /tmp/config.yml is empty or only contains null."
+            String.format("The configuration file at %s is empty or only contains null.", yamlFilePath)
         );
     }
 
@@ -232,9 +236,9 @@ class YamlConfigurationStoreTest {
 
         assertThrowsConfigurationException(
                 () -> store.load(yamlFile),
-                "The contents of the YAML file at /tmp/config.yml do not represent a " +
+                String.format("The contents of the YAML file at %s do not represent a " +
                 "configuration. A valid configuration file contains a YAML map but instead a " +
-                "'class java.lang.String' was found."
+                "'class java.lang.String' was found.", yamlFilePath)
         );
     }
 
@@ -246,7 +250,7 @@ class YamlConfigurationStoreTest {
     @Test
     void saveConfigurationWithInvalidTargetType() {
         YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
-                .addSerializer(Point.class, TestUtils.POINT_IDENTITY_SERIALIZER)
+                .addSerializer(Point.class, POINT_IDENTITY_SERIALIZER)
                 .build();
         YamlConfigurationStore<D> store = new YamlConfigurationStore<>(D.class, properties);
 
@@ -261,7 +265,7 @@ class YamlConfigurationStoreTest {
     void saveCreatesParentDirectoriesIfPropertyTrue() {
         YamlConfigurationStore<A> store = newDefaultStore(A.class);
 
-        Path file = fs.getPath("/a/b/c.yml");
+        Path file = fs.getPath(abcFilePath);
         store.save(new A(), file);
 
         assertTrue(Files.exists(file.getParent()));
@@ -275,10 +279,10 @@ class YamlConfigurationStoreTest {
                 .build();
         YamlConfigurationStore<A> store = new YamlConfigurationStore<>(A.class, properties);
 
-        Path file = fs.getPath("/a/b/c.yml");
+        Path file = fs.getPath(abcFilePath);
         assertThrowsRuntimeException(
                 () -> store.save(new A(), file),
-                "java.nio.file.NoSuchFileException: /a/b/c.yml"
+                String.format("java.nio.file.NoSuchFileException: %s", abcFilePath)
         );
     }
 

@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+import static de.exlll.configlib.TestUtils.createPlatformSpecificFilePath;
 import static de.exlll.configlib.configurations.ExampleConfigurationsSerialized.*;
 import static de.exlll.configlib.configurations.ExampleEqualityAsserter.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,7 +31,7 @@ class ExampleConfigurationTests {
             .build();
 
     private final FileSystem fs = Jimfs.newFileSystem();
-    private final Path yamlFile = fs.getPath("/tmp/config.yml");
+    private final Path yamlFile = fs.getPath(createPlatformSpecificFilePath("/tmp/config.yml"));
 
     @BeforeEach
     void setUp() throws IOException {

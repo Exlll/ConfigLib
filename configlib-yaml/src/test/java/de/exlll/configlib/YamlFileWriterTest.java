@@ -16,12 +16,13 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.function.Consumer;
 
+import static de.exlll.configlib.TestUtils.createPlatformSpecificFilePath;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("unused")
 class YamlFileWriterTest {
     private final FileSystem fs = Jimfs.newFileSystem();
-    private final Path yamlFile = fs.getPath("/tmp/config.yml");
+    private final Path yamlFile = fs.getPath(createPlatformSpecificFilePath("/tmp/config.yml"));
 
     @BeforeEach
     void setUp() throws IOException {

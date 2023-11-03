@@ -31,7 +31,7 @@ dependencies {
     testFixturesApi("org.mockito:mockito-inline:4.7.0")
     testFixturesApi("org.mockito:mockito-junit-jupiter:4.7.0")
     testFixturesApi("org.hamcrest:hamcrest-all:1.3")
-    testFixturesApi("com.google.jimfs:jimfs:1.2")
+    testFixturesApi("com.google.jimfs:jimfs:1.3.0")
 }
 
 publishing {

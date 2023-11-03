@@ -15,11 +15,12 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static de.exlll.configlib.TestUtils.*;
 import static de.exlll.configlib.configurations.ExampleEqualityAsserter.*;
 
 final class ExampleConfigurationYamlTests {
     private final FileSystem fs = Jimfs.newFileSystem();
-    private final Path yamlFile = fs.getPath("/tmp/config.yml");
+    private final Path yamlFile = fs.getPath(createPlatformSpecificFilePath("/tmp/config.yml"));
 
     @BeforeEach
     void setUp() throws IOException {
@@ -34,7 +35,7 @@ final class ExampleConfigurationYamlTests {
     @Test
     void yamlStoreSavesAndLoadsExampleConfigurationA2() {
         var properties = YamlConfigurationProperties.newBuilder()
-                .addSerializer(Point.class, TestUtils.POINT_SERIALIZER)
+                .addSerializer(Point.class, POINT_SERIALIZER)
                 .build();
         var store = new YamlConfigurationStore<>(ExampleConfigurationA2.class, properties);
         ExampleConfigurationA2 cfg1 = ExampleInitializer.newExampleConfigurationA2();
@@ -46,7 +47,7 @@ final class ExampleConfigurationYamlTests {
     @Test
     void yamlStoreSavesAndLoadsExampleConfigurationNullsWithNullCollectionElements1() {
         var properties = YamlConfigurationProperties.newBuilder()
-                .addSerializer(Point.class, TestUtils.POINT_SERIALIZER)
+                .addSerializer(Point.class, POINT_SERIALIZER)
                 .outputNulls(true)
                 .inputNulls(true)
                 .build();
@@ -61,7 +62,7 @@ final class ExampleConfigurationYamlTests {
     @Test
     void yamlStoreSavesAndLoadsExampleConfigurationNullsWithoutNullCollectionElements1() {
         var properties = YamlConfigurationProperties.newBuilder()
-                .addSerializer(Point.class, TestUtils.POINT_SERIALIZER)
+                .addSerializer(Point.class, POINT_SERIALIZER)
                 .build();
         var store = new YamlConfigurationStore<>(ExampleConfigurationNulls.class, properties);
         ExampleConfigurationNulls cfg1 = ExampleInitializer

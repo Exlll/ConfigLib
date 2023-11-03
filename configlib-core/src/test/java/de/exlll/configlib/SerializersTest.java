@@ -29,6 +29,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 class SerializersTest {
+
+    private final String TMP_CONFIG_PATH = createPlatformSpecificFilePath("/tmp/config.yml");
+    private final String TMP_WITH_UNDERSCORE_PATH = createPlatformSpecificFilePath("/tmp/with_underscore.yml");
+    private final String TMP_PATH = createPlatformSpecificFilePath("/tmp");
+
     @Test
     void booleanSerializer() {
         Serializer<Boolean, Boolean> serializer = new Serializers.BooleanSerializer();
@@ -461,42 +466,34 @@ class SerializersTest {
     void fileSerializer() {
         Serializer<File, String> serializer = new Serializers.FileSerializer();
 
-        String path1 = "/tmp/config.yml";
-        String path2 = "/tmp/with \n new \n lines.yml";
-        String path3 = "/tmp";
+        File file1 = new File(TMP_CONFIG_PATH);
+        File file2 = new File(TMP_WITH_UNDERSCORE_PATH);
+        File file3 = new File(TMP_PATH);
 
-        File file1 = new File(path1);
-        File file2 = new File(path2);
-        File file3 = new File(path3);
+        assertThat(serializer.serialize(file1), is(TMP_CONFIG_PATH));
+        assertThat(serializer.serialize(file2), is(TMP_WITH_UNDERSCORE_PATH));
+        assertThat(serializer.serialize(file3), is(TMP_PATH));
 
-        assertThat(serializer.serialize(file1), is(path1));
-        assertThat(serializer.serialize(file2), is(path2));
-        assertThat(serializer.serialize(file3), is(path3));
-
-        assertThat(serializer.deserialize(path1), is(file1));
-        assertThat(serializer.deserialize(path2), is(file2));
-        assertThat(serializer.deserialize(path3), is(file3));
+        assertThat(serializer.deserialize(TMP_CONFIG_PATH), is(file1));
+        assertThat(serializer.deserialize(TMP_WITH_UNDERSCORE_PATH), is(file2));
+        assertThat(serializer.deserialize(TMP_PATH), is(file3));
     }
 
     @Test
     void pathSerializer() {
         Serializer<Path, String> serializer = new Serializers.PathSerializer();
 
-        String path1 = "/tmp/config.yml";
-        String path2 = "/tmp/with \n new \n lines.yml";
-        String path3 = "/tmp";
+        Path file1 = Path.of(TMP_CONFIG_PATH);
+        Path file2 = Path.of(TMP_WITH_UNDERSCORE_PATH);
+        Path file3 = Path.of(TMP_PATH);
 
-        Path file1 = Path.of(path1);
-        Path file2 = Path.of(path2);
-        Path file3 = Path.of(path3);
+        assertThat(serializer.serialize(file1), is(TMP_CONFIG_PATH));
+        assertThat(serializer.serialize(file2), is(TMP_WITH_UNDERSCORE_PATH));
+        assertThat(serializer.serialize(file3), is(TMP_PATH));
 
-        assertThat(serializer.serialize(file1), is(path1));
-        assertThat(serializer.serialize(file2), is(path2));
-        assertThat(serializer.serialize(file3), is(path3));
-
-        assertThat(serializer.deserialize(path1), is(file1));
-        assertThat(serializer.deserialize(path2), is(file2));
-        assertThat(serializer.deserialize(path3), is(file3));
+        assertThat(serializer.deserialize(TMP_CONFIG_PATH), is(file1));
+        assertThat(serializer.deserialize(TMP_WITH_UNDERSCORE_PATH), is(file2));
+        assertThat(serializer.deserialize(TMP_PATH), is(file3));
     }
 
     @Test
