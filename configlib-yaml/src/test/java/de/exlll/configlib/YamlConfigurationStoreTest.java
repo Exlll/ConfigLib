@@ -17,10 +17,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class YamlConfigurationStoreTest {
     private final FileSystem fs = Jimfs.newFileSystem();
 
-    private final String yamlFilePath = TestUtils.createPlatformSpecificFilePath("/tmp/config.yml");
+    private final String yamlFilePath = createPlatformSpecificFilePath("/tmp/config.yml");
     private final Path yamlFile = fs.getPath(yamlFilePath);
 
-    private final String abcFilePath = TestUtils.createPlatformSpecificFilePath("/a/b/c.yml");
+    private final String abcFilePath = createPlatformSpecificFilePath("/a/b/c.yml");
 
     @BeforeEach
     void setUp() throws IOException {
@@ -97,7 +97,7 @@ class YamlConfigurationStoreTest {
                 # The
                 # Footer\
                 """;
-        assertEquals(expected, TestUtils.readFile(yamlFile));
+        assertEquals(expected, readFile(yamlFile));
     }
 
     @Test
@@ -124,7 +124,7 @@ class YamlConfigurationStoreTest {
                 # The
                 # Footer\
                 """;
-        assertEquals(expected, TestUtils.readFile(yamlFile));
+        assertEquals(expected, readFile(yamlFile));
     }
 
     @Configuration
@@ -250,7 +250,7 @@ class YamlConfigurationStoreTest {
     @Test
     void saveConfigurationWithInvalidTargetType() {
         YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
-                .addSerializer(Point.class, TestUtils.POINT_IDENTITY_SERIALIZER)
+                .addSerializer(Point.class, POINT_IDENTITY_SERIALIZER)
                 .build();
         YamlConfigurationStore<D> store = new YamlConfigurationStore<>(D.class, properties);
 

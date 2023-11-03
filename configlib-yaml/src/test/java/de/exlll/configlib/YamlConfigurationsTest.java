@@ -10,12 +10,13 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static de.exlll.configlib.TestUtils.createPlatformSpecificFilePath;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class YamlConfigurationsTest {
     private static final FieldFilter includeI = field -> field.getName().equals("i");
     private final FileSystem fs = Jimfs.newFileSystem();
-    private final Path yamlFile = fs.getPath(TestUtils.createPlatformSpecificFilePath("/tmp/config.yml"));
+    private final Path yamlFile = fs.getPath(createPlatformSpecificFilePath("/tmp/config.yml"));
 
     @BeforeEach
     void setUp() throws IOException {
