@@ -4,5 +4,5 @@ plugins {
 }
 
 dependencies {
-    compileOnly("io.github.waterfallmc:waterfall-api:1.19-R0.1-SNAPSHOT")
+    compileOnly("io.github.waterfallmc:waterfall-api:1.20-R0.2-SNAPSHOT")
 }
