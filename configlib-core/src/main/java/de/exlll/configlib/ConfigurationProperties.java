@@ -13,7 +13,7 @@ import static de.exlll.configlib.Validator.requireNonNull;
 /**
  * A collection of values used to configure the serialization of configurations.
  */
-class ConfigurationProperties {
+public class ConfigurationProperties {
     private final Map<Class<?>, Serializer<?, ?>> serializersByType;
     private final Map<Class<?>, Function<? super SerializerContext, ? extends Serializer<?, ?>>>
             serializerFactoriesByType;
