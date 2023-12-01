@@ -45,13 +45,14 @@ public interface FileConfigurationStore<T> {
      * </li>
      * <li>
      * Otherwise, if the file exists, a new configuration instance is created, initialized with the
-     * values taken from the configuration file, and immediately saved to reflect possible changes
+     * values taken from the configuration file, and immediately saved to reflect potential changes
      * of the configuration type.
      * </li>
      * </ul>
      *
      * @param configurationFile the configuration file that is updated
-     * @return a newly created configuration initialized with values taken from the configuration file
+     * @return a newly created configuration initialized with values taken from the configuration
+     * file or a default configuration
      * @throws ConfigurationException if the configuration cannot be deserialized
      * @throws NullPointerException   if {@code configurationFile} is null
      * @throws RuntimeException       if loading or saving the configuration throws an exception

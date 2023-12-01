@@ -15,8 +15,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.joining;
-
 public final class TestUtils {
     public static final PointSerializer POINT_SERIALIZER = new PointSerializer();
     public static final PointIdentitySerializer POINT_IDENTITY_SERIALIZER =
@@ -279,8 +277,8 @@ public final class TestUtils {
     }
 
     public static String readFile(Path file) {
-        try (Stream<String> lines = Files.lines(file)) {
-            return lines.collect(joining("\n"));
+        try {
+            return Files.readString(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

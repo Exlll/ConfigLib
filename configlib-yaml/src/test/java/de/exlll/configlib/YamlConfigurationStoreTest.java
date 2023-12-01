@@ -6,7 +6,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Point;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,9 +21,9 @@ class YamlConfigurationStoreTest {
     private final FileSystem fs = Jimfs.newFileSystem();
 
     private final String yamlFilePath = createPlatformSpecificFilePath("/tmp/config.yml");
-    private final Path yamlFile = fs.getPath(yamlFilePath);
-
     private final String abcFilePath = createPlatformSpecificFilePath("/a/b/c.yml");
+    private final Path yamlFile = fs.getPath(yamlFilePath);
+    private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
     @BeforeEach
     void setUp() throws IOException {
@@ -55,12 +58,37 @@ class YamlConfigurationStoreTest {
     }
 
     @Test
+    void writeRequiresNonNullArguments() {
+        YamlConfigurationStore<A> store = newDefaultStore(A.class);
+
+        assertThrowsNullPointerException(
+                () -> store.write(null, new ByteArrayOutputStream()),
+                "configuration"
+        );
+
+        assertThrowsNullPointerException(
+                () -> store.write(new A(), null),
+                "output stream"
+        );
+    }
+
+    @Test
     void loadRequiresNonNullArguments() {
         YamlConfigurationStore<A> store = newDefaultStore(A.class);
 
         assertThrowsNullPointerException(
                 () -> store.load(null),
                 "configuration file"
+        );
+    }
+
+    @Test
+    void readRequiresNonNullArguments() {
+        YamlConfigurationStore<A> store = newDefaultStore(A.class);
+
+        assertThrowsNullPointerException(
+                () -> store.read(null),
+                "input stream"
         );
     }
 
@@ -75,15 +103,18 @@ class YamlConfigurationStoreTest {
     }
 
     @Test
-    void save() {
+    void saveAndWrite() {
         YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
                 .header("The\nHeader")
                 .footer("The\nFooter")
                 .outputNulls(true)
                 .setNameFormatter(String::toUpperCase)
                 .build();
+
         YamlConfigurationStore<A> store = new YamlConfigurationStore<>(A.class, properties);
+
         store.save(new A(), yamlFile);
+        store.write(new A(), outputStream);
 
         String expected =
                 """
@@ -95,13 +126,15 @@ class YamlConfigurationStoreTest {
                 I: null
                                 
                 # The
-                # Footer\
+                # Footer
                 """;
+
         assertEquals(expected, readFile(yamlFile));
+        assertEquals(expected, outputStream.toString());
     }
 
     @Test
-    void saveRecord() {
+    void saveAndWriteRecord() {
         record R(String s, @Comment("A comment") Integer i) {}
         YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
                 .header("The\nHeader")
@@ -110,7 +143,9 @@ class YamlConfigurationStoreTest {
                 .setNameFormatter(String::toUpperCase)
                 .build();
         YamlConfigurationStore<R> store = new YamlConfigurationStore<>(R.class, properties);
+
         store.save(new R("S1", null), yamlFile);
+        store.write(new R("S1", null), outputStream);
 
         String expected =
                 """
@@ -122,9 +157,11 @@ class YamlConfigurationStoreTest {
                 I: null
                                 
                 # The
-                # Footer\
+                # Footer
                 """;
+
         assertEquals(expected, readFile(yamlFile));
+        assertEquals(expected, outputStream.toString());
     }
 
     @Configuration
@@ -135,36 +172,40 @@ class YamlConfigurationStoreTest {
     }
 
     @Test
-    void load() throws IOException {
+    void loadAndRead() throws IOException {
         YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
                 .inputNulls(true)
                 .setNameFormatter(String::toUpperCase)
                 .build();
         YamlConfigurationStore<B> store = new YamlConfigurationStore<>(B.class, properties);
 
-        Files.writeString(
-                yamlFile,
-                """
-                # The
-                # Header
-                                
-                S: S2
-                t: T2
-                I: null
-                                
-                # The
-                # Footer\
-                """
-        );
+        String actual = """
+                        # The
+                        # Header
+                                        
+                        S: S2
+                        t: T2
+                        I: null
+                                        
+                        # The
+                        # Footer
+                        """;
+        Files.writeString(yamlFile, actual);
+        outputStream.writeBytes(actual.getBytes());
 
-        B config = store.load(yamlFile);
-        assertEquals("S2", config.s);
-        assertEquals("T1", config.t);
-        assertNull(config.i);
+        B config1 = store.load(yamlFile);
+        assertEquals("S2", config1.s);
+        assertEquals("T1", config1.t);
+        assertNull(config1.i);
+
+        B config2 = store.read(inputFromOutput());
+        assertEquals("S2", config2.s);
+        assertEquals("T1", config2.t);
+        assertNull(config2.i);
     }
 
     @Test
-    void loadRecord() throws IOException {
+    void loadAndReadRecord() throws IOException {
         record R(String s, String t, Integer i) {}
         YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
                 .inputNulls(true)
@@ -172,25 +213,29 @@ class YamlConfigurationStoreTest {
                 .build();
         YamlConfigurationStore<R> store = new YamlConfigurationStore<>(R.class, properties);
 
-        Files.writeString(
-                yamlFile,
-                """
-                # The
-                # Header
-                                
-                S: S2
-                t: T2
-                I: null
-                                
-                # The
-                # Footer\
-                """
-        );
+        String actual = """
+                        # The
+                        # Header
+                                        
+                        S: S2
+                        t: T2
+                        I: null
+                                        
+                        # The
+                        # Footer
+                        """;
+        Files.writeString(yamlFile, actual);
+        outputStream.writeBytes(actual.getBytes());
 
-        R config = store.load(yamlFile);
-        assertEquals("S2", config.s);
-        assertNull(config.t);
-        assertNull(config.i);
+        R config1 = store.load(yamlFile);
+        assertEquals("S2", config1.s);
+        assertNull(config1.t);
+        assertNull(config1.i);
+
+        R config2 = store.read(inputFromOutput());
+        assertEquals("S2", config2.s);
+        assertNull(config2.t);
+        assertNull(config2.i);
     }
 
     @Configuration
@@ -199,46 +244,63 @@ class YamlConfigurationStoreTest {
     }
 
     @Test
-    void loadInvalidYaml() throws IOException {
+    void loadAndReadInvalidYaml() throws IOException {
         YamlConfigurationStore<C> store = newDefaultStore(C.class);
 
-        Files.writeString(
-                yamlFile,
-                """
-                 - - - - - a
-                   a
-                """
-        );
+        String actual = """
+                         - - - - - a
+                           a
+                        """;
+
+        Files.writeString(yamlFile, actual);
+        outputStream.writeBytes(actual.getBytes());
 
         assertThrowsConfigurationException(
                 () -> store.load(yamlFile),
                 String.format("The configuration file at %s does not contain valid YAML.", yamlFilePath)
         );
-    }
-
-    @Test
-    void loadEmptyYaml() throws IOException {
-        YamlConfigurationStore<C> store = newDefaultStore(C.class);
-
-        Files.writeString(yamlFile, "null");
-
         assertThrowsConfigurationException(
-                () -> store.load(yamlFile),
-            String.format("The configuration file at %s is empty or only contains null.", yamlFilePath)
+                () -> store.read(inputFromOutput()),
+                "The input stream does not contain valid YAML."
         );
     }
 
     @Test
-    void loadNonMapYaml() throws IOException {
+    void loadAndReadEmptyYaml() throws IOException {
         YamlConfigurationStore<C> store = newDefaultStore(C.class);
 
-        Files.writeString(yamlFile, "a");
+        Files.writeString(yamlFile, "null");
+        outputStream.writeBytes("null".getBytes());
 
         assertThrowsConfigurationException(
                 () -> store.load(yamlFile),
-                String.format("The contents of the YAML file at %s do not represent a " +
-                "configuration. A valid configuration file contains a YAML map but instead a " +
-                "'class java.lang.String' was found.", yamlFilePath)
+                String.format("The configuration file at %s is empty or only contains null.", yamlFilePath)
+        );
+        assertThrowsConfigurationException(
+                () -> store.read(inputFromOutput()),
+                "The input stream is empty or only contains null."
+        );
+    }
+
+    @Test
+    void loadAndReadNonMapYaml() throws IOException {
+        YamlConfigurationStore<C> store = newDefaultStore(C.class);
+
+        Files.writeString(yamlFile, "a");
+        outputStream.writeBytes("a".getBytes());
+
+        assertThrowsConfigurationException(
+                () -> store.load(yamlFile),
+                String.format(
+                        "The contents of the YAML file at %s do not represent a " +
+                        "configuration. A valid configuration file contains a YAML map but instead a " +
+                        "'class java.lang.String' was found.", yamlFilePath)
+        );
+        assertThrowsConfigurationException(
+                () -> store.read(inputFromOutput()),
+                "The contents of the input stream do not represent a configuration. " +
+                "A valid configuration contains a YAML map but instead a " +
+                "'class java.lang.String' was found."
         );
     }
 
@@ -248,17 +310,16 @@ class YamlConfigurationStoreTest {
     }
 
     @Test
-    void saveConfigurationWithInvalidTargetType() {
+    void saveAndWriteConfigurationWithInvalidTargetType() {
         YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
                 .addSerializer(Point.class, POINT_IDENTITY_SERIALIZER)
                 .build();
         YamlConfigurationStore<D> store = new YamlConfigurationStore<>(D.class, properties);
 
-        assertThrowsConfigurationException(
-                () -> store.save(new D(), yamlFile),
-                "The given configuration could not be converted into YAML. \n" +
-                "Do all custom serializers produce valid target types?"
-        );
+        String exceptionMessage = "The given configuration could not be converted into YAML. \n" +
+                                  "Do all custom serializers produce valid target types?";
+        assertThrowsConfigurationException(() -> store.save(new D(), yamlFile), exceptionMessage);
+        assertThrowsConfigurationException(() -> store.write(new D(), outputStream), exceptionMessage);
     }
 
     @Test
@@ -305,7 +366,7 @@ class YamlConfigurationStoreTest {
 
         assertFalse(Files.exists(yamlFile));
         E config = store.update(yamlFile);
-        assertEquals("i: 10\nj: 11", readFile(yamlFile));
+        assertEquals("i: 10\nj: 11\n", readFile(yamlFile));
         assertEquals(10, config.i);
         assertEquals(11, config.j);
     }
@@ -324,7 +385,7 @@ class YamlConfigurationStoreTest {
                 """
                 i: 0
                 c: "\\0"
-                s: null\
+                s: null
                 """,
                 readFile(yamlFile)
         );
@@ -346,7 +407,7 @@ class YamlConfigurationStoreTest {
                 """
                 i: 10
                 c: c
-                s: s\
+                s: s
                 """,
                 readFile(yamlFile)
         );
@@ -384,7 +445,7 @@ class YamlConfigurationStoreTest {
         E config = store.update(yamlFile);
         assertEquals(20, config.i);
         assertEquals(11, config.j);
-        assertEquals("i: 20\nj: 11", readFile(yamlFile));
+        assertEquals("i: 20\nj: 11\n", readFile(yamlFile));
     }
 
     @Test
@@ -396,11 +457,15 @@ class YamlConfigurationStoreTest {
         R config = store.update(yamlFile);
         assertEquals(20, config.i);
         assertEquals(0, config.j);
-        assertEquals("i: 20\nj: 0", readFile(yamlFile));
+        assertEquals("i: 20\nj: 0\n", readFile(yamlFile));
     }
 
     private static <T> YamlConfigurationStore<T> newDefaultStore(Class<T> configType) {
         YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder().build();
         return new YamlConfigurationStore<>(configType, properties);
+    }
+
+    private InputStream inputFromOutput() {
+        return new ByteArrayInputStream(outputStream.toByteArray());
     }
 }

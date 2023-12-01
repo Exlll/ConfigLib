@@ -5,7 +5,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,6 +20,7 @@ class YamlConfigurationsTest {
     private static final FieldFilter includeI = field -> field.getName().equals("i");
     private final FileSystem fs = Jimfs.newFileSystem();
     private final Path yamlFile = fs.getPath(createPlatformSpecificFilePath("/tmp/config.yml"));
+    private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
     @BeforeEach
     void setUp() throws IOException {
@@ -32,13 +36,6 @@ class YamlConfigurationsTest {
     private static final class Config {
         int i = 10;
         int j = 11;
-
-        public Config() {}
-
-        public Config(int i, int j) {
-            this.i = i;
-            this.j = j;
-        }
     }
 
     @Test
@@ -46,12 +43,27 @@ class YamlConfigurationsTest {
         Config configuration = new Config();
 
         YamlConfigurations.save(yamlFile, Config.class, configuration);
-        assertEquals("i: 10\nj: 11", TestUtils.readFile(yamlFile));
+        assertEquals("i: 10\nj: 11\n", TestUtils.readFile(yamlFile));
 
         configuration.i = 20;
         YamlConfigurations.save(yamlFile, Config.class, configuration);
-        assertEquals("i: 20\nj: 11", TestUtils.readFile(yamlFile));
+        assertEquals("i: 20\nj: 11\n", TestUtils.readFile(yamlFile));
     }
+
+    @Test
+    void writeYamlConfiguration1() {
+        Config configuration = new Config();
+
+        YamlConfigurations.write(outputStream, Config.class, configuration);
+        assertEquals("i: 10\nj: 11\n", outputStream.toString());
+
+        outputStream.reset();
+
+        configuration.i = 20;
+        YamlConfigurations.write(outputStream, Config.class, configuration);
+        assertEquals("i: 20\nj: 11\n", outputStream.toString());
+    }
+
 
     @Test
     void saveYamlConfiguration2() {
@@ -61,7 +73,18 @@ class YamlConfigurationsTest {
                 yamlFile, Config.class, configuration,
                 builder -> builder.setFieldFilter(includeI)
         );
-        assertEquals("i: 10", TestUtils.readFile(yamlFile));
+        assertEquals("i: 10\n", TestUtils.readFile(yamlFile));
+    }
+
+    @Test
+    void writeYamlConfiguration2() {
+        Config configuration = new Config();
+
+        YamlConfigurations.write(
+                outputStream, Config.class, configuration,
+                builder -> builder.setFieldFilter(includeI)
+        );
+        assertEquals("i: 10\n", outputStream.toString());
     }
 
     @Test
@@ -72,23 +95,48 @@ class YamlConfigurationsTest {
                 yamlFile, Config.class, configuration,
                 YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
         );
-        assertEquals("i: 10", TestUtils.readFile(yamlFile));
+        assertEquals("i: 10\n", TestUtils.readFile(yamlFile));
+    }
+
+
+    @Test
+    void writeYamlConfiguration3() {
+        Config configuration = new Config();
+
+        YamlConfigurations.write(
+                outputStream, Config.class, configuration,
+                YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
+        );
+        assertEquals("i: 10\n", outputStream.toString());
     }
 
     @Test
     void loadYamlConfiguration1() {
-        writeString("i: 20\nk: 30");
+        writeStringToFile("i: 20\nk: 30");
         Config config = YamlConfigurations.load(yamlFile, Config.class);
         assertConfigEquals(config, 20, 11);
 
-        writeString("i: 20\nj: 30");
+        writeStringToFile("i: 20\nj: 30");
         config = YamlConfigurations.load(yamlFile, Config.class);
         assertConfigEquals(config, 20, 30);
     }
 
     @Test
+    void readYamlConfiguration1() {
+        writeStringToStream("i: 20\nk: 30");
+        Config config = YamlConfigurations.read(inputFromOutput(), Config.class);
+        assertConfigEquals(config, 20, 11);
+
+        outputStream.reset();
+
+        writeStringToStream("i: 20\nj: 30");
+        config = YamlConfigurations.read(inputFromOutput(), Config.class);
+        assertConfigEquals(config, 20, 30);
+    }
+
+    @Test
     void loadYamlConfiguration2() {
-        writeString("i: 20\nj: 30");
+        writeStringToFile("i: 20\nj: 30");
         Config config = YamlConfigurations.load(
                 yamlFile, Config.class,
                 builder -> builder.setFieldFilter(includeI)
@@ -97,11 +145,33 @@ class YamlConfigurationsTest {
     }
 
     @Test
+    void readYamlConfiguration2() {
+        writeStringToStream("i: 20\nj: 30");
+        Config config = YamlConfigurations.read(
+                inputFromOutput(), Config.class,
+                builder -> builder.setFieldFilter(includeI)
+        );
+        assertConfigEquals(config, 20, 11);
+    }
+
+    @Test
     void loadYamlConfiguration3() {
-        writeString("i: 20\nj: 30");
+        writeStringToFile("i: 20\nj: 30");
 
         Config config = YamlConfigurations.load(
                 yamlFile, Config.class,
+                YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
+        );
+
+        assertConfigEquals(config, 20, 11);
+    }
+
+    @Test
+    void readYamlConfiguration3() {
+        writeStringToStream("i: 20\nj: 30");
+
+        Config config = YamlConfigurations.read(
+                inputFromOutput(), Config.class,
                 YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
         );
 
@@ -112,12 +182,12 @@ class YamlConfigurationsTest {
     void updateYamlConfiguration1() {
         Config config = YamlConfigurations.update(yamlFile, Config.class);
         assertConfigEquals(config, 10, 11);
-        assertEquals("i: 10\nj: 11", TestUtils.readFile(yamlFile));
+        assertEquals("i: 10\nj: 11\n", TestUtils.readFile(yamlFile));
 
-        writeString("i: 20\nk: 30");
+        writeStringToFile("i: 20\nk: 30");
         config = YamlConfigurations.update(yamlFile, Config.class);
         assertConfigEquals(config, 20, 11);
-        assertEquals("i: 20\nj: 11", TestUtils.readFile(yamlFile));
+        assertEquals("i: 20\nj: 11\n", TestUtils.readFile(yamlFile));
     }
 
     @Test
@@ -127,7 +197,7 @@ class YamlConfigurationsTest {
                 builder -> builder.setFieldFilter(includeI)
         );
         assertConfigEquals(config, 10, 11);
-        assertEquals("i: 10", TestUtils.readFile(yamlFile));
+        assertEquals("i: 10\n", TestUtils.readFile(yamlFile));
     }
 
     @Test
@@ -137,7 +207,7 @@ class YamlConfigurationsTest {
                 YamlConfigurationProperties.newBuilder().setFieldFilter(includeI).build()
         );
         assertConfigEquals(config, 10, 11);
-        assertEquals("i: 10", TestUtils.readFile(yamlFile));
+        assertEquals("i: 10\n", TestUtils.readFile(yamlFile));
     }
 
     private static void assertConfigEquals(Config config, int i, int j) {
@@ -145,11 +215,19 @@ class YamlConfigurationsTest {
         assertEquals(j, config.j);
     }
 
-    private void writeString(String string) {
+    private void writeStringToFile(String string) {
         try {
             Files.writeString(yamlFile, string);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void writeStringToStream(String string) {
+        outputStream.writeBytes(string.getBytes());
+    }
+
+    private InputStream inputFromOutput() {
+        return new ByteArrayInputStream(outputStream.toByteArray());
     }
 }
