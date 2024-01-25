@@ -1,5 +1,8 @@
 package de.exlll.configlib;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
  * An extension of the {@code ConfigurationProperties} class that allows configuring properties
  * that are more specific to files.
@@ -8,6 +11,7 @@ public class FileConfigurationProperties extends ConfigurationProperties {
     private final String header;
     private final String footer;
     private final boolean createParentDirectories;
+    private Charset charset;
 
     /**
      * Constructs a new instance of this class with values taken from the given builder.
@@ -20,6 +24,7 @@ public class FileConfigurationProperties extends ConfigurationProperties {
         this.header = builder.header;
         this.footer = builder.footer;
         this.createParentDirectories = builder.createParentDirectories;
+        this.charset = builder.charset;
     }
 
     /**
@@ -57,6 +62,7 @@ public class FileConfigurationProperties extends ConfigurationProperties {
         private String header = null;
         private String footer = null;
         private boolean createParentDirectories = true;
+        private Charset charset = StandardCharsets.UTF_8;
 
         /**
          * The default constructor.
@@ -74,6 +80,7 @@ public class FileConfigurationProperties extends ConfigurationProperties {
             this.header = properties.header;
             this.footer = properties.footer;
             this.createParentDirectories = properties.createParentDirectories;
+            this.charset = properties.charset;
         }
 
         /**
@@ -110,6 +117,19 @@ public class FileConfigurationProperties extends ConfigurationProperties {
          */
         public final B createParentDirectories(boolean createParentDirectories) {
             this.createParentDirectories = createParentDirectories;
+            return getThis();
+        }
+
+        /**
+         * Sets the charset used to read and write configuration files.
+         * <p>
+         * The default value is {@code StandardCharsets.UTF_8}.
+         *
+         * @param charset the charset
+         * @return this builder
+         */
+        public final B charset(Charset charset) {
+            this.charset = charset;
             return getThis();
         }
 
@@ -155,4 +175,14 @@ public class FileConfigurationProperties extends ConfigurationProperties {
     public final boolean createParentDirectories() {
         return createParentDirectories;
     }
+
+    /**
+     * Returns the charset used to read and write configuration files.
+     *
+     * @return the charset
+     */
+    public final Charset getCharset() {
+        return charset;
+    }
+
 }

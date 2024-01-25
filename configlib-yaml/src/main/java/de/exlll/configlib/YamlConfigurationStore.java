@@ -126,7 +126,7 @@ public final class YamlConfigurationStore<T> implements
     @Override
     public T load(Path configurationFile) {
         requireNonNull(configurationFile, "configuration file");
-        try (var reader = Files.newBufferedReader(configurationFile)) {
+        try (var reader = Files.newBufferedReader(configurationFile, properties.getCharset())) {
             var yaml = YAML_LOADER.loadFromReader(reader);
             var conf = requireYamlMapForLoad(yaml, configurationFile);
             return serializer.deserialize(conf);
