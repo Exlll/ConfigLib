@@ -572,12 +572,12 @@ class YamlWriterTest {
         Queue<CommentNode> nodes = extractor.extractCommentNodes(c);
         return new YamlWriterArguments(yaml, nodes, properties);
     }
+
     @Configuration
     static class N {
         @Comment("テスト")
         String s = "テスト test";
     }
-
 
     @Test
     void writeYamlToFileInUTF8WithUnicodeCharacters() {
