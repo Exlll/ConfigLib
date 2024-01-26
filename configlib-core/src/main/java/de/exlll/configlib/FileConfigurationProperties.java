@@ -1,7 +1,6 @@
 package de.exlll.configlib;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 /**
  * An extension of the {@code ConfigurationProperties} class that allows configuring properties
@@ -62,7 +61,7 @@ public class FileConfigurationProperties extends ConfigurationProperties {
         private String header = null;
         private String footer = null;
         private boolean createParentDirectories = true;
-        private Charset charset = StandardCharsets.UTF_8;
+        private Charset charset = Charset.defaultCharset();
 
         /**
          * The default constructor.
@@ -123,7 +122,7 @@ public class FileConfigurationProperties extends ConfigurationProperties {
         /**
          * Sets the charset used to read and write configuration files.
          * <p>
-         * The default value is {@code StandardCharsets.UTF_8}.
+         * Defaults to the system's default charset ({@code Charset.defaultCharset()}).
          *
          * @param charset the charset
          * @return this builder
