@@ -3,13 +3,15 @@ package de.exlll.configlib;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.function.Executable;
 
-import java.awt.Point;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -276,12 +278,16 @@ public final class TestUtils {
         return c1.equals(c2);
     }
 
-    public static String readFile(Path file) {
+    public static String readFile(Path file, Charset charset) {
         try {
-            return Files.readString(file);
+            return Files.readString(file, charset);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static String readFile(Path file) {
+        return readFile(file, Charset.defaultCharset());
     }
 
     public static ConfigurationElement<?> fieldAsElement(Class<?> type, String fieldName) {

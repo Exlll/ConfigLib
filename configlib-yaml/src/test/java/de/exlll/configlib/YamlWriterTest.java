@@ -8,6 +8,8 @@ import org.snakeyaml.engine.v2.api.Dump;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -499,16 +501,20 @@ class YamlWriterTest {
         assertEquals(0, YamlWriter.lengthCommonPrefix(abcd, def));
     }
 
-    String readFile() {
-        return TestUtils.readFile(yamlFile);
+    String readFile(Charset charset) {
+        return TestUtils.readFile(yamlFile, charset);
     }
 
     String readOutputStream() {
         return outputStream.toString();
     }
 
+    void assertFileContentEquals(String expected, Charset charset) {
+        assertEquals(expected, readFile(charset));
+    }
+
     void assertFileContentEquals(String expected) {
-        assertEquals(expected, readFile());
+        assertFileContentEquals(expected, Charset.defaultCharset());
     }
 
     void assertStreamContentEquals(String expected) {
@@ -566,4 +572,42 @@ class YamlWriterTest {
         Queue<CommentNode> nodes = extractor.extractCommentNodes(c);
         return new YamlWriterArguments(yaml, nodes, properties);
     }
+
+    @Configuration
+    static class N {
+        @Comment("テスト")
+        String s = "テスト test";
+    }
+
+    @Test
+    void writeYamlToFileInUTF8WithUnicodeCharacters() {
+        Consumer<YamlConfigurationProperties.Builder<?>> builderConsumer = builder -> builder
+                .charset(StandardCharsets.UTF_8);
+
+        writeConfigToFile(N.class, builderConsumer);
+
+        String expected = """
+                          # テスト
+                          s: テスト test
+                          """;
+
+        assertFileContentEquals(expected, StandardCharsets.UTF_8);
+    }
+
+    @Test
+    void writeYamlToFileInASCIIWithUnicodeCharacters() {
+        Consumer<YamlConfigurationProperties.Builder<?>> builderConsumer = builder -> builder
+                .charset(StandardCharsets.US_ASCII);
+
+        writeConfigToFile(N.class, builderConsumer);
+
+        // UTF-8 characters will be replaced with question mark points
+        String expected = """
+                          # ???
+                          s: ??? test
+                          """;
+
+        assertFileContentEquals(expected, StandardCharsets.US_ASCII);
+    }
+
 }

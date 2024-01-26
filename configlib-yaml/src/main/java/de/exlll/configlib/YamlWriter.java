@@ -36,7 +36,8 @@ final class YamlWriter {
     }
 
     public void writeYaml(String yaml, Queue<CommentNode> nodes) {
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(outputStream, properties.getCharset()))) {
             this.writer = writer;
             writeHeader();
             writeContent(yaml, nodes);
