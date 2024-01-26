@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -276,12 +278,16 @@ public final class TestUtils {
         return c1.equals(c2);
     }
 
-    public static String readFile(Path file) {
+    public static String readFile(Path file, Charset charset) {
         try {
-            return Files.readString(file);
+            return Files.readString(file, charset);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static String readFile(Path file) {
+        return readFile(file, Charset.defaultCharset());
     }
 
     public static ConfigurationElement<?> fieldAsElement(Class<?> type, String fieldName) {
