@@ -11,7 +11,7 @@ public class FileConfigurationProperties extends ConfigurationProperties {
     private final String header;
     private final String footer;
     private final boolean createParentDirectories;
-    private Charset charset;
+    private final Charset charset;
 
     /**
      * Constructs a new instance of this class with values taken from the given builder.
