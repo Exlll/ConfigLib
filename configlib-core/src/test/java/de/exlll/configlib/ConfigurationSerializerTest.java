@@ -224,4 +224,91 @@ class ConfigurationSerializerTest {
     static final class B8 extends B7 {
         int j = 2;
     }
+
+    @Configuration
+    static final class B9 {
+        int i;
+
+        @PostProcess
+        private B9 postProcess() {
+            B9 b = new B9();
+            b.i = i + 20;
+            return b;
+        }
+    }
+
+    @Configuration
+    static final class B10 {
+        int i;
+
+        @PostProcess
+        private void postProcess() {
+            i += 20;
+        }
+    }
+
+    @Test
+    void postProcessorIsAppliedInClassDeserializer() {
+        B9 b9 = newSerializer(B9.class).deserialize(Map.of(
+                "i", 50
+        ));
+        assertThat(b9.i, is(70));
+
+
+        B10 b10 = newSerializer(B10.class).deserialize(Map.of(
+                "i", 10
+        ));
+        assertThat(b10.i, is(30));
+    }
+
+
+    @Configuration
+    static class B11 {
+        int k;
+
+        @PostProcess
+        void postProcess() {
+            k = k * 4;
+        }
+    }
+
+    @Configuration
+    static class B12 {
+        int j;
+        B11 b11;
+
+        @PostProcess
+        void postProcess() {
+            j = j * 3;
+            b11.k += 1;
+        }
+    }
+
+    @Configuration
+    static class B13 {
+        int i;
+        B12 b12;
+
+        @PostProcess
+        void postProcess() {
+            i = i * 2;
+            b12.j += 1;
+            b12.b11.k *= 2;
+        }
+    }
+
+    @Test
+    void postProcessNestedClasses() {
+        B13 b13 = newSerializer(B13.class).deserialize(Map.of(
+                "i", 1,
+                "b12", Map.of(
+                        "j", 2,
+                        "b11", Map.of("k", 3)
+                )
+        ));
+
+        assertThat(b13.i, is(2));
+        assertThat(b13.b12.j, is(7));
+        assertThat(b13.b12.b11.k, is(26));
+    }
 }

@@ -6,6 +6,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -434,5 +435,16 @@ class ReflectTest {
                 ),
                 "Constructor of type 'R1' with parameters 'int, float' threw an exception."
         );
+    }
+
+    private String someString() {
+        return "AB";
+    }
+
+    @Test
+    void invokeMethod() throws Exception {
+        Method method = ReflectTest.class.getDeclaredMethod("someString");
+        Object object = Reflect.invoke(method, new ReflectTest());
+        assertThat(object, is("AB"));
     }
 }

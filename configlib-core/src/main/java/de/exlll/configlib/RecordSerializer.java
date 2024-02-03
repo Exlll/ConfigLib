@@ -39,7 +39,8 @@ final class RecordSerializer<R> extends TypeSerializer<R, RecordComponentElement
             }
         }
 
-        return Reflect.callCanonicalConstructor(type, constructorArguments);
+        final R result = Reflect.callCanonicalConstructor(type, constructorArguments);
+        return postProcessor.apply(result);
     }
 
     @Override

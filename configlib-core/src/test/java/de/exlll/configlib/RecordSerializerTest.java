@@ -229,4 +229,55 @@ class RecordSerializerTest {
         assertThat(r.i, is(10));
         assertThat(r.s, is("s"));
     }
+
+    @Test
+    void postProcessorIsAppliedInRecordDeserializer() {
+        record R(int i, String s) {
+            @PostProcess
+            private R postProcess() {
+                return new R(i + 20, s.repeat(2));
+            }
+        }
+
+        R r = newSerializer(R.class).deserialize(Map.of(
+                "i", 10,
+                "s", "AB"
+        ));
+        assertThat(r.i, is(30));
+        assertThat(r.s, is("ABAB"));
+    }
+
+    @Test
+    void postProcessNestedRecords() {
+        record R3(int k) {
+            @PostProcess
+            R3 postProcess() {
+                return new R3(k * 4);
+            }
+        }
+        record R2(int j, R3 r3) {
+            @PostProcess
+            R2 postProcess() {
+                return new R2(j * 3, new R3(r3.k + 1));
+            }
+        }
+        record R1(int i, R2 r2) {
+            @PostProcess
+            R1 postProcess() {
+                return new R1(i * 2, new R2(r2.j + 1, new R3(r2.r3.k * 2)));
+            }
+        }
+
+        R1 r1 = newSerializer(R1.class).deserialize(Map.of(
+                "i", 1,
+                "r2", Map.of(
+                        "j", 2,
+                        "r3", Map.of("k", 3)
+                )
+        ));
+
+        assertThat(r1.i, is(2));
+        assertThat(r1.r2.j, is(7));
+        assertThat(r1.r2.r3.k, is(26));
+    }
 }

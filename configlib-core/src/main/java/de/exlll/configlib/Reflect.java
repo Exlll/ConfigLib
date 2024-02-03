@@ -242,4 +242,13 @@ final class Reflect {
             throw new RuntimeException(e);
         }
     }
+
+    static Object invoke(Method method, Object object, Object... arguments) {
+        try {
+            method.setAccessible(true);
+            return method.invoke(object, arguments);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

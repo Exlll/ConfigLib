@@ -33,7 +33,7 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, FieldElement> {
             }
         }
 
-        return result;
+        return postProcessor.apply(result);
     }
 
     @Override

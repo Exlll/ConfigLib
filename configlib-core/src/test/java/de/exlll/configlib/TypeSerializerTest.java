@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static de.exlll.configlib.TestUtils.assertThrowsConfigurationException;
@@ -175,5 +176,289 @@ class TypeSerializerTest {
                 () -> newTypeSerializer(RecursiveRecord3.class),
                 "Recursive type definitions are not supported."
         );
+    }
+
+    @Test
+    void atMost1PostProcessMethodAllowed() {
+        @Configuration
+        class A {
+            int i;
+
+            @PostProcess
+            void postProcessA() {}
+
+            @PostProcess
+            void postProcessB() {}
+        }
+
+        record R1(int i) {
+            @PostProcess
+            void postProcessA() {}
+
+            @PostProcess
+            void postProcessB() {}
+        }
+
+        assertThrowsConfigurationException(
+                () -> newTypeSerializer(A.class),
+                """
+                Configuration types must not define more than one method for post-processing \
+                but type 'class de.exlll.configlib.TypeSerializerTest$1A' defines 2:
+                  void de.exlll.configlib.TypeSerializerTest$1A.postProcessA()
+                  void de.exlll.configlib.TypeSerializerTest$1A.postProcessB()\
+                """
+        );
+        assertThrowsConfigurationException(
+                () -> newTypeSerializer(R1.class),
+                """
+                Configuration types must not define more than one method for post-processing \
+                but type 'class de.exlll.configlib.TypeSerializerTest$1R1' defines 2:
+                  void de.exlll.configlib.TypeSerializerTest$1R1.postProcessA()
+                  void de.exlll.configlib.TypeSerializerTest$1R1.postProcessB()\
+                """
+        );
+    }
+
+    @Test
+    void postProcessMustNotBeStaticOrAbstract() {
+        @Configuration
+        class B {
+            int i;
+
+            @PostProcess
+            static void postProcess() {}
+        }
+        @Configuration
+        abstract class C {
+            int i;
+
+            @PostProcess
+            abstract void postProcess();
+        }
+
+        record R2(int i) {
+            @PostProcess
+            static void postProcess() {}
+        }
+        assertThrowsConfigurationException(
+                () -> newTypeSerializer(B.class),
+                """
+                Post-processing methods must be neither abstract nor static, but post-processing \
+                method 'static void de.exlll.configlib.TypeSerializerTest$1B.postProcess()' of \
+                type 'class de.exlll.configlib.TypeSerializerTest$1B' is.\
+                """
+        );
+        assertThrowsConfigurationException(
+                () -> newTypeSerializer(C.class),
+                """
+                Post-processing methods must be neither abstract nor static, but post-processing \
+                method 'abstract void de.exlll.configlib.TypeSerializerTest$1C.postProcess()' of \
+                type 'class de.exlll.configlib.TypeSerializerTest$1C' is.\
+                """
+        );
+        assertThrowsConfigurationException(
+                () -> newTypeSerializer(R2.class),
+                """
+                Post-processing methods must be neither abstract nor static, but post-processing \
+                method 'static void de.exlll.configlib.TypeSerializerTest$1R2.postProcess()' of \
+                type 'class de.exlll.configlib.TypeSerializerTest$1R2' is.\
+                """
+        );
+    }
+
+    @Test
+    void postProcessMustNotHaveArguments() {
+        @Configuration
+        class D {
+            int i;
+
+            @PostProcess
+            void postProcess(int j, int k) {}
+        }
+
+        record R4(int i) {
+            @PostProcess
+            void postProcess(int l) {}
+        }
+
+        assertThrowsConfigurationException(
+                () -> newTypeSerializer(D.class),
+                """
+                Post-processing methods must not define any parameters but post-processing method \
+                'void de.exlll.configlib.TypeSerializerTest$1D.postProcess(int,int)' of type \
+                'class de.exlll.configlib.TypeSerializerTest$1D' defines 2.\
+                """
+        );
+        assertThrowsConfigurationException(
+                () -> newTypeSerializer(R4.class),
+                """
+                Post-processing methods must not define any parameters but post-processing method \
+                'void de.exlll.configlib.TypeSerializerTest$1R4.postProcess(int)' of type \
+                'class de.exlll.configlib.TypeSerializerTest$1R4' defines 1.\
+                """
+        );
+    }
+
+    @Test
+    void postProcessMustReturnVoidOrSameType() {
+        @Configuration
+        class E {
+            int i;
+
+            @PostProcess
+            E postProcess() {return null;}
+        }
+        class F extends E {
+            @Override
+            @PostProcess
+            E postProcess() {return null;}
+        }
+        class G extends E {
+            @Override
+            @PostProcess
+            G postProcess() {
+                return null;
+            }
+        }
+
+        // both of these are okay:
+        newTypeSerializer(E.class);
+        newTypeSerializer(G.class);
+
+        assertThrowsConfigurationException(
+                () -> newTypeSerializer(F.class),
+                """
+                The return type of post-processing methods must either be 'void' or the same \
+                type as the configuration type in which the post-processing method is defined. \
+                The return type of the post-processing method of \
+                type 'class de.exlll.configlib.TypeSerializerTest$1F' is neither 'void' nor 'F'.\
+                """
+        );
+    }
+
+    @Test
+    void postProcessorInvokesAnnotatedMethodWithVoidReturnType1() {
+        final AtomicInteger integer = new AtomicInteger(0);
+
+        @Configuration
+        class H1 {
+            int i;
+
+            @PostProcess
+            void postProcess() {integer.set(20);}
+        }
+
+        final var serializer = newTypeSerializer(H1.class);
+        final var postProcessor = serializer.createPostProcessorFromAnnotatedMethod();
+
+        final H1 h1_1 = new H1();
+        final H1 h1_2 = postProcessor.apply(h1_1);
+
+        assertThat(h1_2, sameInstance(h1_2));
+        assertThat(integer.get(), is(20));
+    }
+
+    static int postProcessorInvokesAnnotatedMethodWithVoidReturnType2_int = 0;
+
+    @Test
+    void postProcessorInvokesAnnotatedMethodWithVoidReturnType2() {
+        record H2(int j) {
+            @PostProcess
+            void postProcess() {
+                postProcessorInvokesAnnotatedMethodWithVoidReturnType2_int += 10;
+            }
+        }
+
+        final var serializer = newTypeSerializer(H2.class);
+        final var postProcessor = serializer.createPostProcessorFromAnnotatedMethod();
+
+        final H2 h2_1 = new H2(10);
+        final H2 h2_2 = postProcessor.apply(h2_1);
+
+        assertThat(h2_2, sameInstance(h2_1));
+        assertThat(postProcessorInvokesAnnotatedMethodWithVoidReturnType2_int, is(10));
+    }
+
+    @Test
+    void postProcessorInvokesAnnotatedMethodWithSameReturnType1() {
+        @Configuration
+        class H3 {
+            int i;
+
+            @PostProcess
+            H3 postProcess() {
+                H3 h3 = new H3();
+                h3.i = i + 20;
+                return h3;
+            }
+        }
+
+        final var serializer = newTypeSerializer(H3.class);
+        final var postProcessor = serializer.createPostProcessorFromAnnotatedMethod();
+
+        final H3 h3_1 = new H3();
+        h3_1.i = 10;
+        final H3 h3_2 = postProcessor.apply(h3_1);
+
+        assertThat(h3_2, not(sameInstance(h3_1)));
+        assertThat(h3_1.i, is(10));
+        assertThat(h3_2.i, is(30));
+    }
+
+    @Test
+    void postProcessorInvokesAnnotatedMethodWithSameReturnType2() {
+        record H4(int i) {
+            @PostProcess
+            H4 postProcess() {
+                return new H4(i + 20);
+            }
+        }
+
+        final var serializer = newTypeSerializer(H4.class);
+        final var postProcessor = serializer.createPostProcessorFromAnnotatedMethod();
+
+        final H4 h4_1 = new H4(10);
+        final H4 h4_2 = postProcessor.apply(h4_1);
+
+        assertThat(h4_2, not(sameInstance(h4_1)));
+        assertThat(h4_1.i, is(10));
+        assertThat(h4_2.i, is(30));
+    }
+
+    @Test
+    void postProcessorIsIdentityFunctionIfNoPostProcessAnnotationPresent() {
+        @Configuration
+        class J {
+            int i;
+        }
+        final var serializer = newTypeSerializer(J.class);
+        final var postProcessor = serializer.createPostProcessorFromAnnotatedMethod();
+
+        final J j_1 = new J();
+        final J j_2 = postProcessor.apply(j_1);
+        assertThat(j_2, sameInstance(j_1));
+    }
+
+    @Test
+    void postProcessOfParentClassNotCalled() {
+        @Configuration
+        class A {
+            int i = 10;
+
+            @PostProcess
+            void postProcess() {
+                this.i = this.i + 10;
+            }
+        }
+
+        class B extends A {}
+
+        final var serializer = newTypeSerializer(B.class);
+        final var postProcessor = serializer.createPostProcessorFromAnnotatedMethod();
+
+
+        B b = new B();
+        postProcessor.apply(b);
+        assertThat(b.i, is(10));
     }
 }
