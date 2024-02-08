@@ -210,7 +210,7 @@ public final class TestUtils {
 
         // Suppressing this warning might lead to an exception.
         // Using proper generics for the MEntry class is possible.
-        // However, doing so increases the compilation type by several seconds
+        // However, doing so increases the compilation time by several seconds
         @SuppressWarnings("unchecked")
         Map<K, V> returnResult = (Map<K, V>) result;
         return returnResult;

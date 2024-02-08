@@ -1,5 +1,6 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.ConfigurationElements.RecordComponentElement;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Point;
@@ -159,7 +160,7 @@ class RecordSerializerTest {
     }
 
     @Test
-    void deserializeNullValuesAsNullIfInputNullsIsTrueFailsForPrimitiveFields() {
+    void deserializeNullValuesAsNullIfInputNullsIsTrueFailsForPrimitiveRecordComponents() {
         RecordSerializer<R2> serializer = newSerializer(R2.class, builder -> builder.inputNulls(true));
         RecordComponent[] components = R2.class.getRecordComponents();
 
@@ -231,6 +232,18 @@ class RecordSerializerTest {
     }
 
     @Test
+    void getDefaultValueOf() {
+        record R(int i, String s) {
+            R() {this(10, "s");}
+        }
+        final var rc1 = new RecordComponentElement(R.class.getRecordComponents()[0]);
+        final var rc2 = new RecordComponentElement(R.class.getRecordComponents()[1]);
+        final var serializer = newSerializer(R.class);
+        assertThat(serializer.getDefaultValueOf(rc1), is(0));
+        assertThat(serializer.getDefaultValueOf(rc2), nullValue());
+    }
+
+    @Test
     void postProcessorIsAppliedInRecordDeserializer() {
         record R(int i, String s) {
             @PostProcess
@@ -279,5 +292,231 @@ class RecordSerializerTest {
         assertThat(r1.i, is(2));
         assertThat(r1.r2.j, is(7));
         assertThat(r1.r2.r3.k, is(26));
+    }
+
+
+    record RP(int x, int y) {
+        @PostProcess
+        private void doSth1() {}
+
+        @PostProcess
+        private void doSth2() {}
+    }
+
+    @Test
+    void recordWithMultiplePostProcessMethodsCausesException() {
+        assertThrowsConfigurationException(
+                () -> newSerializer(RP.class),
+                """
+                Configuration types must not define more than one method for post-processing but \
+                type 'class de.exlll.configlib.RecordSerializerTest$RP' defines 2:
+                  private void de.exlll.configlib.RecordSerializerTest$RP.doSth1()
+                  private void de.exlll.configlib.RecordSerializerTest$RP.doSth2()\
+                """
+        );
+    }
+
+    record RR_1(
+            @PostProcess(key = "key1")
+            int a1,
+            @PostProcess(key = "key1")
+            int a2,
+            @PostProcess(key = "key2")
+            int b1,
+            @PostProcess(key = "key2")
+            int b2,
+            @PostProcess
+            int c1,
+            @PostProcess
+            int c2,
+            int d1,
+            int d2
+    ) {}
+
+    @Test
+    void postProcessRecordComponentByKey1() {
+        final var serializer = newSerializer(
+                RR_1.class,
+                builder -> builder.addPostProcessor(
+                        ConfigurationElementFilter.byPostProcessKey("key1"),
+                        (Integer x) -> x * 2
+                )
+        );
+        RR_1 deserialized = serializer.deserialize(Map.of(
+                "a1", 10, "a2", 20,
+                "b1", 10, "b2", 20,
+                "c1", 10, "c2", 20,
+                "d1", 10, "d2", 20
+        ));
+        assertThat(deserialized.a1, is(20));
+        assertThat(deserialized.a2, is(40));
+        assertThat(deserialized.b1, is(10));
+        assertThat(deserialized.b2, is(20));
+        assertThat(deserialized.c1, is(10));
+        assertThat(deserialized.c2, is(20));
+        assertThat(deserialized.d1, is(10));
+        assertThat(deserialized.d2, is(20));
+    }
+
+    @Test
+    void postProcessRecordComponentByEmptyKey() {
+        final var serializer = newSerializer(
+                RR_1.class,
+                builder -> builder.addPostProcessor(
+                        ConfigurationElementFilter.byPostProcessKey(""),
+                        (Integer x) -> x * 2
+                )
+        );
+        RR_1 deserialized = serializer.deserialize(Map.of(
+                "a1", 10, "a2", 20,
+                "b1", 10, "b2", 20,
+                "c1", 10, "c2", 20,
+                "d1", 10, "d2", 20
+        ));
+        assertThat(deserialized.a1, is(10));
+        assertThat(deserialized.a2, is(20));
+        assertThat(deserialized.b1, is(10));
+        assertThat(deserialized.b2, is(20));
+        assertThat(deserialized.c1, is(20));
+        assertThat(deserialized.c2, is(40));
+        assertThat(deserialized.d1, is(10));
+        assertThat(deserialized.d2, is(20));
+    }
+
+    record RR_2(RR_1 pp1_1, @PostProcess(key = "key3") RR_1 pp1_2) {}
+
+    @Test
+    void postProcessNestedRecordComponentByKey2And3() {
+        final var serializer = newSerializer(
+                RR_2.class,
+                builder -> builder
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("key2"),
+                                (Integer x) -> x * 2
+                        )
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("key3"),
+                                (RR_1 pp1) -> new RR_1(
+                                        pp1.a1 * 10,
+                                        pp1.a2 * 10,
+                                        pp1.b1 * 10,
+                                        pp1.b2 * 10,
+                                        pp1.c1 * 10,
+                                        pp1.c2 * 10,
+                                        pp1.d1 * 10,
+                                        pp1.d2 * 10
+                                )
+                        )
+        );
+        RR_2 deserialized = serializer.deserialize(Map.of(
+                "pp1_1", Map.of(
+                        "a1", 10, "a2", 20,
+                        "b1", 10, "b2", 20,
+                        "c1", 10, "c2", 20,
+                        "d1", 10, "d2", 20
+                ),
+                "pp1_2", Map.of(
+                        "a1", 10, "a2", 20,
+                        "b1", 10, "b2", 20,
+                        "c1", 10, "c2", 20,
+                        "d1", 10, "d2", 20
+                )
+        ));
+        assertThat(deserialized.pp1_1.a1, is(10));
+        assertThat(deserialized.pp1_1.a2, is(20));
+        assertThat(deserialized.pp1_1.b1, is(20));
+        assertThat(deserialized.pp1_1.b2, is(40));
+        assertThat(deserialized.pp1_1.c1, is(10));
+        assertThat(deserialized.pp1_1.c2, is(20));
+        assertThat(deserialized.pp1_1.d1, is(10));
+        assertThat(deserialized.pp1_1.d2, is(20));
+
+        assertThat(deserialized.pp1_2.a1, is(100));
+        assertThat(deserialized.pp1_2.a2, is(200));
+        assertThat(deserialized.pp1_2.b1, is(200));
+        assertThat(deserialized.pp1_2.b2, is(400));
+        assertThat(deserialized.pp1_2.c1, is(100));
+        assertThat(deserialized.pp1_2.c2, is(200));
+        assertThat(deserialized.pp1_2.d1, is(100));
+        assertThat(deserialized.pp1_2.d2, is(200));
+    }
+
+    @Test
+    void postProcessRecordComponentDefaultValueIfSerializationMissing() {
+        final var serializer = newSerializer(
+                RR_1.class,
+                builder -> builder
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("key1"),
+                                (Integer x) -> x + 20
+                        )
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("key2"),
+                                (Integer x) -> x + 500
+                        )
+        );
+        RR_1 deserialized = serializer.deserialize(Map.of(
+                "a1", 700,
+                "b1", 800
+        ));
+        assertThat(deserialized.a1, is(720));
+        assertThat(deserialized.a2, is(20));
+        assertThat(deserialized.b1, is(1300));
+        assertThat(deserialized.b2, is(500));
+        assertThat(deserialized.c1, is(0));
+        assertThat(deserialized.c2, is(0));
+        assertThat(deserialized.d1, is(0));
+        assertThat(deserialized.d2, is(0));
+    }
+
+    record RR_3(@PostProcess int i) {
+        @PostProcess
+        private RR_3 postProcess() {
+            return new RR_3(i + 1);
+        }
+    }
+
+    @Test
+    void postProcessMethodAppliedAfterPostProcessAnnotation() {
+        final var serializer = newSerializer(
+                RR_3.class,
+                builder -> builder.addPostProcessor(
+                        ConfigurationElementFilter.byPostProcessKey(""),
+                        (Integer x) -> x * 2
+                )
+        );
+        RR_3 deserialized = serializer.deserialize(Map.of("i", 10));
+        assertThat(deserialized.i, is(21));
+    }
+
+    record RR_Null(
+            @PostProcess(key = "integer")
+            Integer i1,
+            Integer i2,
+            @PostProcess(key = "string")
+            String s1,
+            String s2
+    ) {}
+
+    @Test
+    void postProcessRecordComponentsThatAreAssignedNullValues() {
+        final var serializer = newSerializer(
+                RR_Null.class,
+                builder -> builder
+                        .inputNulls(true)
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("integer"),
+                                (Integer x) -> (x == null) ? -1 : x * 2
+                        )
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("string"),
+                                (String s) -> (s == null) ? "empty" : s.repeat(2)
+                        )
+        );
+        RR_Null deserialized = serializer.deserialize(Map.of());
+        assertThat(deserialized.i1, is(-1));
+        assertThat(deserialized.i2, nullValue());
+        assertThat(deserialized.s1, is("empty"));
+        assertThat(deserialized.s2, nullValue());
     }
 }

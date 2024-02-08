@@ -8,6 +8,7 @@ import de.exlll.configlib.configurations.ExampleInitializer;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Point;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.function.Consumer;
 import static de.exlll.configlib.TestUtils.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings("FieldMayBeFinal")
@@ -63,13 +65,14 @@ class ConfigurationSerializerTest {
         );
     }
 
+    @Configuration
+    static final class A {
+        int value1 = 1;
+        int someValue2 = 2;
+    }
+
     @Test
     void serializeAppliesFormatter() {
-        @Configuration
-        class A {
-            int value1 = 1;
-            int someValue2 = 2;
-        }
         ConfigurationSerializer<A> serializer = newSerializer(
                 A.class,
                 builder -> builder.setNameFormatter(NameFormatters.UPPER_UNDERSCORE)
@@ -226,6 +229,35 @@ class ConfigurationSerializerTest {
     }
 
     @Configuration
+    static final class B14 {
+        private int i1;
+        private int i2 = 10;
+        private String s1;
+        private String s2 = null;
+        private String s3 = "s3";
+    }
+
+    @Test
+    void getDefaultValueOf() {
+        final var serializer = newSerializer(B14.class);
+
+        assertThat(serializer.getDefaultValueOf(fieldElementFor(B14.class, "i1")), is(0));
+        assertThat(serializer.getDefaultValueOf(fieldElementFor(B14.class, "i2")), is(10));
+        assertThat(serializer.getDefaultValueOf(fieldElementFor(B14.class, "s1")), nullValue());
+        assertThat(serializer.getDefaultValueOf(fieldElementFor(B14.class, "s2")), nullValue());
+        assertThat(serializer.getDefaultValueOf(fieldElementFor(B14.class, "s3")), is("s3"));
+    }
+
+    private static ConfigurationElements.FieldElement fieldElementFor(Class<?> type, String fieldName) {
+        try {
+            final Field field = type.getDeclaredField(fieldName);
+            return new ConfigurationElements.FieldElement(field);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Configuration
     static final class B9 {
         int i;
 
@@ -310,5 +342,347 @@ class ConfigurationSerializerTest {
         assertThat(b13.i, is(2));
         assertThat(b13.b12.j, is(7));
         assertThat(b13.b12.b11.k, is(26));
+    }
+
+    @Configuration
+    static final class PP_1 {
+        @PostProcess(key = "key1")
+        private int a1 = 10;
+        @PostProcess(key = "key1")
+        private int a2 = 20;
+
+        @PostProcess(key = "key2")
+        private int b1 = 10;
+        @PostProcess(key = "key2")
+        private int b2 = 20;
+
+        @PostProcess
+        private int c1 = 10;
+        @PostProcess
+        private int c2 = 20;
+
+        private int d1 = 10;
+        private int d2 = 20;
+    }
+
+    @Test
+    void postProcessFieldByKey1() {
+        final var serializer = newSerializer(
+                PP_1.class,
+                builder -> builder.addPostProcessor(
+                        ConfigurationElementFilter.byPostProcessKey("key1"),
+                        (Integer x) -> x * 2
+                )
+        );
+        PP_1 deserialized = serializer.deserialize(Map.of(
+                "a1", 10, "a2", 20,
+                "b1", 10, "b2", 20,
+                "c1", 10, "c2", 20,
+                "d1", 10, "d2", 20
+        ));
+        assertThat(deserialized.a1, is(20));
+        assertThat(deserialized.a2, is(40));
+        assertThat(deserialized.b1, is(10));
+        assertThat(deserialized.b2, is(20));
+        assertThat(deserialized.c1, is(10));
+        assertThat(deserialized.c2, is(20));
+        assertThat(deserialized.d1, is(10));
+        assertThat(deserialized.d2, is(20));
+    }
+
+    @Test
+    void postProcessFieldByEmptyKey() {
+        final var serializer = newSerializer(
+                PP_1.class,
+                builder -> builder.addPostProcessor(
+                        ConfigurationElementFilter.byPostProcessKey(""),
+                        (Integer x) -> x * 2
+                )
+        );
+        PP_1 deserialized = serializer.deserialize(Map.of(
+                "a1", 10, "a2", 20,
+                "b1", 10, "b2", 20,
+                "c1", 10, "c2", 20,
+                "d1", 10, "d2", 20
+        ));
+        assertThat(deserialized.a1, is(10));
+        assertThat(deserialized.a2, is(20));
+        assertThat(deserialized.b1, is(10));
+        assertThat(deserialized.b2, is(20));
+        assertThat(deserialized.c1, is(20));
+        assertThat(deserialized.c2, is(40));
+        assertThat(deserialized.d1, is(10));
+        assertThat(deserialized.d2, is(20));
+    }
+
+    @Configuration
+    static final class PP_2 {
+        private PP_1 pp1_1 = new PP_1();
+        @PostProcess(key = "key3")
+        private PP_1 pp1_2 = new PP_1();
+    }
+
+    @Test
+    void postProcessNestedFieldByKey2And3() {
+        final var serializer = newSerializer(
+                PP_2.class,
+                builder -> builder
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("key2"),
+                                (Integer x) -> x * 2
+                        )
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("key3"),
+                                (PP_1 pp1) -> {
+                                    pp1.a1 *= 10;
+                                    pp1.a2 *= 10;
+                                    pp1.b1 *= 10;
+                                    pp1.b2 *= 10;
+                                    pp1.c1 *= 10;
+                                    pp1.c2 *= 10;
+                                    pp1.d1 *= 10;
+                                    pp1.d2 *= 10;
+                                    return pp1;
+                                }
+                        )
+        );
+        PP_2 deserialized = serializer.deserialize(Map.of(
+                "pp1_1", Map.of(
+                        "a1", 10, "a2", 20,
+                        "b1", 10, "b2", 20,
+                        "c1", 10, "c2", 20,
+                        "d1", 10, "d2", 20
+                ),
+                "pp1_2", Map.of(
+                        "a1", 10, "a2", 20,
+                        "b1", 10, "b2", 20,
+                        "c1", 10, "c2", 20,
+                        "d1", 10, "d2", 20
+                )
+        ));
+        assertThat(deserialized.pp1_1.a1, is(10));
+        assertThat(deserialized.pp1_1.a2, is(20));
+        assertThat(deserialized.pp1_1.b1, is(20));
+        assertThat(deserialized.pp1_1.b2, is(40));
+        assertThat(deserialized.pp1_1.c1, is(10));
+        assertThat(deserialized.pp1_1.c2, is(20));
+        assertThat(deserialized.pp1_1.d1, is(10));
+        assertThat(deserialized.pp1_1.d2, is(20));
+
+        assertThat(deserialized.pp1_2.a1, is(100));
+        assertThat(deserialized.pp1_2.a2, is(200));
+        assertThat(deserialized.pp1_2.b1, is(200));
+        assertThat(deserialized.pp1_2.b2, is(400));
+        assertThat(deserialized.pp1_2.c1, is(100));
+        assertThat(deserialized.pp1_2.c2, is(200));
+        assertThat(deserialized.pp1_2.d1, is(100));
+        assertThat(deserialized.pp1_2.d2, is(200));
+    }
+
+    @Test
+    void postProcessFieldDefaultValueIfSerializationMissing() {
+        final var serializer = newSerializer(
+                PP_1.class,
+                builder -> builder
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("key1"),
+                                (Integer x) -> x * 2
+                        )
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("key2"),
+                                (Integer x) -> x * 5
+                        )
+        );
+        PP_1 deserialized = serializer.deserialize(Map.of(
+                "a1", 700,
+                "b1", 800
+        ));
+        assertThat(deserialized.a1, is(1400));
+        assertThat(deserialized.a2, is(40));
+        assertThat(deserialized.b1, is(4000));
+        assertThat(deserialized.b2, is(100));
+        assertThat(deserialized.c1, is(10));
+        assertThat(deserialized.c2, is(20));
+        assertThat(deserialized.d1, is(10));
+        assertThat(deserialized.d2, is(20));
+    }
+
+    @Configuration
+    static final class PP_3 {
+        @PostProcess
+        private int i;
+
+        @PostProcess
+        private void postProcess() {
+            i++;
+        }
+    }
+
+    @Test
+    void postProcessMethodAppliedAfterPostProcessAnnotation() {
+        final var serializer = newSerializer(
+                PP_3.class,
+                builder -> builder.addPostProcessor(
+                        ConfigurationElementFilter.byPostProcessKey(""),
+                        (Integer x) -> x * 2
+                )
+        );
+        PP_3 deserialized = serializer.deserialize(Map.of("i", 10));
+        assertThat(deserialized.i, is(21));
+    }
+
+    @Configuration
+    static final class PP_Ignored {
+        @PostProcess(key = "key1")
+        @Ignore
+        private int a1 = 10;
+        @PostProcess(key = "key1")
+        @Ignore
+        private int a2 = 20;
+
+        @PostProcess(key = "key2")
+        private final int b1 = 10;
+        @PostProcess(key = "key2")
+        private final int b2 = 20;
+
+        @PostProcess
+        private transient int c1 = 10;
+        @PostProcess
+        private transient int c2 = 20;
+
+        private int d1 = 10;
+        private int d2 = 20;
+    }
+
+    @Test
+    void ignoredFieldsAreNotPostProcessed() {
+        final var serializer = newSerializer(
+                PP_Ignored.class,
+                builder -> builder
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("key1"),
+                                (Integer x) -> x * 2
+                        )
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("key2"),
+                                (Integer x) -> x * 5
+                        )
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey(""),
+                                (Integer x) -> x * 7
+                        )
+        );
+        PP_Ignored deserialized = serializer.deserialize(Map.of(
+                "a1", 10, "a2", 20,
+                "b1", 10, "b2", 20,
+                "c1", 10, "c2", 20,
+                "d1", 10, "d2", 20
+        ));
+        assertThat(deserialized.a1, is(10));
+        assertThat(deserialized.a2, is(20));
+        assertThat(deserialized.b1, is(10));
+        assertThat(deserialized.b2, is(20));
+        assertThat(deserialized.c1, is(10));
+        assertThat(deserialized.c2, is(20));
+        assertThat(deserialized.d1, is(10));
+        assertThat(deserialized.d2, is(20));
+    }
+
+    @Configuration
+    static final class PP_Null {
+        @PostProcess(key = "integer")
+        private Integer i1;
+        @PostProcess(key = "integer")
+        private Integer i2;
+        @PostProcess(key = "integer")
+        private Integer i3 = 1;
+        private Integer i4;
+        @PostProcess(key = "string")
+        private String s1;
+        @PostProcess(key = "string")
+        private String s2;
+        @PostProcess(key = "string")
+        private String s3 = "a";
+        private String s4;
+    }
+
+    @Test
+    void postProcessFieldsThatAreAssignedNullValues() {
+        final var serializer = newSerializer(
+                PP_Null.class,
+                builder -> builder
+                        .inputNulls(true)
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("integer"),
+                                (Integer x) -> (x == null) ? -1 : x * 2
+                        )
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("string"),
+                                (String s) -> (s == null) ? "empty" : s.repeat(2)
+                        )
+        );
+        PP_Null deserialized = serializer.deserialize(TestUtils.asMap(
+                "i1", null, "i4", null,
+                "s1", null, "s4", null
+
+        ));
+        assertThat(deserialized.i1, is(-1));
+        assertThat(deserialized.i2, is(-1));
+        assertThat(deserialized.i3, is(2));
+        assertThat(deserialized.i4, nullValue());
+        assertThat(deserialized.s1, is("empty"));
+        assertThat(deserialized.s2, is("empty"));
+        assertThat(deserialized.s3, is("aa"));
+        assertThat(deserialized.s4, nullValue());
+    }
+
+    @Configuration
+    static final class PP_Null_2 {
+        @PostProcess(key = "integer")
+        private Integer i1 = 1;
+        @PostProcess(key = "integer")
+        private Integer i2 = 2;
+        @PostProcess(key = "integer")
+        private Integer i3 = null;
+        @PostProcess(key = "integer")
+        private Integer i4 = null;
+        @PostProcess(key = "string")
+        private String s1 = "a";
+        @PostProcess(key = "string")
+        private String s2 = "b";
+        @PostProcess(key = "string")
+        private String s3 = null;
+        @PostProcess(key = "string")
+        private String s4 = null;
+    }
+
+    @Test
+    void postProcessSerializedNullValuesWithInputNullsBeingFalse() {
+        final var serializer = newSerializer(
+                PP_Null_2.class,
+                builder -> builder
+                        .inputNulls(false)
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("integer"),
+                                (Integer x) -> (x == null) ? -1 : x * 2
+                        )
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("string"),
+                                (String s) -> (s == null) ? "empty" : s.repeat(2)
+                        )
+        );
+        PP_Null_2 deserialized = serializer.deserialize(TestUtils.asMap(
+                "i1", null, "i3", null,
+                "s1", null, "s3", null
+
+        ));
+        assertThat(deserialized.i1, is(2));
+        assertThat(deserialized.i2, is(4));
+        assertThat(deserialized.i3, is(-1));
+        assertThat(deserialized.i4, is(-1));
+        assertThat(deserialized.s1, is("aa"));
+        assertThat(deserialized.s2, is("bb"));
+        assertThat(deserialized.s3, is("empty"));
+        assertThat(deserialized.s4, is("empty"));
     }
 }

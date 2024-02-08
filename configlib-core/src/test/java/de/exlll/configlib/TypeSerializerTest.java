@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static de.exlll.configlib.TestUtils.assertThrowsConfigurationException;
@@ -299,28 +298,29 @@ class TypeSerializerTest {
         );
     }
 
+    @Configuration
+    static class E {
+        int i;
+
+        @PostProcess
+        E postProcess() {return null;}
+    }
+    static class F extends E {
+        @Override
+        @PostProcess
+        E postProcess() {return null;}
+    }
+    static class G extends E {
+        @Override
+        @PostProcess
+        G postProcess() {
+            return null;
+        }
+    }
+
+
     @Test
     void postProcessMustReturnVoidOrSameType() {
-        @Configuration
-        class E {
-            int i;
-
-            @PostProcess
-            E postProcess() {return null;}
-        }
-        class F extends E {
-            @Override
-            @PostProcess
-            E postProcess() {return null;}
-        }
-        class G extends E {
-            @Override
-            @PostProcess
-            G postProcess() {
-                return null;
-            }
-        }
-
         // both of these are okay:
         newTypeSerializer(E.class);
         newTypeSerializer(G.class);
@@ -331,31 +331,29 @@ class TypeSerializerTest {
                 The return type of post-processing methods must either be 'void' or the same \
                 type as the configuration type in which the post-processing method is defined. \
                 The return type of the post-processing method of \
-                type 'class de.exlll.configlib.TypeSerializerTest$1F' is neither 'void' nor 'F'.\
+                type 'class de.exlll.configlib.TypeSerializerTest$F' is neither 'void' nor 'F'.\
                 """
         );
     }
 
+    @Configuration
+    static final class H1 {
+        int i;
+
+        @PostProcess
+        void postProcess() {i += 20;}
+    }
+
     @Test
     void postProcessorInvokesAnnotatedMethodWithVoidReturnType1() {
-        final AtomicInteger integer = new AtomicInteger(0);
-
-        @Configuration
-        class H1 {
-            int i;
-
-            @PostProcess
-            void postProcess() {integer.set(20);}
-        }
-
         final var serializer = newTypeSerializer(H1.class);
         final var postProcessor = serializer.createPostProcessorFromAnnotatedMethod();
 
         final H1 h1_1 = new H1();
         final H1 h1_2 = postProcessor.apply(h1_1);
 
-        assertThat(h1_2, sameInstance(h1_2));
-        assertThat(integer.get(), is(20));
+        assertThat(h1_2, sameInstance(h1_1));
+        assertThat(h1_2.i, is(20));
     }
 
     static int postProcessorInvokesAnnotatedMethodWithVoidReturnType2_int = 0;
@@ -379,20 +377,20 @@ class TypeSerializerTest {
         assertThat(postProcessorInvokesAnnotatedMethodWithVoidReturnType2_int, is(10));
     }
 
+    @Configuration
+    static final class H3 {
+        int i;
+
+        @PostProcess
+        H3 postProcess() {
+            H3 h3 = new H3();
+            h3.i = i + 20;
+            return h3;
+        }
+    }
+
     @Test
     void postProcessorInvokesAnnotatedMethodWithSameReturnType1() {
-        @Configuration
-        class H3 {
-            int i;
-
-            @PostProcess
-            H3 postProcess() {
-                H3 h3 = new H3();
-                h3.i = i + 20;
-                return h3;
-            }
-        }
-
         final var serializer = newTypeSerializer(H3.class);
         final var postProcessor = serializer.createPostProcessorFromAnnotatedMethod();
 
@@ -425,12 +423,13 @@ class TypeSerializerTest {
         assertThat(h4_2.i, is(30));
     }
 
+    @Configuration
+    static final class J {
+        int i;
+    }
+
     @Test
     void postProcessorIsIdentityFunctionIfNoPostProcessAnnotationPresent() {
-        @Configuration
-        class J {
-            int i;
-        }
         final var serializer = newTypeSerializer(J.class);
         final var postProcessor = serializer.createPostProcessorFromAnnotatedMethod();
 
@@ -439,20 +438,20 @@ class TypeSerializerTest {
         assertThat(j_2, sameInstance(j_1));
     }
 
+    @Configuration
+    static class A {
+        int i = 10;
+
+        @PostProcess
+        void postProcess() {
+            this.i = this.i + 10;
+        }
+    }
+
+    static final class B extends A {}
+
     @Test
     void postProcessOfParentClassNotCalled() {
-        @Configuration
-        class A {
-            int i = 10;
-
-            @PostProcess
-            void postProcess() {
-                this.i = this.i + 10;
-            }
-        }
-
-        class B extends A {}
-
         final var serializer = newTypeSerializer(B.class);
         final var postProcessor = serializer.createPostProcessorFromAnnotatedMethod();
 

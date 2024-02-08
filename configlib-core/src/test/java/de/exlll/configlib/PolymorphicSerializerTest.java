@@ -22,19 +22,19 @@ class PolymorphicSerializerTest {
         assertThat(DEFAULT_PROPERTY, is("type"));
     }
 
+    @Polymorphic
+    @Configuration
+    static final class A {
+        String type = "";
+    }
+    @Configuration
+    @Polymorphic(property = "prop")
+    static final class B {
+        String prop = "";
+    }
+
     @Test
     void serializeDoesNotAllowConfigurationElementWithSameNameAsProperty() {
-        @Polymorphic
-        @Configuration
-        class A {
-            String type = "";
-        }
-        @Configuration
-        @Polymorphic(property = "prop")
-        class B {
-            String prop = "";
-        }
-
         record Config(A a, B b, List<A> as) {}
 
         var serializerA = (PolymorphicSerializer) SELECTOR.select(fieldAsElement(Config.class, "a"));

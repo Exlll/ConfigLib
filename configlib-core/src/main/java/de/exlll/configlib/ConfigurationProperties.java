@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 import static de.exlll.configlib.Validator.requireNonNull;
 
@@ -14,10 +15,14 @@ import static de.exlll.configlib.Validator.requireNonNull;
  * A collection of values used to configure the serialization of configurations.
  */
 public class ConfigurationProperties {
-    private final Map<Class<?>, Serializer<?, ?>> serializersByType;
+    private final Map<Class<?>, Serializer<?, ?>>
+            serializersByType;
     private final Map<Class<?>, Function<? super SerializerContext, ? extends Serializer<?, ?>>>
             serializerFactoriesByType;
-    private final Map<Predicate<? super Type>, Serializer<?, ?>> serializersByCondition;
+    private final Map<Predicate<? super Type>, Serializer<?, ?>>
+            serializersByCondition;
+    private final Map<Predicate<? super ConfigurationElement<?>>, UnaryOperator<?>>
+            postProcessorsByCondition;
     private final NameFormatter formatter;
     private final FieldFilter filter;
     private final boolean outputNulls;
@@ -33,9 +38,12 @@ public class ConfigurationProperties {
     protected ConfigurationProperties(Builder<?> builder) {
         this.serializersByType = Map.copyOf(builder.serializersByType);
         this.serializerFactoriesByType = Map.copyOf(builder.serializerFactoriesByType);
-        this.serializersByCondition = Collections.unmodifiableMap(new LinkedHashMap<>(
-                builder.serializersByCondition
-        ));
+        this.serializersByCondition = Collections.unmodifiableMap(
+                new LinkedHashMap<>(builder.serializersByCondition)
+        );
+        this.postProcessorsByCondition = Collections.unmodifiableMap(
+                new LinkedHashMap<>(builder.postProcessorsByCondition)
+        );
         this.formatter = requireNonNull(builder.formatter, "name formatter");
         this.filter = requireNonNull(builder.filter, "field filter");
         this.outputNulls = builder.outputNulls;
@@ -79,11 +87,14 @@ public class ConfigurationProperties {
      * @param <B> the type of builder
      */
     public static abstract class Builder<B extends Builder<B>> {
-        private final Map<Class<?>, Serializer<?, ?>> serializersByType = new HashMap<>();
+        private final Map<Class<?>, Serializer<?, ?>>
+                serializersByType = new HashMap<>();
         private final Map<Class<?>, Function<? super SerializerContext, ? extends Serializer<?, ?>>>
                 serializerFactoriesByType = new HashMap<>();
-        private final Map<Predicate<? super Type>, Serializer<?, ?>> serializersByCondition =
-                new LinkedHashMap<>();
+        private final Map<Predicate<? super Type>, Serializer<?, ?>>
+                serializersByCondition = new LinkedHashMap<>();
+        private final Map<Predicate<? super ConfigurationElement<?>>, UnaryOperator<?>>
+                postProcessorsByCondition = new LinkedHashMap<>();
         private NameFormatter formatter = NameFormatters.IDENTITY;
         private FieldFilter filter = FieldFilters.DEFAULT;
         private boolean outputNulls = false;
@@ -96,6 +107,7 @@ public class ConfigurationProperties {
             this.serializersByType.putAll(properties.serializersByType);
             this.serializerFactoriesByType.putAll(properties.serializerFactoriesByType);
             this.serializersByCondition.putAll(properties.serializersByCondition);
+            this.postProcessorsByCondition.putAll(properties.postProcessorsByCondition);
             this.formatter = properties.formatter;
             this.filter = properties.filter;
             this.outputNulls = properties.outputNulls;
@@ -133,8 +145,9 @@ public class ConfigurationProperties {
         /**
          * Adds a serializer for the given type.
          * <p>
-         * If this library already provides a serializer for the given type (e.g. {@code BigInteger},
-         * {@code LocalDate}, etc.) the serializer added by this method takes precedence.
+         * If this library already provides a serializer for the given type
+         * (e.g. {@code BigInteger}, {@code LocalDate}, etc.) the serializer
+         * added by this method takes precedence.
          * <p>
          * If a factory is added via the {@link #addSerializerFactory(Class, Function)} method for
          * the same type, the serializer created by that factory takes precedence.
@@ -159,8 +172,9 @@ public class ConfigurationProperties {
         /**
          * Adds a serializer factory for the given type.
          * <p>
-         * If this library already provides a serializer for the given type (e.g. {@code BigInteger},
-         * {@code LocalDate}, etc.) the serializer created by the factory takes precedence.
+         * If this library already provides a serializer for the given type
+         * (e.g. {@code BigInteger}, {@code LocalDate}, etc.) the serializer
+         * created by the factory takes precedence.
          * <p>
          * If a serializer is added via the {@link #addSerializer(Class, Serializer)} method
          * for the same type, the serializer created by the factory that was added by this
@@ -201,6 +215,33 @@ public class ConfigurationProperties {
             requireNonNull(condition, "condition");
             requireNonNull(serializer, "serializer");
             serializersByCondition.put(condition, serializer);
+            return getThis();
+        }
+
+        /**
+         * Defines a post-processor for each configuration element that fulfils
+         * the given condition. Multiple post-processors are applied if an
+         * element fulfills more than one condition. The conditions are checked
+         * in the order in which they were added.
+         * <p>
+         * <b>NOTE</b>:
+         * It is the developer's responsibility to ensure that the type of the
+         * configuration element matches the type the post-processor expects.
+         *
+         * @param condition     the condition that is checked
+         * @param postProcessor the post-processor to be applied if the
+         *                      condition is true
+         * @return this builder
+         * @throws NullPointerException if any argument is null
+         * @see ConfigurationElementFilter
+         */
+        public final B addPostProcessor(
+                Predicate<? super ConfigurationElement<?>> condition,
+                UnaryOperator<?> postProcessor
+        ) {
+            requireNonNull(condition, "condition");
+            requireNonNull(postProcessor, "post-processor");
+            this.postProcessorsByCondition.put(condition, postProcessor);
             return getThis();
         }
 
@@ -309,6 +350,16 @@ public class ConfigurationProperties {
      */
     final Map<Predicate<? super Type>, Serializer<?, ?>> getSerializersByCondition() {
         return serializersByCondition;
+    }
+
+    /**
+     * Returns an unmodifiable map of post-processors by condition.
+     *
+     * @return post-processors by condition
+     */
+    public final Map<Predicate<? super ConfigurationElement<?>>, UnaryOperator<?>>
+    getPostProcessorsByCondition() {
+        return postProcessorsByCondition;
     }
 
     /**

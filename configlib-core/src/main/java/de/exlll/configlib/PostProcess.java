@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
  * method call. If the return type is {@code void}, then the method is simply
  * called on the given instance.
  */
-@Target({ElementType.FIELD, ElementType.METHOD})
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.RECORD_COMPONENT})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PostProcess {
     String key() default "";

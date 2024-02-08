@@ -1,7 +1,12 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.ConfigurationElements.FieldElement;
+import de.exlll.configlib.ConfigurationElements.RecordComponentElement;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -101,10 +106,98 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
         return deserialized;
     }
 
+    protected final Object[] deserializeConfigurationElements(
+            Map<?, ?> serializedConfiguration
+    ) {
+        final var elements = elements();
+        final var result = new Object[elements.size()];
+
+        for (int i = 0, size = elements.size(); i < size; i++) {
+            final var element = elements.get(i);
+            final var formattedName = formatter.format(element.name());
+
+            if (!serializedConfiguration.containsKey(formattedName)) {
+                final Object defaultValue = getDefaultValueOf(element);
+                result[i] = applyPostProcessorForElement(element, defaultValue);
+//               TODO: if (result[i] == null) requireNonPrimitiveType(element);
+                continue;
+            }
+
+            final var serializedValue = serializedConfiguration.get(formattedName);
+            if ((serializedValue == null) && properties.inputNulls()) {
+                result[i] = null;
+            } else if (serializedValue == null) {
+                result[i] = getDefaultValueOf(element);
+            } else {
+                result[i] = deserialize(element, serializedValue);
+            }
+
+            if (result[i] == null) requireNonPrimitiveType(element);
+            result[i] = applyPostProcessorForElement(element, result[i]);
+            // TODO: PostProcessor could return null, check should be done after
+        }
+
+        return result;
+    }
+
+    private Object applyPostProcessorForElement(
+            ConfigurationElement<?> element,
+            Object deserializeValue
+    ) {
+        Object result = deserializeValue;
+        for (final var entry : properties.getPostProcessorsByCondition().entrySet()) {
+            final var condition = entry.getKey();
+
+            if (condition.test(element)) {
+                final var postProcessor = entry.getValue();
+                result = tryApplyPostProcessorForElement(postProcessor, result);
+            }
+        }
+        return result;
+    }
+
+    private static Object tryApplyPostProcessorForElement(
+            UnaryOperator<?> postProcessor,
+            Object value
+    ) {
+        // TODO: Properly throw a ClassCastException
+        // TODO: Add test: type of element does not match type postprocessor expects
+        @SuppressWarnings("unchecked")
+        final var pp = (UnaryOperator<Object>) postProcessor;
+        return pp.apply(value);
+    }
+
+    private static void requireNonPrimitiveType(ConfigurationElement<?> element) {
+        if (element instanceof RecordComponentElement recordComponentElement) {
+            final RecordComponent component = recordComponentElement.element();
+
+            if (!component.getType().isPrimitive()) return;
+
+            String msg = ("Cannot set component '%s' of record type '%s' to null. " +
+                          "Primitive types cannot be assigned null values.")
+                    .formatted(component, component.getDeclaringRecord());
+            throw new ConfigurationException(msg);
+        }
+
+        if (element instanceof FieldElement fieldElement) {
+            final Field field = fieldElement.element();
+
+            if (!field.getType().isPrimitive()) return;
+
+            String msg = ("Cannot set field '%s' to null value. " +
+                          "Primitive types cannot be assigned null.")
+                    .formatted(field);
+            throw new ConfigurationException(msg);
+        }
+
+        throw new ConfigurationException("Unhandled ConfigurationElement: " + element);
+    }
+
     final UnaryOperator<T> createPostProcessorFromAnnotatedMethod() {
         final List<Method> list = Arrays.stream(type.getDeclaredMethods())
-                .filter(Predicate.not(Method::isSynthetic))
                 .filter(method -> method.isAnnotationPresent(PostProcess.class))
+                .filter(Predicate.not(Method::isSynthetic))
+                .filter(this::isNotAccessorMethod)
                 .toList();
 
         if (list.isEmpty())
@@ -157,11 +250,27 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
         };
     }
 
+    private boolean isNotAccessorMethod(Method method) {
+        if (!type.isRecord()) return true;
+        return Arrays.stream(type.getRecordComponents())
+                .map(RecordComponent::getName)
+                .noneMatch(s -> s.equals(method.getName()));
+    }
+
     protected abstract void requireSerializableElements();
 
     protected abstract String baseDeserializeExceptionMessage(E element, Object value);
 
     protected abstract List<E> elements();
+
+    /**
+     * Returns the default value of a field or record component before any
+     * post-processing has been performed.
+     *
+     * @param element the configuration element
+     * @return the default value for that element
+     */
+    protected abstract Object getDefaultValueOf(E element);
 
     abstract T newDefaultInstance();
 }

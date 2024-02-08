@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 import static de.exlll.configlib.TestUtils.assertThrowsNullPointerException;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -18,11 +19,14 @@ class ConfigurationPropertiesTest {
     private static final NameFormatter FORMATTER = String::toLowerCase;
     private static final FieldFilter FILTER = field -> field.getName().startsWith("f");
     private static final PointSerializer SERIALIZER = new PointSerializer();
-    private static final Predicate<? super Type> PREDICATE = type -> true;
+    private static final Predicate<? super Type> PREDICATE_TYPE = type -> true;
+    private static final Predicate<? super ConfigurationElement<?>> PREDICATE_CE = ce -> true;
+    private static final UnaryOperator<?> POST_PROCESSOR = UnaryOperator.identity();
     private static final ConfigurationProperties.Builder<?> BUILDER = ConfigurationProperties.newBuilder()
             .addSerializer(Point.class, SERIALIZER)
             .addSerializerFactory(Point.class, ignored -> SERIALIZER)
-            .addSerializerByCondition(PREDICATE, SERIALIZER)
+            .addSerializerByCondition(PREDICATE_TYPE, SERIALIZER)
+            .addPostProcessor(PREDICATE_CE, POST_PROCESSOR)
             .setNameFormatter(FORMATTER)
             .setFieldFilter(FILTER)
             .outputNulls(true)
@@ -57,7 +61,8 @@ class ConfigurationPropertiesTest {
 
     private static void assertConfigurationProperties(ConfigurationProperties properties) {
         assertThat(properties.getSerializers(), is(Map.of(Point.class, SERIALIZER)));
-        assertThat(properties.getSerializersByCondition(), is(Map.of(PREDICATE, SERIALIZER)));
+        assertThat(properties.getSerializersByCondition(), is(Map.of(PREDICATE_TYPE, SERIALIZER)));
+        assertThat(properties.getPostProcessorsByCondition(), is(Map.of(PREDICATE_CE, POST_PROCESSOR)));
         assertThat(properties.outputNulls(), is(true));
         assertThat(properties.inputNulls(), is(true));
         assertThat(properties.serializeSetsAsLists(), is(false));
@@ -87,6 +92,17 @@ class ConfigurationPropertiesTest {
         assertThrows(
                 UnsupportedOperationException.class,
                 () -> serializersByCondition.put(t -> true, new PointSerializer())
+        );
+    }
+
+    @Test
+    void builderPostProcessorsUnmodifiable() {
+        ConfigurationProperties properties = ConfigurationProperties.newBuilder().build();
+
+        var postProcessorsByCondition = properties.getPostProcessorsByCondition();
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> postProcessorsByCondition.put(t -> true, UnaryOperator.identity())
         );
     }
 
@@ -145,6 +161,19 @@ class ConfigurationPropertiesTest {
             assertThrowsNullPointerException(
                     () -> builder.addSerializerByCondition(type -> true, null),
                     "serializer"
+            );
+        }
+
+        @Test
+        void addPostProcessorByConditionRequiresNonNull() {
+            assertThrowsNullPointerException(
+                    () -> builder.addPostProcessor(null, UnaryOperator.identity()),
+                    "condition"
+            );
+
+            assertThrowsNullPointerException(
+                    () -> builder.addPostProcessor(type -> true, null),
+                    "post-processor"
             );
         }
     }

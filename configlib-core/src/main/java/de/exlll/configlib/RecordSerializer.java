@@ -2,7 +2,6 @@ package de.exlll.configlib;
 
 import de.exlll.configlib.ConfigurationElements.RecordComponentElement;
 
-import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -14,32 +13,8 @@ final class RecordSerializer<R> extends TypeSerializer<R, RecordComponentElement
 
     @Override
     public R deserialize(Map<?, ?> serializedConfiguration) {
-        final var elements = elements();
-        final var constructorArguments = new Object[elements.size()];
-
-        for (int i = 0, size = elements.size(); i < size; i++) {
-            final var element = elements.get(i);
-            final var formattedName = formatter.format(element.name());
-
-            if (!serializedConfiguration.containsKey(formattedName)) {
-                constructorArguments[i] = Reflect.getDefaultValue(element.type());
-                continue;
-            }
-
-            final var serializedValue = serializedConfiguration.get(formattedName);
-            final var recordComponent = element.element();
-
-            if ((serializedValue == null) && properties.inputNulls()) {
-                requireNonPrimitiveComponentType(recordComponent);
-                constructorArguments[i] = null;
-            } else if (serializedValue == null) {
-                constructorArguments[i] = Reflect.getDefaultValue(element.type());
-            } else {
-                constructorArguments[i] = deserialize(element, serializedValue);
-            }
-        }
-
-        final R result = Reflect.callCanonicalConstructor(type, constructorArguments);
+        final var ctorArgs = deserializeConfigurationElements(serializedConfiguration);
+        final var result = Reflect.callCanonicalConstructor(type, ctorArgs);
         return postProcessor.apply(result);
     }
 
@@ -72,16 +47,12 @@ final class RecordSerializer<R> extends TypeSerializer<R, RecordComponentElement
                 : Reflect.callCanonicalConstructorWithDefaultValues(type);
     }
 
-    private static void requireNonPrimitiveComponentType(RecordComponent component) {
-        if (component.getType().isPrimitive()) {
-            String msg = ("Cannot set component '%s' of record type '%s' to null. Primitive types " +
-                          "cannot be assigned null values.")
-                    .formatted(component, component.getDeclaringRecord());
-            throw new ConfigurationException(msg);
-        }
-    }
-
     Class<R> getRecordType() {
         return type;
+    }
+
+    @Override
+    protected Object getDefaultValueOf(RecordComponentElement element) {
+        return Reflect.getDefaultValue(element.type());
     }
 }

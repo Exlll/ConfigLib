@@ -2,7 +2,6 @@ package de.exlll.configlib;
 
 import de.exlll.configlib.ConfigurationElements.FieldElement;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -13,26 +12,13 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, FieldElement> {
 
     @Override
     public T deserialize(Map<?, ?> serializedConfiguration) {
-        final T result = Reflect.callNoParamConstructor(type);
-
-        for (final var element : elements()) {
-            final var formattedName = formatter.format(element.name());
-
-            if (!serializedConfiguration.containsKey(formattedName))
-                continue;
-
-            final var serializedValue = serializedConfiguration.get(formattedName);
-            final var field = element.element();
-
-            if ((serializedValue == null) && properties.inputNulls()) {
-                requireNonPrimitiveFieldType(field);
-                Reflect.setValue(field, result, null);
-            } else if (serializedValue != null) {
-                Object deserializeValue = deserialize(element, serializedValue);
-                Reflect.setValue(field, result, deserializeValue);
-            }
+        final var deserializedElements = deserializeConfigurationElements(serializedConfiguration);
+        final var elements = elements();
+        final T result = newDefaultInstance();
+        for (int i = 0; i < deserializedElements.length; i++) {
+            final FieldElement fieldElement = elements.get(i);
+            Reflect.setValue(fieldElement.element(), result, deserializedElements[i]);
         }
-
         return postProcessor.apply(result);
     }
 
@@ -64,15 +50,15 @@ final class ConfigurationSerializer<T> extends TypeSerializer<T, FieldElement> {
         return Reflect.callNoParamConstructor(type);
     }
 
-    private static void requireNonPrimitiveFieldType(Field field) {
-        if (field.getType().isPrimitive()) {
-            String msg = ("Cannot set field '%s' to null value. Primitive types " +
-                          "cannot be assigned null.").formatted(field);
-            throw new ConfigurationException(msg);
-        }
-    }
-
     Class<T> getConfigurationType() {
         return type;
+    }
+
+    // This object must only be used for the `getDefaultValueOf` method below.
+    private final T defaultInstance = newDefaultInstance();
+
+    @Override
+    protected Object getDefaultValueOf(FieldElement element) {
+        return Reflect.getValue(element.element(), defaultInstance);
     }
 }
