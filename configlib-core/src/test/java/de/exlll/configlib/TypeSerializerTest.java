@@ -1,6 +1,7 @@
 package de.exlll.configlib;
 
 import de.exlll.configlib.Serializers.*;
+import de.exlll.configlib.TestUtils.DoubleIntSerializer;
 import de.exlll.configlib.configurations.ExampleConfigurationA2;
 import de.exlll.configlib.configurations.ExampleConfigurationB1;
 import de.exlll.configlib.configurations.ExampleConfigurationB2;
@@ -8,16 +9,20 @@ import de.exlll.configlib.configurations.ExampleEnum;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Point;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 import static de.exlll.configlib.TestUtils.assertThrowsConfigurationException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TypeSerializerTest {
     private static <T> TypeSerializer<T, ?> newTypeSerializer(
@@ -305,11 +310,13 @@ class TypeSerializerTest {
         @PostProcess
         E postProcess() {return null;}
     }
+
     static class F extends E {
         @Override
         @PostProcess
         E postProcess() {return null;}
     }
+
     static class G extends E {
         @Override
         @PostProcess
@@ -459,5 +466,121 @@ class TypeSerializerTest {
         B b = new B();
         postProcessor.apply(b);
         assertThat(b.i, is(10));
+    }
+
+    @Configuration
+    static final class ClsAccessorMethod {
+        private int a;
+
+        public int a() {return a;}
+
+        public int a(int a) {return a;}
+
+        public int getA() {return a;}
+    }
+
+    record RecAccessorMethodA(int a) {
+        public int a() {return a;}
+
+        public int b() {return a;}
+
+        public int a(int a) {return a;}
+
+        public int getA() {return a;}
+    }
+
+    record RecAccessorMethodB(int b) {}
+
+    @Test
+    void classMethodsAreNoAccessorMethods() {
+        final var serializer = newTypeSerializer(ClsAccessorMethod.class);
+
+        final Method getA = TestUtils.getMethod(ClsAccessorMethod.class, "getA");
+        assertFalse(serializer.isAccessorMethod(getA));
+
+        final List<Method> as = TestUtils.getMethods(ClsAccessorMethod.class, "a");
+        assertThat(as.size(), is(2));
+        for (Method a : as) {
+            assertFalse(serializer.isAccessorMethod(a));
+        }
+    }
+
+    @Test
+    void recordMethodsCanBeAccessorMethodsA() {
+        final var serializerA = newTypeSerializer(RecAccessorMethodA.class);
+
+        final Method getA = TestUtils.getMethod(RecAccessorMethodA.class, "getA");
+        assertFalse(serializerA.isAccessorMethod(getA));
+
+        final List<Method> methods = TestUtils.getMethods(RecAccessorMethodA.class, "a");
+
+        final int accessMethodIndex = (methods.get(0).getParameterCount()) == 0 ? 0 : 1;
+
+        Method method1 = methods.get(accessMethodIndex);
+        Method method2 = methods.get(1 - accessMethodIndex);
+
+        assertTrue(serializerA.isAccessorMethod(method1));
+        assertFalse(serializerA.isAccessorMethod(method2));
+    }
+
+    @Test
+    void recordMethodsCanBeAccessorMethodsB() {
+        final var serializerB = newTypeSerializer(RecAccessorMethodB.class);
+
+        final Method a = TestUtils.getMethod(RecAccessorMethodA.class, "b");
+        assertFalse(serializerB.isAccessorMethod(a));
+
+        final Method b = TestUtils.getMethod(RecAccessorMethodB.class, "b");
+        assertTrue(serializerB.isAccessorMethod(b));
+    }
+
+    private static final class PostProcessorInteger implements UnaryOperator<Integer> {
+        @Override
+        public Integer apply(Integer integer) {
+            return integer + 1;
+        }
+
+        @Override
+        public String toString() {
+            return "PostProcessorInteger";
+        }
+    }
+
+    @Test
+    void postProcessorThrowsExceptionIfElementIsOfWrongType() {
+        record R(@PostProcess(key = "key1") String s) {}
+
+        final var serializer = newTypeSerializer(
+                R.class,
+                b -> b.addPostProcessor(
+                        ConfigurationElementFilter.byPostProcessKey("key1"),
+                        new PostProcessorInteger()
+                )
+        );
+
+        assertThrowsConfigurationException(
+                () -> serializer.deserialize(Map.of("s", "value")),
+                "Deserialization of value 'value' for element 'java.lang.String s' " +
+                "of type 'class de.exlll.configlib.TypeSerializerTest$1R' failed.\n" +
+                "The type of the object to be deserialized does not match the " +
+                "type post-processor 'PostProcessorInteger' expects."
+        );
+    }
+
+    @Test
+    void serializeThrowsExceptionIfCustomSerializerExpectsWrongType() {
+        record S(@SerializeWith(serializer = DoubleIntSerializer.class) String s) {}
+
+        final var serializer = newTypeSerializer(S.class);
+
+        assertThrowsConfigurationException(
+                () -> serializer.serialize(new S("value")),
+                "Serialization of value 'value' for element 'java.lang.String s' " +
+                "of type 'class de.exlll.configlib.TypeSerializerTest$1S' failed.\n" +
+                "The type of the object to be serialized does not match the type " +
+                "the custom serializer of type " +
+                "'class de.exlll.configlib.TestUtils$DoubleIntSerializer' expects."
+        );
+
     }
 }

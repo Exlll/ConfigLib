@@ -3,19 +3,23 @@ package de.exlll.configlib;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.function.Executable;
 
-import java.awt.*;
+import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public final class TestUtils {
     public static final PointSerializer POINT_SERIALIZER = new PointSerializer();
@@ -63,7 +67,7 @@ public final class TestUtils {
             String expectedExceptionMessage
     ) {
         T exception = Assertions.assertThrows(exceptionType, executable);
-        Assertions.assertEquals(expectedExceptionMessage, exception.getMessage());
+        assertEquals(expectedExceptionMessage, exception.getMessage());
     }
 
     public static final class CustomBigIntegerSerializer implements Serializer<BigInteger, String> {
@@ -157,6 +161,20 @@ public final class TestUtils {
         @Override
         public Object deserialize(Object element) {
             throw new UnsupportedOperationException(element.toString());
+        }
+    }
+
+    public static final class DoubleIntSerializer
+            implements Serializer<Integer, Integer> {
+
+        @Override
+        public Integer serialize(Integer element) {
+            return element * 2;
+        }
+
+        @Override
+        public Integer deserialize(Integer element) {
+            return element / 2;
         }
     }
 
@@ -293,6 +311,18 @@ public final class TestUtils {
     public static ConfigurationElement<?> fieldAsElement(Class<?> type, String fieldName) {
         Field field = getField(type, fieldName);
         return new ConfigurationElements.FieldElement(field);
+    }
+
+    public static Method getMethod(Class<?> type, String methodName) {
+        final List<Method> methods = getMethods(type, methodName);
+        assertThat(methods, hasSize(1));
+        return methods.get(0);
+    }
+
+    public static List<Method> getMethods(Class<?> type, String methodName) {
+        return Arrays.stream(type.getDeclaredMethods())
+                .filter(method -> method.getName().equals(methodName))
+                .toList();
     }
 
     /*

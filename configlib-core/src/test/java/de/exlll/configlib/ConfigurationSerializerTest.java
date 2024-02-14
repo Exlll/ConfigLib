@@ -685,4 +685,52 @@ class ConfigurationSerializerTest {
         assertThat(deserialized.s3, is("empty"));
         assertThat(deserialized.s4, is("empty"));
     }
+
+    @Configuration
+    static final class B15 {
+        // The order of fields is important for the test case below.
+        // No exception should be thrown for the Integer.
+        @PostProcess(key = "nullReturning")
+        private Integer refI;
+        @PostProcess(key = "nullReturning")
+        private int primI;
+    }
+
+    @Test
+    void throwExceptionIfPostProcessorOfPrimitiveElementReturnsNullCls() {
+        final var serializer = newSerializer(
+                B15.class,
+                builder -> builder.inputNulls(true).addPostProcessor(
+                        ConfigurationElementFilter.byPostProcessKey("nullReturning"),
+                        object -> null
+                )
+        );
+
+        assertThrowsConfigurationException(
+                () -> serializer.deserialize(Map.of()),
+                "Post-processors must not return null for primitive fields " +
+                "but some post-processor of field " +
+                "'private int de.exlll.configlib.ConfigurationSerializerTest$B15.primI' does."
+        );
+    }
+
+    @Configuration
+    static final class B16 {
+        @PostProcess(key = "nonNullReturning")
+        private int primI;
+    }
+
+    @Test
+    void postProcessorCanPreventExceptionsThatHappenWhenTryingToSetPrimitiveFieldsToNull() {
+        final var serializer = newSerializer(
+                B16.class,
+                builder -> builder.inputNulls(true)
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("nonNullReturning"),
+                                (Integer value) -> 76
+                        )
+        );
+        B16 primI = serializer.deserialize(asMap("primI", null));
+        assertThat(primI.primI, is(76));
+    }
 }

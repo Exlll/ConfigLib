@@ -4,6 +4,7 @@ import de.exlll.configlib.Serializers.MapSerializer;
 import de.exlll.configlib.Serializers.NumberSerializer;
 import de.exlll.configlib.Serializers.SetAsListSerializer;
 import de.exlll.configlib.Serializers.SetSerializer;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -497,6 +498,8 @@ class SerializersTest {
     }
 
     @Test
+    @Disabled("This test is disabled because the URL constructor sends a network " +
+              "request that slows down the tests if the network is unresponsive.")
     void urlSerializer() throws Exception {
         Serializer<URL, String> serializer = new Serializers.UrlSerializer();
 

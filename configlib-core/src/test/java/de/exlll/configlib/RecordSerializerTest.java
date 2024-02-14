@@ -519,4 +519,45 @@ class RecordSerializerTest {
         assertThat(deserialized.s1, is("empty"));
         assertThat(deserialized.s2, nullValue());
     }
+
+    record R15(
+            @PostProcess(key = "nullReturning")
+            Integer refI,
+            @PostProcess(key = "nullReturning")
+            int primI
+    ) {}
+
+    @Test
+    void throwExceptionIfPostProcessorOfPrimitiveElementReturnsNullCls() {
+        final var serializer = newSerializer(
+                R15.class,
+                builder -> builder.inputNulls(true).addPostProcessor(
+                        ConfigurationElementFilter.byPostProcessKey("nullReturning"),
+                        object -> null
+                )
+        );
+
+        assertThrowsConfigurationException(
+                () -> serializer.deserialize(Map.of()),
+                "Post-processors must not return null for primitive record components " +
+                "but some post-processor of component 'int primI' of record type " +
+                "'class de.exlll.configlib.RecordSerializerTest$R15' does."
+        );
+    }
+
+    record R16(@PostProcess(key = "nonNullReturning") int primI) {}
+
+    @Test
+    void postProcessorCanPreventExceptionsThatHappenWhenTryingToSetPrimitiveFieldsToNull() {
+        final var serializer = newSerializer(
+                R16.class,
+                builder -> builder.inputNulls(true)
+                        .addPostProcessor(
+                                ConfigurationElementFilter.byPostProcessKey("nonNullReturning"),
+                                (Integer value) -> 76
+                        )
+        );
+        R16 primI = serializer.deserialize(asMap("primI", null));
+        assertThat(primI.primI, is(76));
+    }
 }

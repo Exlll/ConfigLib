@@ -67,7 +67,7 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
             if ((elementValue == null) && !properties.outputNulls())
                 continue;
 
-            final Object serializedValue = serialize(element, elementValue);
+            final Object serializedValue = serializeElement(element, elementValue);
             final String formattedName = formatter.format(element.name());
             result.put(formattedName, serializedValue);
         }
@@ -75,13 +75,25 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
         return result;
     }
 
-    protected final Object serialize(E element, Object value) {
-        // The following cast won't cause a ClassCastException because the serializers
-        // are selected based on the element type.
+    protected final Object serializeElement(E element, Object value) {
+        // This cast can lead to a ClassCastException if an element of type X is
+        // serialized by a custom serializer that expects a different type Y.
         @SuppressWarnings("unchecked")
-        final var serializer = (Serializer<Object, Object>)
-                serializers.get(element.name());
-        return (value != null) ? serializer.serialize(value) : null;
+        final var serializer = (Serializer<Object, Object>) serializers.get(element.name());
+        try {
+            return (value != null) ? serializer.serialize(value) : null;
+        } catch (ClassCastException e) {
+            String msg = ("Serialization of value '%s' for element '%s' of type '%s' failed.\n" +
+                          "The type of the object to be serialized does not match the type " +
+                          "the custom serializer of type '%s' expects.")
+                    .formatted(
+                            value,
+                            element.element(),
+                            element.declaringType(),
+                            serializer.getClass()
+                    );
+            throw new ConfigurationException(msg, e);
+        }
     }
 
     protected final Object deserialize(E element, Object value) {
@@ -119,12 +131,14 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
             if (!serializedConfiguration.containsKey(formattedName)) {
                 final Object defaultValue = getDefaultValueOf(element);
                 result[i] = applyPostProcessorForElement(element, defaultValue);
-//               TODO: if (result[i] == null) requireNonPrimitiveType(element);
                 continue;
             }
 
             final var serializedValue = serializedConfiguration.get(formattedName);
+
             if ((serializedValue == null) && properties.inputNulls()) {
+                // This statement (and hence the whole block) could be removed,
+                // but in my opinion the code is clearer this way.
                 result[i] = null;
             } else if (serializedValue == null) {
                 result[i] = getDefaultValueOf(element);
@@ -132,9 +146,7 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
                 result[i] = deserialize(element, serializedValue);
             }
 
-            if (result[i] == null) requireNonPrimitiveType(element);
             result[i] = applyPostProcessorForElement(element, result[i]);
-            // TODO: PostProcessor could return null, check should be done after
         }
 
         return result;
@@ -145,34 +157,77 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
             Object deserializeValue
     ) {
         Object result = deserializeValue;
+
+        boolean postProcessed = false;
         for (final var entry : properties.getPostProcessorsByCondition().entrySet()) {
             final var condition = entry.getKey();
 
-            if (condition.test(element)) {
-                final var postProcessor = entry.getValue();
-                result = tryApplyPostProcessorForElement(postProcessor, result);
-            }
+            if (!condition.test(element)) continue;
+
+            final var postProcessor = entry.getValue();
+            result = tryApplyPostProcessorForElement(element, postProcessor, result);
+            postProcessed = true;
         }
+
+        if ((result == null) && postProcessed)
+            requirePostProcessorDoesNotReturnNullForPrimitiveElement(element);
+        else if (result == null)
+            requireNonPrimitiveType(element);
+
         return result;
     }
 
     private static Object tryApplyPostProcessorForElement(
+            ConfigurationElement<?> element,
             UnaryOperator<?> postProcessor,
             Object value
     ) {
-        // TODO: Properly throw a ClassCastException
-        // TODO: Add test: type of element does not match type postprocessor expects
-        @SuppressWarnings("unchecked")
-        final var pp = (UnaryOperator<Object>) postProcessor;
-        return pp.apply(value);
+        try {
+            // This cast can lead to a ClassCastException if an element of type X is
+            // annotated with a post-processor that takes values of some other type Y.
+            @SuppressWarnings("unchecked")
+            final var pp = (UnaryOperator<Object>) postProcessor;
+            return pp.apply(value);
+        } catch (ClassCastException e) {
+            String msg = ("Deserialization of value '%s' for element '%s' of type '%s' failed.\n" +
+                          "The type of the object to be deserialized does not match the type " +
+                          "post-processor '%s' expects.")
+                    .formatted(value, element.element(), element.declaringType(), postProcessor);
+            throw new ConfigurationException(msg, e);
+        }
+    }
+
+    private static void requirePostProcessorDoesNotReturnNullForPrimitiveElement(
+            ConfigurationElement<?> element
+    ) {
+        if (!element.type().isPrimitive()) return;
+
+        if (element instanceof RecordComponentElement recordComponentElement) {
+            final RecordComponent component = recordComponentElement.element();
+            String msg = """
+                         Post-processors must not return null for primitive record \
+                         components but some post-processor of component '%s' of \
+                         record type '%s' does.\
+                         """.formatted(component, component.getDeclaringRecord());
+            throw new ConfigurationException(msg);
+        }
+
+        if (element instanceof FieldElement fieldElement) {
+            final Field field = fieldElement.element();
+            String msg = ("Post-processors must not return null for primitive fields " +
+                          "but some post-processor of field '%s' does.")
+                    .formatted(field);
+            throw new ConfigurationException(msg);
+        }
+
+        throw new ConfigurationException("Unhandled ConfigurationElement: " + element);
     }
 
     private static void requireNonPrimitiveType(ConfigurationElement<?> element) {
+        if (!element.type().isPrimitive()) return;
+
         if (element instanceof RecordComponentElement recordComponentElement) {
             final RecordComponent component = recordComponentElement.element();
-
-            if (!component.getType().isPrimitive()) return;
-
             String msg = ("Cannot set component '%s' of record type '%s' to null. " +
                           "Primitive types cannot be assigned null values.")
                     .formatted(component, component.getDeclaringRecord());
@@ -181,9 +236,6 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
 
         if (element instanceof FieldElement fieldElement) {
             final Field field = fieldElement.element();
-
-            if (!field.getType().isPrimitive()) return;
-
             String msg = ("Cannot set field '%s' to null value. " +
                           "Primitive types cannot be assigned null.")
                     .formatted(field);
@@ -197,7 +249,7 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
         final List<Method> list = Arrays.stream(type.getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(PostProcess.class))
                 .filter(Predicate.not(Method::isSynthetic))
-                .filter(this::isNotAccessorMethod)
+                .filter(Predicate.not(this::isAccessorMethod))
                 .toList();
 
         if (list.isEmpty())
@@ -242,19 +294,21 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
                 Reflect.invoke(method, object);
                 return object;
             }
-            // The following cast won't fail because our last check above guarantees
-            // that the return type of the method equals T at this point.
+            // The following cast won't fail because our last two checks from above
+            // guarantee that the return type of the method equals T at this point.
             @SuppressWarnings("unchecked")
             T result = (T) Reflect.invoke(method, object);
             return result;
         };
     }
 
-    private boolean isNotAccessorMethod(Method method) {
-        if (!type.isRecord()) return true;
+    final boolean isAccessorMethod(Method method) {
+        if (!type.isRecord()) return false;
+        if (!method.getDeclaringClass().equals(type)) return false;
+        if (method.getParameterCount() > 0) return false;
         return Arrays.stream(type.getRecordComponents())
                 .map(RecordComponent::getName)
-                .noneMatch(s -> s.equals(method.getName()));
+                .anyMatch(s -> s.equals(method.getName()));
     }
 
     protected abstract void requireSerializableElements();
