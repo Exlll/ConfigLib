@@ -816,6 +816,133 @@ constructor with one parameter of type `SerializerContext`. If such a
 constructor exists, a context object is passed to it when the serializer is
 instantiated by this library.
 
+### Post-processing
+
+There are two ways to apply some post-processing to your configurations:
+
+- The first is to annotate a method in your configuration type with the
+  `@PostProcess` annotation.
+- The second is to add post-processor functions to a `ConfigurationProperties`
+  object. These functions are then applied to some set of configuration elements
+  that is defined by a `ConfigurationElementFilter`.
+
+Both ways of post-processing can be applied at the same time. In this case,
+the post-processor functions added to a `ConfigurationProperties` object run
+first.
+
+#### Post-process configurations via annotated method
+
+One way to apply post-processing to your configuration is to annotate some
+method of your configuration type with the `@PostProcess` annotation.
+
+```java
+@Configuration
+public final class Config {
+    private int i = 10;
+    private String s = "abc";
+
+    @PostProcess
+    private void postProcess() {
+        this.i = this.i * 2;
+        this.s = this.s.repeat(2);
+    }
+}
+```
+
+The return type of the `@PostProcess` method must either be `void` or the same
+type as the type in which that method is defined. In the first case, the method
+is simply executed. In the latter case, the return value of the method replaces
+the current instance when initializing a configuration. This is, in particular,
+useful for Java records whose fields are final and cannot be modified.
+
+```java
+public record Config(int i, String s) {
+    @PostProcess
+    private Config postProcess() {
+        return new Config(i * 2, s.repeat(2));
+    }
+}
+```
+
+The name of the `@PostProcess` method can be any valid Java method name.
+However, your configuration type is allowed to define at most one such method
+and `@PostProcess` methods of parent classes are _not_ executed.
+
+#### Post-process configuration elements by condition
+
+The second way to apply post-processing to your configuration is to define
+a `ConfigurationElementFilter`. Such a filter implicitly defines a set of
+configuration elements to which some post-processing function should be applied.
+Both, filters and post-processing functions, can be added via
+the `ConfigurationProperties#addPostProcessor` method at the same time and the
+function is then applied to all configuration elements that are defined by the
+filter.
+
+For example, to double the values of _all_ configuration elements of type `int`,
+you would add the following filter and post-processing function:
+
+```java
+ConfigurationProperties.newBuilder()
+        .addPostProcessor(
+                // Predicate<? super ConfigurationElement<?>> filter
+                element -> element.type().equals(int.class),
+                // UnaryOperator<?> postProcessor
+                (Integer value) -> value * 2
+        )
+        .build();
+```
+
+Note that it is your responsibility to make sure that the filter only selects
+configuration elements whose type matches the type the post-processing function
+expects.
+
+Also note, that the post-processing function will be applied regardless of
+whether a configuration file contained a value for some specific element.
+This means that your post-processing function should properly handle `null`
+input values if, for example, you allow the input of such values.
+
+The `ConfigurationElementFilter` interface defines static factories to
+facilitate the creation of common filters:
+
+```java
+ConfigurationElementFilter.byType(Class<?> type)
+ConfigurationElementFilter.byPostProcessKey(String key)
+```
+
+The second factory creates a filter that selects all configuration elements that
+are annotated with `@PostProcess` and where the `key()` method of that
+annotation returns the given `key`.
+
+In the following example, the values of `a` and `b` are doubled, the value
+of `c` is tripled, `d` is set to zero, and no post-processing is applied
+to `e` and `f`.
+
+```java
+record Config(
+        @PostProcess(key = "double") int a,
+        @PostProcess(key = "double") int b,
+        @PostProcess(key = "tripple") int c,
+        @PostProcess int d,
+        @PostProcess(key = "missing processor") int e,
+        int f
+) {}
+
+ConfigurationProperties.newBuilder()
+        .addPostProcessor(
+                ConfigurationElementFilter.byPostProcessKey("double"),
+                (Integer value) -> value * 2
+        )
+        .addPostProcessor(
+                ConfigurationElementFilter.byPostProcessKey("tripple"),
+                (Integer value) -> value * 3
+        )
+        .addPostProcessor(
+                ConfigurationElementFilter.byPostProcessKey(""),
+                (Integer value) -> 0
+        )
+        .build();
+```
+
 ### Changing the type of configuration elements
 
 Changing the type of configuration elements is not supported. If you change the
@@ -1002,7 +1129,6 @@ please [open an issue](https://github.com/Exlll/ConfigLib/issues/new) where we
 can discuss the details.
 
 - JSON, TOML, XML support
-- Post-load/Pre-save hooks
 - More features and control over updating/versioning
 - More control over the ordering of fields, especially in parent/child class
   scenarios

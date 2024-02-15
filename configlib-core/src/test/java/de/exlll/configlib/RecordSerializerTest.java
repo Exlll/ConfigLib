@@ -559,5 +559,20 @@ class RecordSerializerTest {
         );
         R16 primI = serializer.deserialize(asMap("primI", null));
         assertThat(primI.primI, is(76));
+
+ConfigurationProperties.newBuilder()
+        .addPostProcessor(
+                ConfigurationElementFilter.byPostProcessKey("doubleMe"),
+                (Integer value) -> value * 2
+        )
+        .addPostProcessor(
+                ConfigurationElementFilter.byPostProcessKey("trippleMe"),
+                (Integer value) -> value * 3
+        )
+        .addPostProcessor(
+                ConfigurationElementFilter.byPostProcessKey(""),
+                (Integer value) -> 0
+        )
+        .build();
     }
 }
