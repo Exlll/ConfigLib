@@ -7,23 +7,33 @@ import java.lang.annotation.Target;
 
 /**
  * Indicates that the annotated element should be post-processed. This
- * annotation can be applied to fields and methods.
+ * annotation can be applied to configuration elements and methods.
  * <p>
- * Applying this annotation to a field of a configuration class does not cause
- * any post-processing to be triggered automatically. However, both, the
- * presence of this annotation and the return value of its {@link #key()}
- * method can be used as a filter criterion when adding post-processors via a
- * {@code ConfigurationProperties} object.
+ * Applying this annotation to configuration elements allows filtering these
+ * elements easily via {@code ConfigurationElementFilter.byPostProcessKey}.
+ * There mere presence of this annotation on a configuration element, however,
+ * does not cause any post-processing to be triggered automatically.
  * <p>
- * When applied to a (non-static) method of a configuration type, the method is
- * called immediately after a configuration instance of that type has been
- * initialized. If the return type of the annotated method equals the
- * configuration type, the instance is replaced by the return value of that
- * method call. If the return type is {@code void}, then the method is simply
- * called on the given instance.
+ * Applying this annotation to some (non-static/abstract) method of a
+ * configuration type, results in that method being called after a configuration
+ * instance of that type has been initialized. If the return type of the
+ * annotated method is 'void', then the method is simply called. If the return
+ * type equals the configuration type, the instance is replaced by the return
+ * value of that method call.
+ *
+ * @see ConfigurationElementFilter#byPostProcessKey(String)
+ * @see ConfigurationProperties.Builder#addPostProcessor
  */
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.RECORD_COMPONENT})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PostProcess {
+    /**
+     * Returns some key that can be used for filtering configuration elements.
+     * <p>
+     * Specifying a key if this annotation is used on a method currently has no
+     * effect but may be changed in the future.
+     *
+     * @return some arbitrary (developer-chosen) value
+     */
     String key() default "";
 }
