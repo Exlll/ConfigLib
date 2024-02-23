@@ -52,6 +52,35 @@ publishing {
     publications {
         register<MavenPublication>(publicationName) {
             from(components["java"])
+
+            pom {
+
+                name = "ConfigLib ${publicationName}"
+                description = "A Minecraft library for saving, loading, updating, " +
+                        "and commenting YAML configuration files."
+                url = "https://github.com/Exlll/ConfigLib"
+
+                developers {
+                    developer {
+                        name = "Exlll"
+                        email = "exlll321@gmail.com"
+                        url = "https://github.com/Exlll"
+                    }
+                }
+
+                licenses {
+                    license {
+                        name = "MIT License"
+                        url = "https://opensource.org/license/mit"
+                    }
+                }
+
+                scm {
+                    connection = "scm:git:git://github.com/Exlll/ConfigLib.git"
+                    developerConnection = "scm:git:ssh://github.com:Exlll/ConfigLib.git"
+                    url = "https://github.com/Exlll/ConfigLib/tree/master"
+                }
+            }
         }
     }
 }
