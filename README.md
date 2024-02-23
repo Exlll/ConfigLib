@@ -1061,7 +1061,7 @@ replace `configlib-yaml` with `configlib-paper`
 <dependency>
     <groupId>com.github.Exlll.ConfigLib</groupId>
     <artifactId>configlib-yaml</artifactId>
-    <version>v4.4.0</version>
+    <version>v4.5.0</version>
 </dependency>
 ```
 
@@ -1070,13 +1070,13 @@ replace `configlib-yaml` with `configlib-paper`
 ```groovy
 repositories { maven { url 'https://jitpack.io' } }
 
-dependencies { implementation 'com.github.Exlll.ConfigLib:configlib-yaml:v4.4.0' }
+dependencies { implementation 'com.github.Exlll.ConfigLib:configlib-yaml:v4.5.0' }
 ```
 
 ```kotlin
 repositories { maven { url = uri("https://jitpack.io") } }
 
-dependencies { implementation("com.github.Exlll.ConfigLib:configlib-yaml:v4.4.0") }
+dependencies { implementation("com.github.Exlll.ConfigLib:configlib-yaml:v4.5.0") }
 ```
 
 </details>
@@ -1101,7 +1101,7 @@ trouble with that.
 <dependency>
     <groupId>de.exlll</groupId>
     <artifactId>configlib-yaml</artifactId>
-    <version>4.4.0</version>
+    <version>4.5.0</version>
 </dependency>
 ```
 
@@ -1110,13 +1110,13 @@ trouble with that.
 ```groovy
 repositories { maven { url 'https://maven.pkg.github.com/Exlll/ConfigLib' } }
 
-dependencies { implementation 'de.exlll:configlib-yaml:4.4.0' }
+dependencies { implementation 'de.exlll:configlib-yaml:4.5.0' }
 ```
 
 ```kotlin
 repositories { maven { url = uri("https://maven.pkg.github.com/Exlll/ConfigLib") } }
 
-dependencies { implementation("de.exlll:configlib-yaml:4.4.0") }
+dependencies { implementation("de.exlll:configlib-yaml:4.5.0") }
 ```
 
 </details>
