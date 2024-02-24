@@ -1018,11 +1018,10 @@ the `dev` branch.**
 
 To use this library, import it into your project with Maven or Gradle. Examples
 of how to do that are at the end of this section within the spoilers. Currently,
-there are two repositories from which you can
-choose: [jitpack.io](https://jitpack.io/#Exlll/ConfigLib) and GitHub (which
-requires authentication, see
-this [issue](https://github.com/Exlll/ConfigLib/issues/12) if you have any
-problems).
+there are three repositories from which you can choose:
+- [Maven Central](https://central.sonatype.com/search?q=de.exlll) (recommended),
+- [jitpack.io](https://jitpack.io/#Exlll/ConfigLib), and
+- GitHub (which [requires authentication](https://github.com/Exlll/ConfigLib/issues/12))
 
 This library has additional dependencies (namely, a YAML parser) which are not
 exposed by the artifact you import. You can download _plugin versions_ of this
@@ -1044,6 +1043,26 @@ the `-yaml` version with its YAML parser yourself.
 If you want serialization support for Bukkit classes like `ItemStack`,
 replace `configlib-yaml` with `configlib-paper`
 (see [here](#support-for-bukkit-classes-like-itemstack)).
+
+#### Import via Maven Central
+
+**Maven**
+
+```xml
+<dependency>
+    <groupId>de.exlll</groupId>
+    <artifactId>configlib-yaml</artifactId>
+    <version>4.5.0</version>
+</dependency>
+```
+
+**Gradle**
+
+```kotlin
+repositories { mavenCentral() }
+
+dependencies { implementation("de.exlll:configlib-yaml:4.5.0") }
+```
 
 <details>
  <summary>
