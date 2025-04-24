@@ -12,6 +12,12 @@ import java.util.stream.Stream;
 import static de.exlll.configlib.Validator.requireRecord;
 
 final class Reflect {
+    private static final Set<Class<?>> SIMPLE_TARGET_TYPES = Set.of(
+            Boolean.class,
+            Long.class,
+            Double.class,
+            String.class
+    );
     private static final Map<Class<?>, Object> DEFAULT_VALUES = initDefaultValues();
 
     private Reflect() {}
@@ -250,5 +256,9 @@ final class Reflect {
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    static boolean isSimpleTargetType(Class<?> cls) {
+        return SIMPLE_TARGET_TYPES.contains(cls);
     }
 }

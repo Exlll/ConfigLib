@@ -23,20 +23,20 @@ public final class ExampleConfigurationCustom {
     private List<List<String>> listListString4 = listListString0;
 
     @SerializeWith(serializer = ThrowingSerializer.class, nesting = -1)
-    private Map<Integer, Map<Integer, String>> mapIntegerMapIntegerString0 =
-            asMap(1, asMap(2, "3"));
+    private Map<Long, Map<Long, String>> mapLongMapLongString0 =
+            asMap(1L, asMap(2L, "3"));
     @SerializeWith(serializer = DoublingKeySerializer.class)
-    private Map<Integer, Map<Integer, String>> mapIntegerMapIntegerString1 =
-            mapIntegerMapIntegerString0;
+    private Map<Long, Map<Long, String>> mapLongMapLongString1 =
+            mapLongMapLongString0;
     @SerializeWith(serializer = DoublingKeySerializer.class, nesting = 1)
-    private Map<Integer, Map<Integer, String>> mapIntegerMapIntegerString2 =
-            mapIntegerMapIntegerString0;
+    private Map<Long, Map<Long, String>> mapLongMapLongString2 =
+            mapLongMapLongString0;
     @SerializeWith(serializer = DoublingStringSerializer.class, nesting = 2)
-    private Map<Integer, Map<Integer, String>> mapIntegerMapIntegerString3 =
-            mapIntegerMapIntegerString0;
+    private Map<Long, Map<Long, String>> mapLongMapLongString3 =
+            mapLongMapLongString0;
     @SerializeWith(serializer = ThrowingSerializer.class, nesting = 3)
-    private Map<Integer, Map<Integer, String>> mapIntegerMapIntegerString4 =
-            mapIntegerMapIntegerString0;
+    private Map<Long, Map<Long, String>> mapLongMapLongString4 =
+            mapLongMapLongString0;
 
     /* ******************** POLYMORPHIC TYPES ******************** */
 
@@ -197,7 +197,7 @@ public final class ExampleConfigurationCustom {
 
     /* ******************** CUSTOM SERIALIZERS ******************** */
     public static final class DoublingKeySerializer<V>
-            implements Serializer<Map<Integer, V>, Map<Integer, V>> {
+            implements Serializer<Map<Long, V>, Map<Long, V>> {
 
         public DoublingKeySerializer(SerializerContext context) {
             if (context.element().type() != Map.class) {
@@ -206,16 +206,16 @@ public final class ExampleConfigurationCustom {
         }
 
         @Override
-        public Map<Integer, V> serialize(Map<Integer, V> element) {
-            Map<Integer, V> result = new LinkedHashMap<>();
-            element.forEach((integer, v) -> result.put(integer * 2, v));
+        public Map<Long, V> serialize(Map<Long, V> element) {
+            Map<Long, V> result = new LinkedHashMap<>();
+            element.forEach((longValue, v) -> result.put(longValue * 2, v));
             return result;
         }
 
         @Override
-        public Map<Integer, V> deserialize(Map<Integer, V> element) {
-            Map<Integer, V> result = new LinkedHashMap<>();
-            element.forEach((integer, v) -> result.put(integer / 2, v));
+        public Map<Long, V> deserialize(Map<Long, V> element) {
+            Map<Long, V> result = new LinkedHashMap<>();
+            element.forEach((longValue, v) -> result.put(longValue / 2, v));
             return result;
         }
     }
@@ -275,24 +275,24 @@ public final class ExampleConfigurationCustom {
         return listListString4;
     }
 
-    public Map<Integer, Map<Integer, String>> getMapIntegerMapIntegerString0() {
-        return mapIntegerMapIntegerString0;
+    public Map<Long, Map<Long, String>> getMapLongMapLongString0() {
+        return mapLongMapLongString0;
     }
 
-    public Map<Integer, Map<Integer, String>> getMapIntegerMapIntegerString1() {
-        return mapIntegerMapIntegerString1;
+    public Map<Long, Map<Long, String>> getMapLongMapLongString1() {
+        return mapLongMapLongString1;
     }
 
-    public Map<Integer, Map<Integer, String>> getMapIntegerMapIntegerString2() {
-        return mapIntegerMapIntegerString2;
+    public Map<Long, Map<Long, String>> getMapLongMapLongString2() {
+        return mapLongMapLongString2;
     }
 
-    public Map<Integer, Map<Integer, String>> getMapIntegerMapIntegerString3() {
-        return mapIntegerMapIntegerString3;
+    public Map<Long, Map<Long, String>> getMapLongMapLongString3() {
+        return mapLongMapLongString3;
     }
 
-    public Map<Integer, Map<Integer, String>> getMapIntegerMapIntegerString4() {
-        return mapIntegerMapIntegerString4;
+    public Map<Long, Map<Long, String>> getMapLongMapLongString4() {
+        return mapLongMapLongString4;
     }
 
     public Poly1 getPoly1_1() {

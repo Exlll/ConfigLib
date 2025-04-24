@@ -21,8 +21,7 @@ import java.util.function.UnaryOperator;
 import static de.exlll.configlib.TestUtils.assertThrowsConfigurationException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class TypeSerializerTest {
     private static <T> TypeSerializer<T, ?> newTypeSerializer(
@@ -581,6 +580,27 @@ class TypeSerializerTest {
                 "the custom serializer of type " +
                 "'class de.exlll.configlib.TestUtils$DoubleIntSerializer' expects."
         );
+    }
 
+    @Test
+    void serializingObjectThatProducesInvalidTargetTypeFails() {
+        record S(@SerializeWith(serializer = DoubleIntSerializer.class) Integer i) {}
+        final var serializer = newTypeSerializer(S.class);
+
+        ConfigurationException ex1 = assertThrows(
+                ConfigurationException.class,
+                () -> serializer.serialize(new S(10))
+        );
+        assertThat(ex1.getMessage(), is(
+                "Serialization of value '10' for element 'java.lang.Integer i' of type " +
+                "'class de.exlll.configlib.TypeSerializerTest$2S' failed. " +
+                "The serializer produced an invalid target type."
+        ));
+
+        ConfigurationException ex2 = (ConfigurationException) ex1.getCause();
+        assertThat(ex2.getMessage(), is(
+                "Object '20' does not have a valid target type. " +
+                "Its type is: class java.lang.Integer"
+        ));
     }
 }

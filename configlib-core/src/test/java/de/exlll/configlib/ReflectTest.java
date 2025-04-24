@@ -7,9 +7,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 import static de.exlll.configlib.TestUtils.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -446,5 +444,23 @@ class ReflectTest {
         Method method = ReflectTest.class.getDeclaredMethod("someString");
         Object object = Reflect.invoke(method, new ReflectTest());
         assertThat(object, is("AB"));
+    }
+
+    @Test
+    void isSimpleTargetType() {
+        enum E {E;}
+        record R(Long l) {}
+
+        assertThat(Reflect.isSimpleTargetType(Boolean.class), is(true));
+        assertThat(Reflect.isSimpleTargetType(Long.class), is(true));
+        assertThat(Reflect.isSimpleTargetType(Double.class), is(true));
+        assertThat(Reflect.isSimpleTargetType(String.class), is(true));
+
+        assertThat(Reflect.isSimpleTargetType(Map.class), is(false));
+        assertThat(Reflect.isSimpleTargetType(Set.class), is(false));
+        assertThat(Reflect.isSimpleTargetType(List.class), is(false));
+        assertThat(Reflect.isSimpleTargetType(E.class), is(false));
+        assertThat(Reflect.isSimpleTargetType(R.class), is(false));
+        assertThat(Reflect.isSimpleTargetType(Object.class), is(false));
     }
 }

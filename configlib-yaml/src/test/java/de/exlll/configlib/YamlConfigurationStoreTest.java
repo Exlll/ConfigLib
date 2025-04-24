@@ -1,9 +1,20 @@
 package de.exlll.configlib;
 
 import com.google.common.jimfs.Jimfs;
+import de.exlll.configlib.YamlConfigurationStore.YamlConfigurationConstructor;
+import de.exlll.configlib.YamlConfigurationStore.YamlConfigurationConstructor.YamlConfigurationConstructYamlJsonInt;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.snakeyaml.engine.v2.api.ConstructNode;
+import org.snakeyaml.engine.v2.api.LoadSettings;
+import org.snakeyaml.engine.v2.constructor.ConstructYamlNull;
+import org.snakeyaml.engine.v2.constructor.StandardConstructor.ConstructYamlMap;
+import org.snakeyaml.engine.v2.constructor.StandardConstructor.ConstructYamlSeq;
+import org.snakeyaml.engine.v2.constructor.StandardConstructor.ConstructYamlStr;
+import org.snakeyaml.engine.v2.constructor.json.ConstructYamlJsonBool;
+import org.snakeyaml.engine.v2.constructor.json.ConstructYamlJsonFloat;
+import org.snakeyaml.engine.v2.nodes.Tag;
 
 import java.awt.Point;
 import java.io.ByteArrayInputStream;
@@ -13,8 +24,13 @@ import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import static de.exlll.configlib.TestUtils.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 
 class YamlConfigurationStoreTest {
@@ -120,11 +136,11 @@ class YamlConfigurationStoreTest {
                 """
                 # The
                 # Header
-                                
+                
                 S: S1
                 # A comment
                 I: null
-                                
+                
                 # The
                 # Footer
                 """;
@@ -151,11 +167,11 @@ class YamlConfigurationStoreTest {
                 """
                 # The
                 # Header
-                                
+                
                 S: S1
                 # A comment
                 I: null
-                                
+                
                 # The
                 # Footer
                 """;
@@ -182,11 +198,11 @@ class YamlConfigurationStoreTest {
         String actual = """
                         # The
                         # Header
-                                        
+                        
                         S: S2
                         t: T2
                         I: null
-                                        
+                        
                         # The
                         # Footer
                         """;
@@ -216,11 +232,11 @@ class YamlConfigurationStoreTest {
         String actual = """
                         # The
                         # Header
-                                        
+                        
                         S: S2
                         t: T2
                         I: null
-                                        
+                        
                         # The
                         # Footer
                         """;
@@ -316,8 +332,11 @@ class YamlConfigurationStoreTest {
                 .build();
         YamlConfigurationStore<D> store = new YamlConfigurationStore<>(D.class, properties);
 
-        String exceptionMessage = "The given configuration could not be converted into YAML. \n" +
-                                  "Do all custom serializers produce valid target types?";
+        String exceptionMessage =
+                "Serialization of value 'java.awt.Point[x=1,y=2]' for element " +
+                "'java.awt.Point de.exlll.configlib.YamlConfigurationStoreTest$D.point' of " +
+                "type 'class de.exlll.configlib.YamlConfigurationStoreTest$D' failed. " +
+                "The serializer produced an invalid target type.";
         assertThrowsConfigurationException(() -> store.save(new D(), yamlFile), exceptionMessage);
         assertThrowsConfigurationException(() -> store.write(new D(), outputStream), exceptionMessage);
     }
@@ -467,5 +486,45 @@ class YamlConfigurationStoreTest {
 
     private InputStream inputFromOutput() {
         return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+
+    public static final class YamlConfigurationConstructorTest {
+        @Test
+        void tagCtorsMapContainsOnlyAndCorrectCtorsForTargetTypes() {
+            final var settings = LoadSettings.builder().build();
+            final var constructor = new YamlConfigurationConstructor(settings);
+
+            final Map<Tag, ConstructNode> actual = new HashMap<>(constructor.getTagCtors());
+
+            assertThat(actual.remove(Tag.NULL), instanceOf(ConstructYamlNull.class));
+            assertThat(actual.remove(Tag.BOOL), instanceOf(ConstructYamlJsonBool.class));
+            assertThat(actual.remove(Tag.STR), instanceOf(ConstructYamlStr.class));
+            assertThat(actual.remove(Tag.SEQ), instanceOf(ConstructYamlSeq.class));
+            assertThat(actual.remove(Tag.MAP), instanceOf(ConstructYamlMap.class));
+            assertThat(actual.remove(Tag.INT), instanceOf(YamlConfigurationConstructYamlJsonInt.class));
+            assertThat(actual.remove(Tag.FLOAT), instanceOf(ConstructYamlJsonFloat.class));
+
+            assertTrue(actual.isEmpty());
+        }
+    }
+
+    @Test
+    void allYamlIntegersAreLoadedAsLongs() {
+        final var load = YamlConfigurationStore.newYamlLoader();
+        final var map = (Map<?, ?>) load.loadFromString(
+                """
+                a: 1
+                b: 2147483647
+                c: 2147483648
+                d: -2147483648
+                e: -2147483649
+                """
+        );
+        assertThat(map.get("a"), is(1L));
+        assertThat(map.get("b"), is(2147483647L));
+        assertThat(map.get("c"), is(2147483648L));
+        assertThat(map.get("d"), is(-2147483648L));
+        assertThat(map.get("e"), is(-2147483649L));
     }
 }

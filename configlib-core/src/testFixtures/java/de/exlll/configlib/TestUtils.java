@@ -19,7 +19,8 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public final class TestUtils {
     public static final PointSerializer POINT_SERIALIZER = new PointSerializer();
@@ -47,6 +48,10 @@ public final class TestUtils {
         assertThrowsException(IllegalArgumentException.class, executable, expectedExceptionMessage);
     }
 
+    public static void assertThrowsConfigurationException(Executable executable) {
+        assertThrows(ConfigurationException.class, executable);
+    }
+
     public static void assertThrowsConfigurationException(
             Executable executable,
             String expectedExceptionMessage
@@ -67,7 +72,7 @@ public final class TestUtils {
             String expectedExceptionMessage
     ) {
         T exception = Assertions.assertThrows(exceptionType, executable);
-        assertEquals(expectedExceptionMessage, exception.getMessage());
+        assertThat(exception.getMessage(), is(expectedExceptionMessage));
     }
 
     public static final class CustomBigIntegerSerializer implements Serializer<BigInteger, String> {

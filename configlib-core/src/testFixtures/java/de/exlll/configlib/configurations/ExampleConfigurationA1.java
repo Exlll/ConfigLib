@@ -54,6 +54,20 @@ public class ExampleConfigurationA1 {
     private Float a1_refFloat;
     private Double a1_refDouble;
 
+    /* SPECIAL DOUBLE AND FLOAT VALUES */
+    private Float a1_refFloat_nan;
+    private Float a1_refFloat_inf;
+    private Float a1_refFloat_minf;
+    private float a1_primFloat_nan;
+    private float a1_primFloat_inf;
+    private float a1_primFloat_minf;
+    private Double a1_refDouble_nan;
+    private Double a1_refDouble_inf;
+    private Double a1_refDouble_minf;
+    private double a1_primDouble_nan;
+    private double a1_primDouble_inf;
+    private double a1_primDouble_minf;
+
     /* OTHER TYPES */
     private String a1_string;
     private BigInteger a1_bigInteger;
@@ -392,6 +406,102 @@ public class ExampleConfigurationA1 {
 
     public void setA1_refDouble(Double a1_refDouble) {
         this.a1_refDouble = a1_refDouble;
+    }
+
+    public double getA1_primDouble_minf() {
+        return a1_primDouble_minf;
+    }
+
+    public void setA1_primDouble_minf(double a1_primDouble_minf) {
+        this.a1_primDouble_minf = a1_primDouble_minf;
+    }
+
+    public double getA1_primDouble_inf() {
+        return a1_primDouble_inf;
+    }
+
+    public void setA1_primDouble_inf(double a1_primDouble_inf) {
+        this.a1_primDouble_inf = a1_primDouble_inf;
+    }
+
+    public double getA1_primDouble_nan() {
+        return a1_primDouble_nan;
+    }
+
+    public void setA1_primDouble_nan(double a1_primDouble_nan) {
+        this.a1_primDouble_nan = a1_primDouble_nan;
+    }
+
+    public Double getA1_refDouble_minf() {
+        return a1_refDouble_minf;
+    }
+
+    public void setA1_refDouble_minf(Double a1_refDouble_minf) {
+        this.a1_refDouble_minf = a1_refDouble_minf;
+    }
+
+    public Double getA1_refDouble_inf() {
+        return a1_refDouble_inf;
+    }
+
+    public void setA1_refDouble_inf(Double a1_refDouble_inf) {
+        this.a1_refDouble_inf = a1_refDouble_inf;
+    }
+
+    public Double getA1_refDouble_nan() {
+        return a1_refDouble_nan;
+    }
+
+    public void setA1_refDouble_nan(Double a1_refDouble_nan) {
+        this.a1_refDouble_nan = a1_refDouble_nan;
+    }
+
+    public float getA1_primFloat_minf() {
+        return a1_primFloat_minf;
+    }
+
+    public void setA1_primFloat_minf(float a1_primFloat_minf) {
+        this.a1_primFloat_minf = a1_primFloat_minf;
+    }
+
+    public float getA1_primFloat_inf() {
+        return a1_primFloat_inf;
+    }
+
+    public void setA1_primFloat_inf(float a1_primFloat_inf) {
+        this.a1_primFloat_inf = a1_primFloat_inf;
+    }
+
+    public float getA1_primFloat_nan() {
+        return a1_primFloat_nan;
+    }
+
+    public void setA1_primFloat_nan(float a1_primFloat_nan) {
+        this.a1_primFloat_nan = a1_primFloat_nan;
+    }
+
+    public Float getA1_refFloat_minf() {
+        return a1_refFloat_minf;
+    }
+
+    public void setA1_refFloat_minf(Float a1_refFloat_minf) {
+        this.a1_refFloat_minf = a1_refFloat_minf;
+    }
+
+    public Float getA1_refFloat_inf() {
+        return a1_refFloat_inf;
+    }
+
+    public void setA1_refFloat_inf(Float a1_refFloat_inf) {
+        this.a1_refFloat_inf = a1_refFloat_inf;
+    }
+
+    public Float getA1_refFloat_nan() {
+        return a1_refFloat_nan;
+    }
+
+    public void setA1_refFloat_nan(Float a1_refFloat_nan) {
+        this.a1_refFloat_nan = a1_refFloat_nan;
     }
 
     public String getA1_string() {

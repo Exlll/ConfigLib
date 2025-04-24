@@ -1,5 +1,7 @@
 package de.exlll.configlib;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 final class Validator {
@@ -51,5 +53,33 @@ final class Validator {
                          "float, double, or a wrapper type of one of the primitive number types.";
             throw new IllegalArgumentException(msg);
         }
+    }
+
+    static void requireTargetType(Object object) {
+        if (object == null) return;
+
+        final Class<?> cls = object.getClass();
+        if (cls == Boolean.class ||
+            cls == Long.class ||
+            cls == Double.class ||
+            cls == String.class) {
+            return;
+        }
+
+        if (object instanceof List<?> list) {
+            list.forEach(Validator::requireTargetType);
+            return;
+        }
+
+        if (object instanceof Map<?, ?> map) {
+            map.keySet().forEach(Validator::requireTargetType);
+            map.values().forEach(Validator::requireTargetType);
+            return;
+        }
+
+        final String msg =
+                "Object '" + object + "' does not have a valid target type. " +
+                "Its type is: " + object.getClass();
+        throw new ConfigurationException(msg);
     }
 }

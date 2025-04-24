@@ -169,6 +169,22 @@ public final class ExampleInitializer {
         a2.setA1_refDouble(23d);
         a2.setA2_refDouble(24d);
 
+        a2.setA1_refFloat_nan(Float.NaN);
+        a2.setA1_refFloat_inf(Float.POSITIVE_INFINITY);
+        a2.setA1_refFloat_minf(Float.NEGATIVE_INFINITY);
+
+        a2.setA1_primFloat_nan(Float.NaN);
+        a2.setA1_primFloat_inf(Float.POSITIVE_INFINITY);
+        a2.setA1_primFloat_minf(Float.NEGATIVE_INFINITY);
+
+        a2.setA1_refDouble_nan(Double.NaN);
+        a2.setA1_refDouble_inf(Double.POSITIVE_INFINITY);
+        a2.setA1_refDouble_minf(Double.NEGATIVE_INFINITY);
+
+        a2.setA1_primDouble_nan(Double.NaN);
+        a2.setA1_primDouble_inf(Double.POSITIVE_INFINITY);
+        a2.setA1_primDouble_minf(Double.NEGATIVE_INFINITY);
+
         a2.setA1_string("a");
         a2.setA2_string("b");
 

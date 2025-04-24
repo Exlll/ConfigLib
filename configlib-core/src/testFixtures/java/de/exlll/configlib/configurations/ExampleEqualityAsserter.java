@@ -79,6 +79,18 @@ public final class ExampleEqualityAsserter {
         assertThat(a1_1.getA1_refLong(), is(a1_2.getA1_refLong()));
         assertThat(a1_1.getA1_refFloat(), is(a1_2.getA1_refFloat()));
         assertThat(a1_1.getA1_refDouble(), is(a1_2.getA1_refDouble()));
+        assertThat(a1_1.getA1_refFloat_nan(), is(a1_2.getA1_refFloat_nan()));
+        assertThat(a1_1.getA1_refFloat_inf(), is(a1_2.getA1_refFloat_inf()));
+        assertThat(a1_1.getA1_refFloat_minf(), is(a1_2.getA1_refFloat_minf()));
+        assertThat(a1_1.getA1_primFloat_nan(), is(a1_2.getA1_primFloat_nan()));
+        assertThat(a1_1.getA1_primFloat_inf(), is(a1_2.getA1_primFloat_inf()));
+        assertThat(a1_1.getA1_primFloat_minf(), is(a1_2.getA1_primFloat_minf()));
+        assertThat(a1_1.getA1_refDouble_nan(), is(a1_2.getA1_refDouble_nan()));
+        assertThat(a1_1.getA1_refDouble_inf(), is(a1_2.getA1_refDouble_inf()));
+        assertThat(a1_1.getA1_refDouble_minf(), is(a1_2.getA1_refDouble_minf()));
+        assertThat(a1_1.getA1_primDouble_nan(), is(a1_2.getA1_primDouble_nan()));
+        assertThat(a1_1.getA1_primDouble_inf(), is(a1_2.getA1_primDouble_inf()));
+        assertThat(a1_1.getA1_primDouble_minf(), is(a1_2.getA1_primDouble_minf()));
         assertThat(a1_1.getA1_string(), is(a1_2.getA1_string()));
         assertThat(a1_1.getA1_bigInteger(), is(a1_2.getA1_bigInteger()));
         assertThat(a1_1.getA1_bigDecimal(), is(a1_2.getA1_bigDecimal()));
@@ -499,11 +511,11 @@ public final class ExampleEqualityAsserter {
         assertThat(c1.getListListString3(), is(c2.getListListString3()));
         assertThat(c1.getListListString4(), is(c2.getListListString4()));
 
-        assertThat(c1.getMapIntegerMapIntegerString0(), is(c2.getMapIntegerMapIntegerString0()));
-        assertThat(c1.getMapIntegerMapIntegerString1(), is(c2.getMapIntegerMapIntegerString1()));
-        assertThat(c1.getMapIntegerMapIntegerString2(), is(c2.getMapIntegerMapIntegerString2()));
-        assertThat(c1.getMapIntegerMapIntegerString3(), is(c2.getMapIntegerMapIntegerString3()));
-        assertThat(c1.getMapIntegerMapIntegerString4(), is(c2.getMapIntegerMapIntegerString4()));
+        assertThat(c1.getMapLongMapLongString0(), is(c2.getMapLongMapLongString0()));
+        assertThat(c1.getMapLongMapLongString1(), is(c2.getMapLongMapLongString1()));
+        assertThat(c1.getMapLongMapLongString2(), is(c2.getMapLongMapLongString2()));
+        assertThat(c1.getMapLongMapLongString3(), is(c2.getMapLongMapLongString3()));
+        assertThat(c1.getMapLongMapLongString4(), is(c2.getMapLongMapLongString4()));
 
         assertThat(c1.getPoly1_1(), is(c2.getPoly1_1()));
         assertThat(c1.getPoly2_1(), is(c2.getPoly2_1()));
