@@ -30,6 +30,7 @@ wiki!
 * Option to customize null handling
 * Option to customize serialization by providing your own serializers
 * Option to add headers and footers to configuration files
+* Option to overwrite configuration values with environment variables
 * ...and a few more!
 
 ## Usage example
@@ -502,7 +503,7 @@ serializing and deserializing a configuration:
   are treated as missing and are, therefore, handled as described in the section
   above.
 * By setting `inputNulls` to true, null values read from the configuration file
-  override the corresponding default values of a configuration class with null
+  overwrite the corresponding default values of a configuration class with null
   or set the component value of a record type to null. If the configuration
   element type is primitive, an exception is thrown.
 
@@ -942,6 +943,123 @@ ConfigurationProperties.newBuilder()
         )
         .build();
 ```
+
+### Overwriting configuration values with environment variables
+
+You can allow users of your configuration to overwrite values that come from
+configuration files with values that are provided by environment variables.
+When a configuration is loaded, boolean values, numbers, and strings that appear
+in that configuration files can be overwritten with values that come from
+environment variables.
+
+To enable support for overwriting config values with environment variables
+first create a `ConfigurationProperties.EnvVarResolutionConfiguration` object
+and then configure your `ConfigurationProperties` instance with it:
+
+```java
+final var envVarConf = ConfigurationProperties.EnvVarResolutionConfiguration
+        .resolveEnvVarsWithPrefix(prefix, caseSensitiveResolution);
+final var properties = ConfigurationProperties.newBuilder()
+        .setEnvVarResolutionConfiguration(envVarConf)
+        // ... build
+```
+
+The `resolveEnvVarsWithPrefix` method returns a configuration object that
+resolves environment variables that start with the given prefix.
+
+If you specify a non-empty prefix, then only variables that start with that
+prefix will be resolved when loading your configuration. For example, if you
+choose `MY_PREFIX_` as your prefix, only environment variables that start
+with `MY_PREFIX_` will be able to overwrite configuration values. Specifying a
+non-empty prefix that is specific to your project is highly recommended.
+
+#### Environment variable names
+
+To be able to overwrite configuration values, you need to name your environment
+variables in a specific way (see example below):
+
+- To overwrite a boolean, number, or string value of a field, use an environment
+variable whose name matches the name of the field. The environment variable must
+be uppercase if case-sensitive resolution is disabled.
+- You can target nested elements by joining all field names that lead to that
+element with an underscore `_`.
+- You can target list elements by using the index of an element as the field name.
+
+For example, in the following configuration file
+
+```yaml
+a: 0
+b:
+  c: 1
+d:
+- 2
+- 3
+e:
+- f: 4
+  g: 5
+```
+
+`a` is a simple value, `b` is a map, `d` is a list, and `e` is a list of
+maps. Then, under the assumption that you aren't using a prefix and that
+case-sensitive resolution is disabled, you can overwrite the values from 0 to 5
+using the following environment variables, respectively:
+`A`, `B_C`, `D_0`, `D_1`, `E_0_F`, and `E_0_G`.
+
+#### Case-sensitivity
+
+**NOTE:** Environment variables are case-sensitive on UNIX systems and
+case-insensitive on Windows.
+
+If you want to (or have to, because you are on Windows) target the values of
+your configuration using uppercase environment variables (irrespective of the
+actual casing of the name of the fields), then you have to disable
+case-sensitive resolution. For example, if you have a configuration file with
+the following content
+```yaml
+alPHA:
+  be_ta: 1
+ga_mma:
+  dELTa: 2
+```
+then, with `caseSensitiveResolution` set to `false`, you can overwrite the values
+`1` and `2` using the environment variables `ALPHA_BE_TA` and `GA_MMA_DELTA`,
+respectively.
+
+If your configuration contains paths that differ only in their case but are
+otherwise the same, and if you want to target these paths individually, then
+you have to enable case-sensitive resolution. For example, if you have a
+configuration file with the following content
+```yaml
+alpha:
+  beta: 1
+ALPHA:
+  BETA: 2
+```
+and you want to target the values of `beta` and `BETA` individually, then you
+have to set `caseSensitiveResolution` to `true`. After doing so you can
+overwrite the values `1` and `2` by using the environment variables `alpha_beta`
+and `ALPHA_BETA`, respectively.
+
+#### Restrictions
+
+The values provided by environment variables come as strings and need to be
+converted to the correct target type. Because the resolution of environment
+variables happens very early in the process (before the type information of the
+configuration type is available) there are a few restrictions on how
+environment variables are resolved and which values can be overwritten:
+
+- Environment variables can only be used to overwrite simple values.
+  Trying to overwrite a collection or map will cause an exception.
+- Environment variables cannot be used to insert new values into collections
+  or maps.
+- Overwriting `null` values is not possible because `null`s don't carry any type
+  information.
+- To overwrite a boolean value, an environment variable must be assigned the
+  string `true` or `false` (using any casing).
+- Numbers that, when a configuration file is read, are interpreted as integers
+  (because they don't contain a decimal point), (currently) cannot be overwritten
+  by floating point numbers. This applies even if the configuration type actually
+  expects a floating point number.
 
 ### Changing the type of configuration elements
 

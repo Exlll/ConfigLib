@@ -1,10 +1,7 @@
 package de.exlll.configlib;
 
 import java.lang.reflect.Type;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -28,6 +25,7 @@ public class ConfigurationProperties {
     private final boolean outputNulls;
     private final boolean inputNulls;
     private final boolean serializeSetsAsLists;
+    private final EnvVarResolutionConfiguration envVarResolutionConfiguration;
 
     /**
      * Constructs a new instance of this class with values taken from the given builder.
@@ -49,6 +47,10 @@ public class ConfigurationProperties {
         this.outputNulls = builder.outputNulls;
         this.inputNulls = builder.inputNulls;
         this.serializeSetsAsLists = builder.serializeSetsAsLists;
+        this.envVarResolutionConfiguration = requireNonNull(
+                builder.envVarResolutionConfiguration,
+                "environment variable resolution configuration"
+        );
     }
 
     /**
@@ -100,9 +102,18 @@ public class ConfigurationProperties {
         private boolean outputNulls = false;
         private boolean inputNulls = false;
         private boolean serializeSetsAsLists = true;
+        private EnvVarResolutionConfiguration envVarResolutionConfiguration
+                = EnvVarResolutionConfiguration.disabled();
 
+        /** Default constructor */
         protected Builder() {}
 
+        /**
+         * A constructor that initializes the values of this builder with the values
+         * of the given {@code ConfigurationProperties} object.
+         *
+         * @param properties the properties used to initialize the values of this builder
+         */
         protected Builder(ConfigurationProperties properties) {
             this.serializersByType.putAll(properties.serializersByType);
             this.serializerFactoriesByType.putAll(properties.serializerFactoriesByType);
@@ -113,6 +124,7 @@ public class ConfigurationProperties {
             this.outputNulls = properties.outputNulls;
             this.inputNulls = properties.inputNulls;
             this.serializeSetsAsLists = properties.serializeSetsAsLists;
+            this.envVarResolutionConfiguration = properties.envVarResolutionConfiguration;
         }
 
         /**
@@ -290,6 +302,26 @@ public class ConfigurationProperties {
         }
 
         /**
+         * Configures whether and how environment variables should be resolved.
+         * <p>
+         * The default is {@link EnvVarResolutionConfiguration#disabled()} which
+         * is a configuration that disables the resolution of environment variables.
+         *
+         * @param configuration the {@code EnvVarResolutionConfiguration}
+         * @return this builder
+         * @throws NullPointerException if {@code configuration} is null
+         */
+        public final B setEnvVarResolutionConfiguration(
+                EnvVarResolutionConfiguration configuration
+        ) {
+            this.envVarResolutionConfiguration = requireNonNull(
+                    configuration,
+                    "environment variable resolution configuration"
+            );
+            return getThis();
+        }
+
+        /**
          * Builds a {@code ConfigurationProperties} instance.
          *
          * @return newly constructed {@code ConfigurationProperties}
@@ -302,6 +334,139 @@ public class ConfigurationProperties {
          * @return this builder
          */
         protected abstract B getThis();
+    }
+
+    /**
+     * A collection of values used to configure the resolution of environment variables.
+     */
+    public static final class EnvVarResolutionConfiguration {
+        private static final EnvVarResolutionConfiguration DISABLED =
+                new EnvVarResolutionConfiguration();
+        private final boolean resolveEnvVars;
+        private final String prefix;
+        private final boolean caseSensitive;
+
+        /**
+         * Returns a configuration object that disables the resolution of
+         * environment variables.
+         *
+         * @return configuration object that disables the resolution of
+         * environment variables.
+         */
+        public static EnvVarResolutionConfiguration disabled() {
+            return DISABLED;
+        }
+
+        /**
+         * Returns a configuration object that resolves environment variables
+         * that start with the given prefix. Specifying a non-empty prefix that
+         * is specific to your project is highly recommended.
+         * <p>
+         * On UNIX systems environment variables are case-sensitive.
+         * On Windows they are case-insensitive.
+         * <ul>
+         * <li>
+         * If you want to (or have to, because you are on Windows) target the
+         * values of your configuration using uppercase environment variables,
+         * then you have to disable case-sensitive resolution.
+         * <p>
+         * For example, if you have a YAML configuration with the following content
+         * <pre>
+         * alPHA:
+         *   be_ta: 1
+         * ga_mma:
+         *   dELTa: 2
+         * </pre>
+         * then, with {@code caseSensitive} set to {@code false}, you can overwrite
+         * the values 1 and 2 using the environment variables
+         * {@code ALPHA_BE_TA} and {@code GA_MMA_DELTA}, respectively.
+         * </li>
+         * <li>
+         * If your configuration contains paths that differ only in their case,
+         * but are otherwise the same, and if you want to target these paths
+         * individually, then you have to enable case-sensitive resolution.
+         * <p>
+         * For example, if you have a YAML configuration with the following content
+         * <pre>
+         * alpha:
+         *   beta: 1
+         * ALPHA:
+         *   BETA: 2
+         * </pre>
+         * and you want to target the values of {@code beta} and {@code BETA}
+         * individually, then you have to set {@code caseSensitive} to {@code true}.
+         * After doing so you can overwrite the values 1 and 2 by using the environment
+         * variables {@code alpha_beta} and {@code ALPHA_BETA}, respectively.
+         * </li>
+         * <li>
+         * If you specify a non-empty prefix, then all variables that you want to
+         * be resolved have to start with that prefix. For example, if you choose
+         * {@code MY_PREFIX_} as your prefix, then the four variables listed
+         * above have to be named {@code MY_PREFIX_ALPHA_BE_TA},
+         * {@code MY_PREFIX_GA_MMA_DELTA}, {@code MY_PREFIX_alpha_beta}, and
+         * {@code MY_PREFIX_ALPHA_BETA}, respectively.
+         * </li>
+         * </ul>
+         *
+         * @param prefix        string the environment variables have to be prefixed with
+         * @param caseSensitive specifies whether the resolution should be case-sensitive
+         * @return configuration object that resolves environment variables
+         * that start with the given prefix
+         * @throws NullPointerException if {@code prefix} is null
+         */
+        public static EnvVarResolutionConfiguration resolveEnvVarsWithPrefix(
+                String prefix,
+                boolean caseSensitive
+        ) {
+            return new EnvVarResolutionConfiguration(true, prefix, caseSensitive);
+        }
+
+        private EnvVarResolutionConfiguration() {
+            this(false, "", false);
+        }
+
+        // create 'Builder' class if more configuration options are added
+        private EnvVarResolutionConfiguration(
+                boolean resolveEnvVars,
+                String prefix,
+                boolean caseSensitive
+        ) {
+            this.resolveEnvVars = resolveEnvVars;
+            this.prefix = requireNonNull(prefix, "prefix");
+            this.caseSensitive = caseSensitive;
+        }
+
+        /**
+         * Returns whether environment variables should be resolved.
+         *
+         * @return whether environment variables should be resolved
+         */
+        public boolean resolveEnvVars() {
+            return resolveEnvVars;
+        }
+
+        /**
+         * Returns the string with which the environment variables must begin
+         * in order to be resolved.
+         *
+         * @return the string environment variables have to begin with to be resolved
+         * @see EnvVarResolutionConfiguration#resolveEnvVarsWithPrefix(String, boolean)
+         */
+        public String prefix() {
+            return prefix;
+        }
+
+        /**
+         * Returns whether the resolution of environment variables should be
+         * case-sensitive.
+         *
+         * @return whether the resolution of environment variables should be
+         * case-sensitive
+         * @see EnvVarResolutionConfiguration#resolveEnvVarsWithPrefix(String, boolean)
+         */
+        public boolean caseSensitive() {
+            return caseSensitive;
+        }
     }
 
     /**
@@ -387,5 +552,15 @@ public class ConfigurationProperties {
      */
     final boolean serializeSetsAsLists() {
         return serializeSetsAsLists;
+    }
+
+    /**
+     * Returns the configuration that determines whether and how environment
+     * variables should be resolved.
+     *
+     * @return the configuration
+     */
+    public final EnvVarResolutionConfiguration getEnvVarResolutionConfiguration() {
+        return envVarResolutionConfiguration;
     }
 }

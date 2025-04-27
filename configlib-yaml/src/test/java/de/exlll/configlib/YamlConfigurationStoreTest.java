@@ -1,11 +1,14 @@
 package de.exlll.configlib;
 
 import com.google.common.jimfs.Jimfs;
+import de.exlll.configlib.ConfigurationProperties.EnvVarResolutionConfiguration;
 import de.exlll.configlib.YamlConfigurationStore.YamlConfigurationConstructor;
 import de.exlll.configlib.YamlConfigurationStore.YamlConfigurationConstructor.YamlConfigurationConstructYamlJsonInt;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.snakeyaml.engine.v2.api.ConstructNode;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.snakeyaml.engine.v2.constructor.ConstructYamlNull;
@@ -526,5 +529,32 @@ class YamlConfigurationStoreTest {
         assertThat(map.get("c"), is(2147483648L));
         assertThat(map.get("d"), is(-2147483648L));
         assertThat(map.get("e"), is(-2147483649L));
+    }
+
+    @Configuration
+    static final class F {
+        String s = "S1";
+        Integer i = 2;
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void updateResolvesEnvVarsIfFileDoesOrDoesNotExist(boolean createFile) {
+        YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
+                .outputNulls(true)
+                .setEnvVarResolutionConfiguration(EnvVarResolutionConfiguration.resolveEnvVarsWithPrefix("PREFIX", false))
+                .build();
+        YamlConfigurationStore<F> store = new YamlConfigurationStore<>(
+                F.class,
+                properties,
+                new MapEnvironment(Map.of(
+                        "PREFIX_S", "S2",
+                        "PREFIX_I", "10"
+                ))
+        );
+        if (createFile) store.save(new F(), yamlFile);
+        F config = store.update(yamlFile);
+        assertThat(config.s, is("S2"));
+        assertThat(config.i, is(10));
     }
 }

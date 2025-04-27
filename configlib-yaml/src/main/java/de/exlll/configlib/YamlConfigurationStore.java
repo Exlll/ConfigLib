@@ -35,7 +35,7 @@ public final class YamlConfigurationStore<T> implements
     private static final Dump YAML_DUMPER = newYamlDumper();
     private static final Load YAML_LOADER = newYamlLoader();
     private final YamlConfigurationProperties properties;
-    private final TypeSerializer<T, ?> serializer;
+    private final RootSerializer<T> serializer;
     private final CommentNodeExtractor extractor;
 
     /**
@@ -45,10 +45,25 @@ public final class YamlConfigurationStore<T> implements
      * @param properties        the properties
      * @throws NullPointerException if any argument is null
      */
-    public YamlConfigurationStore(Class<T> configurationType, YamlConfigurationProperties properties) {
+    public YamlConfigurationStore(
+            Class<T> configurationType,
+            YamlConfigurationProperties properties
+    ) {
+        this(configurationType, properties, new Environment.SystemEnvironment());
+    }
+
+    YamlConfigurationStore(
+            Class<T> configurationType,
+            YamlConfigurationProperties properties,
+            Environment environment
+    ) {
         requireNonNull(configurationType, "configuration type");
         this.properties = requireNonNull(properties, "properties");
-        this.serializer = TypeSerializer.newSerializerFor(configurationType, properties);
+        this.serializer = new RootSerializer<>(
+                configurationType,
+                properties,
+                environment
+        );
         this.extractor = new CommentNodeExtractor(properties);
     }
 
@@ -166,7 +181,7 @@ public final class YamlConfigurationStore<T> implements
         }
         T defaultConfiguration = serializer.newDefaultInstance();
         save(defaultConfiguration, configurationFile);
-        return defaultConfiguration;
+        return load(configurationFile);
     }
 
     static Dump newYamlDumper() {

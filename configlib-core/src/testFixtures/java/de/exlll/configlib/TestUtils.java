@@ -48,8 +48,8 @@ public final class TestUtils {
         assertThrowsException(IllegalArgumentException.class, executable, expectedExceptionMessage);
     }
 
-    public static void assertThrowsConfigurationException(Executable executable) {
-        assertThrows(ConfigurationException.class, executable);
+    public static ConfigurationException assertThrowsConfigurationException(Executable executable) {
+        return assertThrows(ConfigurationException.class, executable);
     }
 
     public static void assertThrowsConfigurationException(
@@ -350,5 +350,17 @@ public final class TestUtils {
 
     public static List<String> createListOfPlatformSpecificFilePaths(String... paths) {
         return Stream.of(paths).map(TestUtils::createPlatformSpecificFilePath).toList();
+    }
+
+    public record MapEnvironment(Map<String, String> map) implements Environment {
+        @Override
+        public String getValue(String environmentVariable) {
+            return map.get(environmentVariable);
+        }
+
+        @Override
+        public Map<String, String> getEnvironment() {
+            return map;
+        }
     }
 }

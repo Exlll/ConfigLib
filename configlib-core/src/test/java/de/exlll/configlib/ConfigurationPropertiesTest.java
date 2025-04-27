@@ -1,5 +1,6 @@
 package de.exlll.configlib;
 
+import de.exlll.configlib.ConfigurationProperties.EnvVarResolutionConfiguration;
 import de.exlll.configlib.Serializers.StringSerializer;
 import de.exlll.configlib.TestUtils.PointSerializer;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,8 @@ class ConfigurationPropertiesTest {
     private static final Predicate<? super Type> PREDICATE_TYPE = type -> true;
     private static final Predicate<? super ConfigurationElement<?>> PREDICATE_CE = ce -> true;
     private static final UnaryOperator<?> POST_PROCESSOR = UnaryOperator.identity();
+    private static final EnvVarResolutionConfiguration ENV_VAR_CONFIG =
+            EnvVarResolutionConfiguration.resolveEnvVarsWithPrefix("MY_PREFIX", true);
     private static final ConfigurationProperties.Builder<?> BUILDER = ConfigurationProperties.newBuilder()
             .addSerializer(Point.class, SERIALIZER)
             .addSerializerFactory(Point.class, ignored -> SERIALIZER)
@@ -31,6 +34,7 @@ class ConfigurationPropertiesTest {
             .setFieldFilter(FILTER)
             .outputNulls(true)
             .inputNulls(true)
+            .setEnvVarResolutionConfiguration(ENV_VAR_CONFIG)
             .serializeSetsAsLists(false);
 
     @Test
@@ -45,6 +49,10 @@ class ConfigurationPropertiesTest {
         assertThat(properties.getSerializersByCondition().entrySet(), empty());
         assertThat(properties.getNameFormatter(), is(NameFormatters.IDENTITY));
         assertThat(properties.getFieldFilter(), is(FieldFilters.DEFAULT));
+        assertThat(
+                properties.getEnvVarResolutionConfiguration(),
+                is(EnvVarResolutionConfiguration.disabled())
+        );
     }
 
     @Test
@@ -68,6 +76,7 @@ class ConfigurationPropertiesTest {
         assertThat(properties.serializeSetsAsLists(), is(false));
         assertThat(properties.getNameFormatter(), sameInstance(FORMATTER));
         assertThat(properties.getFieldFilter(), sameInstance(FILTER));
+        assertThat(properties.getEnvVarResolutionConfiguration(), sameInstance(ENV_VAR_CONFIG));
 
         var factories = properties.getSerializerFactories();
         assertThat(factories.size(), is(1));
@@ -107,7 +116,8 @@ class ConfigurationPropertiesTest {
     }
 
     public static final class BuilderTest {
-        private static final ConfigurationProperties.Builder<?> builder = ConfigurationProperties.newBuilder();
+        private static final ConfigurationProperties.Builder<?> builder =
+                ConfigurationProperties.newBuilder();
 
         @Test
         void setFieldFilterRequiresNonNull() {
@@ -175,6 +185,43 @@ class ConfigurationPropertiesTest {
                     () -> builder.addPostProcessor(type -> true, null),
                     "post-processor"
             );
+        }
+
+        @Test
+        void setEnvVarResolutionConfigurationRequiresNonNull() {
+            assertThrowsNullPointerException(
+                    () -> builder.setEnvVarResolutionConfiguration(null),
+                    "environment variable resolution configuration"
+            );
+        }
+    }
+
+    public static final class EnvVarResolutionConfigurationTest {
+        @Test
+        void disabledObjectDefaultValues() {
+            final var config = EnvVarResolutionConfiguration.disabled();
+            assertThat(config.resolveEnvVars(), is(false));
+            assertThat(config.prefix(), is(""));
+            assertThat(config.caseSensitive(), is(false));
+        }
+
+        @Test
+        void resolveEnvVarsWithPrefixRequiresNonNull() {
+            assertThrowsNullPointerException(
+                    () -> EnvVarResolutionConfiguration.resolveEnvVarsWithPrefix(null, false),
+                    "prefix"
+            );
+        }
+
+        @Test
+        void resolveEnvVarsWithPrefix() {
+            final var config = EnvVarResolutionConfiguration.resolveEnvVarsWithPrefix(
+                    "THE_PREFIX",
+                    true
+            );
+            assertThat(config.resolveEnvVars(), is(true));
+            assertThat(config.prefix(), is("THE_PREFIX"));
+            assertThat(config.caseSensitive(), is(true));
         }
     }
 }
