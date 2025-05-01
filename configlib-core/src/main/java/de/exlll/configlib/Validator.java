@@ -1,15 +1,18 @@
 package de.exlll.configlib;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 final class Validator {
     private Validator() {}
 
     static <T> T requireNonNull(T object, String argumentName) {
-        String msg = "The " + argumentName + " must not be null.";
-        return Objects.requireNonNull(object, msg);
+        if (object == null) {
+            String msg = "The " + argumentName + " must not be null.";
+            throw new NullPointerException(msg);
+        }
+        return object;
     }
 
     static <T> T requireNonNullArrayElement(T element, String type, int index) {
@@ -18,6 +21,22 @@ final class Validator {
             throw new ConfigurationException(msg);
         }
         return element;
+    }
+
+    static <T> T[] requireNonEmpty(T[] array, String argumentName) {
+        if (array.length == 0) {
+            String msg = "The " + argumentName + " must not be empty.";
+            throw new IllegalArgumentException(msg);
+        }
+        return array;
+    }
+
+    static <T extends Collection<?>> T requireNonEmpty(T collection, String argumentName) {
+        if (collection.isEmpty()) {
+            String msg = "The " + argumentName + " must not be empty.";
+            throw new IllegalArgumentException(msg);
+        }
+        return collection;
     }
 
     static <T> Class<T> requireConfigurationClass(Class<T> cls) {
