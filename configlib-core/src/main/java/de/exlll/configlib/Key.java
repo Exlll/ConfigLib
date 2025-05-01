@@ -10,25 +10,29 @@ import static de.exlll.configlib.Validator.requireNonNull;
 
 /**
  * Represents a key that can be used to access (possibly nested) values of a
- * collection or map.
- * A key consists of one or more ordered parts. All parts must be either null or
- * of a valid, simple target type (i.e. Boolean, Long, Double, or String).
+ * collection or map. A key consists of one or more ordered parts.
+ * All parts must either be null, of a valid, simple target type (i.e. Boolean,
+ * Long, Double, or String), or instances of a special type that represent list
+ * indices.
  */
 public final class Key {
     private final List<Object> parts;
 
     /**
-     * Creates a new {@code Key} from one or more parts. All parts must be
-     * either null or of a valid, simple target type (i.e. Boolean, Long,
-     * Double, or String). For convenience, this method automatically converts
-     * {@code int}s to {@code Long}s.
+     * Creates a new {@code Key} from one or more parts.
+     * <p>
+     * All parts must either be null, of a valid, simple target type (i.e. Boolean, Long,
+     * Double, or String), or instances of a special type that represent list indices.
+     * <p>
+     * For convenience, this method automatically converts {@code int}s,
+     * and {@code Integer}s to {@code Long}s.
      *
      * @param firstPart  the required first part
      * @param otherParts the optional other parts
      * @return a new key
      * @throws NullPointerException     if {@code otherParts} is null
-     * @throws IllegalArgumentException if any argument is neither null nor of a
-     *                                  simple target type
+     * @throws IllegalArgumentException if the list is empty or if any list element
+     *                                  has an invalid type
      */
     public static Key key(Object firstPart, Object... otherParts) {
         requireNonNull(otherParts, "array of other parts");
@@ -42,16 +46,19 @@ public final class Key {
     }
 
     /**
-     * Creates a new {@code Key} from a non-empty list of parts. All parts must
-     * be either null or of a valid, simple target type (i.e. Boolean, Long,
-     * Double, or String). For convenience, this method automatically converts
-     * {@code Integer}s in the list to {@code Long}s.
+     * Creates a new {@code Key} from a non-empty list of parts.
+     * <p>
+     * All parts must either be null, of a valid, simple target type (i.e. Boolean, Long,
+     * Double, or String), or instances of a special type that represent list indices.
+     * <p>
+     * For convenience, this method automatically converts {@code int}s,
+     * and {@code Integer}s to {@code Long}s.
      *
      * @param parts the list of parts
      * @return a new key
      * @throws NullPointerException     if {@code parts} is null
      * @throws IllegalArgumentException if the list is empty or if any list element
-     *                                  is neither null nor of a valid simple target type
+     *                                  has an invalid type
      */
     public static Key key(List<Object> parts) {
         requireNonNull(parts, "list of parts");
@@ -66,6 +73,21 @@ public final class Key {
     private static void addPart(Object part, List<Object> parts) {
         if (part instanceof Integer i) parts.add(i.longValue());
         else parts.add(part);
+    }
+
+    /**
+     * Returns a special object that represents a list index and that can be
+     * used as part of a {@code Key}.
+     * <p>
+     * The necessity for such an object arises as plain numbers are interpreted
+     * as map keys.
+     *
+     * @param index the list index
+     * @return a special object that represents a list index
+     * @throws IllegalArgumentException if {@code index} is less than 0
+     */
+    public static Object listIdx(int index) {
+        return new ListIndex(index);
     }
 
     Key(List<Object> parts) {
@@ -89,6 +111,7 @@ public final class Key {
 
     private static boolean isValidPart(Object part) {
         if (part == null) return true;
+        if (part instanceof ListIndex) return true;
         return Reflect.isSimpleTargetType(part.getClass());
     }
 
@@ -115,9 +138,7 @@ public final class Key {
 
     @Override
     public String toString() {
-        return "Key{" +
-               "parts=" + parts +
-               '}';
+        return "Key" + parts.toString();
     }
 
     @Override
@@ -130,5 +151,15 @@ public final class Key {
     @Override
     public int hashCode() {
         return Objects.hashCode(parts);
+    }
+
+    record ListIndex(int index) {
+        ListIndex {
+            if (index < 0) {
+                String msg = "List indices must be at least zero but the number " +
+                             "you provided is " + index + ".";
+                throw new IllegalArgumentException(msg);
+            }
+        }
     }
 }
