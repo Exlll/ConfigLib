@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static de.exlll.configlib.Key.listIdx;
 import static de.exlll.configlib.TestUtils.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -31,6 +32,7 @@ class KeyTest {
         new Key(asList(3L, 4L));
         new Key(asList(5.0, 6.0));
         new Key(asList("", ""));
+        new Key(asList(listIdx(0), listIdx(100)));
 
         assertThrowsIllegalArgumentException(
                 () -> new Key(asList((byte) 1)),
@@ -72,20 +74,22 @@ class KeyTest {
 
     @Test
     void ctorCopiesList() {
-        Key key = new Key(asList(1L, "2", 3.0, true));
+        Key key = new Key(asList(1L, "2", 3.0, true, listIdx(4)));
 
         List<Object> allParts = key.getAllParts();
-        assertThat(allParts.size(), is(4));
+        assertThat(allParts.size(), is(5));
 
         assertThat(allParts.get(0), is(1L));
         assertThat(allParts.get(1), is("2"));
         assertThat(allParts.get(2), is(3.0));
         assertThat(allParts.get(3), is(true));
+        assertThat(allParts.get(4), is(listIdx(4)));
 
         assertThat(allParts.get(0), is(key.getPart(0)));
         assertThat(allParts.get(1), is(key.getPart(1)));
         assertThat(allParts.get(2), is(key.getPart(2)));
         assertThat(allParts.get(3), is(key.getPart(3)));
+        assertThat(allParts.get(4), is(key.getPart(4)));
     }
 
     @Test
@@ -124,5 +128,28 @@ class KeyTest {
         assertThat(key.getPart(0), instanceOf(Long.class));
         assertThat(key.getPart(1), instanceOf(Long.class));
         assertThat(key.getPart(2), instanceOf(Long.class));
+    }
+
+    @Test
+    void listIndexMustBeAtLeastZero() {
+        // these are ok
+        new Key.ListIndex(0);
+        new Key.ListIndex(1);
+        new Key.ListIndex(100);
+        new Key.ListIndex(Integer.MAX_VALUE);
+
+        assertThrowsIllegalArgumentException(
+                () -> new Key.ListIndex(-1),
+                "List indices must be at least zero but the number you provided is -1."
+        );
+        assertThrowsIllegalArgumentException(
+                () -> new Key.ListIndex(-100),
+                "List indices must be at least zero but the number you provided is -100."
+        );
+        assertThrowsIllegalArgumentException(
+                () -> new Key.ListIndex(Integer.MIN_VALUE),
+                "List indices must be at least zero but the number you provided is " +
+                Integer.MIN_VALUE + "."
+        );
     }
 }
