@@ -10,7 +10,10 @@ import static de.exlll.configlib.Validator.requireNonNull;
 
 /**
  * Represents a key that can be used to access (possibly nested) values of a
- * collection or map. A key consists of one or more ordered parts.
+ * collection or map.
+ * <p>
+ * A key consists of one or more ordered parts.
+ * <p>
  * All parts must either be null, of a valid, simple target type (i.e. Boolean,
  * Long, Double, or String), or instances of a special type that represent list
  * indices.
