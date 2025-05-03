@@ -153,5 +153,48 @@ public sealed interface KeyedEntry {
         }
 
         enum Reason {PART_MISSING, PART_WRONG_TYPE}
+
+        /**
+         * Creates a new MissingKeyedEntry. The {@code existing} and {@code missing}
+         * keys of this entry are created by splitting the parts of {@code key} at
+         * {@code splitIndex}.
+         *
+         * @param key        the key used to access the entry
+         * @param splitIndex index at which to split the parts of {@code key}
+         * @param reason     the reason why the entry is missing
+         * @return new MissingKeyedEntry
+         * @throws IllegalArgumentException if {@code splitIndex} less than zero, or greater
+         *                                  or equal to the number of parts of {@code key}
+         * @throws NullPointerException     if any argument is null
+         */
+        static MissingKeyedEntry fromKey(Key key, int splitIndex, Reason reason) {
+            requireNonNull(key, "key");
+            requireNonNull(reason, "reason");
+
+            if (splitIndex < 0) {
+                String msg = "The split index must not be negative but is " + splitIndex;
+                throw new IllegalArgumentException(msg);
+            }
+            if (splitIndex >= key.numParts()) {
+                String msg =
+                        "To create a MissingKeyedEntry the list of missing parts must " +
+                        "contain at least one entry. Therefore, the split index must " +
+                        "not be equal or greater than the number of parts in the given " +
+                        "key but it is " + splitIndex + ".";
+                throw new IllegalArgumentException(msg);
+            }
+
+            final List<Object> allParts = key.getAllParts();
+            final Key existing = splitIndex == 0
+                    ? null
+                    : Key.key(allParts.subList(0, splitIndex));
+            final Key missing = Key.key(allParts.subList(splitIndex, key.numParts()));
+            return new MissingKeyedEntry(
+                    key,
+                    existing,
+                    missing,
+                    reason
+            );
+        }
     }
 }

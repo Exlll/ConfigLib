@@ -279,7 +279,10 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
         if (list.isEmpty())
             return UnaryOperator.identity();
         if (list.size() > 1) {
-            String methodNames = String.join("\n  ", list.stream().map(Method::toString).toList());
+            String methodNames = String.join(
+                    "\n  ",
+                    list.stream().map(Method::toString).sorted().toList()
+            );
             String msg = "Configuration types must not define more than one method for " +
                          "post-processing but type '%s' defines %d:\n  %s"
                                  .formatted(type, list.size(), methodNames);
