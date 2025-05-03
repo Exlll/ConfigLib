@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import static de.exlll.configlib.Key.key;
 import static de.exlll.configlib.TestUtils.assertThrowsIllegalArgumentException;
 import static de.exlll.configlib.TestUtils.assertThrowsNullPointerException;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.*;
 
 class KeyedEntryTest {
@@ -52,6 +55,100 @@ class KeyedEntryTest {
         assertThrowsIllegalArgumentException(
                 () -> new MissingKeyedEntry(Key.key("b", 2.0), null, missingKey, Reason.PART_MISSING),
                 "Full key: Key[b, 2.0]; Existing key: null; Missing key: Key[a, 2.0]"
+        );
+    }
+
+
+    @Test
+    void missingKeyedEntryFromKeyRequiresNonNullArgs() {
+        assertThrowsNullPointerException(
+                () -> MissingKeyedEntry.fromKey(null, 0, Reason.PART_MISSING),
+                "key"
+        );
+        assertThrowsNullPointerException(
+                () -> MissingKeyedEntry.fromKey(Key.key("aaa"), 0, null),
+                "reason"
+        );
+    }
+
+    @Test
+    void missingKeyedEntryFromKeyUsesReason() {
+        final Key key = Key.key(1, "2", 3.0, null, false);
+
+        var entry1 = MissingKeyedEntry.fromKey(key, 0, Reason.PART_MISSING);
+        assertThat(entry1.reason(), is(Reason.PART_MISSING));
+
+        var entry2 = MissingKeyedEntry.fromKey(key, 0, Reason.PART_WRONG_TYPE);
+        assertThat(entry2.reason(), is(Reason.PART_WRONG_TYPE));
+    }
+
+    @Test
+    void missingKeyedEntryFromKeySplitsAtIndex() {
+        final Key key = Key.key(1, "2", 3.0, null, false);
+
+        {
+            var entry = MissingKeyedEntry.fromKey(key, 0, Reason.PART_MISSING);
+            assertThat(entry.key(), is(key));
+            assertThat(entry.existing(), nullValue());
+            assertThat(entry.missing(), is(Key.key(1, "2", 3.0, null, false)));
+        }
+
+        {
+            var entry = MissingKeyedEntry.fromKey(key, 1, Reason.PART_MISSING);
+            assertThat(entry.key(), is(key));
+            assertThat(entry.existing(), is(Key.key(1)));
+            assertThat(entry.missing(), is(Key.key("2", 3.0, null, false)));
+        }
+
+        {
+            var entry = MissingKeyedEntry.fromKey(key, 2, Reason.PART_MISSING);
+            assertThat(entry.key(), is(key));
+            assertThat(entry.existing(), is(Key.key(1, "2")));
+            assertThat(entry.missing(), is(Key.key(3.0, null, false)));
+        }
+
+
+        {
+            var entry = MissingKeyedEntry.fromKey(key, 3, Reason.PART_MISSING);
+            assertThat(entry.key(), is(key));
+            assertThat(entry.existing(), is(Key.key(1, "2", 3.0)));
+            assertThat(entry.missing(), is(Key.key(null, false)));
+        }
+
+        {
+            var entry = MissingKeyedEntry.fromKey(key, 4, Reason.PART_MISSING);
+            assertThat(entry.key(), is(key));
+            assertThat(entry.existing(), is(Key.key(1, "2", 3.0, null)));
+            assertThat(entry.missing(), is(Key.key(false)));
+        }
+
+    }
+
+    @Test
+    void missingKeyedEntryFromKeyRequiresValidSplitKey() {
+        final Key key = Key.key(1, "2", 3.0, null, false);
+
+        assertThrowsIllegalArgumentException(
+                () -> MissingKeyedEntry.fromKey(key, -1, Reason.PART_MISSING),
+                "The split index must not be negative but is -1"
+        );
+        assertThrowsIllegalArgumentException(
+                () -> MissingKeyedEntry.fromKey(key, -10, Reason.PART_MISSING),
+                "The split index must not be negative but is -10"
+        );
+
+        assertThrowsIllegalArgumentException(
+                () -> MissingKeyedEntry.fromKey(key, 5, Reason.PART_MISSING),
+                "To create a MissingKeyedEntry the list of missing parts must contain " +
+                "at least one entry. Therefore, the split index must not be equal or " +
+                "greater than the number of parts in the given key but it is 5."
+        );
+
+        assertThrowsIllegalArgumentException(
+                () -> MissingKeyedEntry.fromKey(key, 500, Reason.PART_MISSING),
+                "To create a MissingKeyedEntry the list of missing parts must contain " +
+                "at least one entry. Therefore, the split index must not be equal or " +
+                "greater than the number of parts in the given key but it is 500."
         );
     }
 }

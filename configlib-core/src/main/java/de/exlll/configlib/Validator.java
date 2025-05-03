@@ -74,6 +74,14 @@ final class Validator {
         }
     }
 
+    static Object requireListOrMap(Object object, String argumentName) {
+        requireNonNull(object, argumentName);
+        if (object instanceof Map<?, ?> || object instanceof List<?>) return object;
+        String msg = "The " + argumentName + " must be a list or map but the given " +
+                     "object '" + object + "' is of type " + object.getClass().getName() + ".";
+        throw new IllegalArgumentException(msg);
+    }
+
     static void requireTargetType(Object object) {
         if (object == null) return;
 

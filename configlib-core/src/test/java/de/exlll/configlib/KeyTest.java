@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static de.exlll.configlib.Key.key;
 import static de.exlll.configlib.Key.listIdx;
 import static de.exlll.configlib.TestUtils.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -151,5 +152,21 @@ class KeyTest {
                 "List indices must be at least zero but the number you provided is " +
                 Integer.MIN_VALUE + "."
         );
+    }
+
+    @Test
+    void numParts() {
+        assertThat(key(1).numParts(), is(1));
+        assertThat(key(1, "2").numParts(), is(2));
+        assertThat(key(1, "2", 3.0).numParts(), is(3));
+        assertThat(key(1, "2", 3.0, true).numParts(), is(4));
+    }
+
+    @Test
+    void lastPart() {
+        assertThat(key(1).getLastPart(), is(1L));
+        assertThat(key(1, "2").getLastPart(), is("2"));
+        assertThat(key(1, "2", 3.0).getLastPart(), is(3.0));
+        assertThat(key(1, "2", 3.0, true).getLastPart(), is(true));
     }
 }

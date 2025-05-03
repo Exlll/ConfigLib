@@ -131,12 +131,30 @@ public final class Key {
     }
 
     /**
+     * Returns the last part.
+     *
+     * @return last part
+     */
+    public Object getLastPart() {
+        return parts.get(parts.size() - 1);
+    }
+
+    /**
      * Returns an unmodifiable list of all parts that constitute this key.
      *
      * @return unmodifiable list of all parts that constitute this key
      */
     public List<Object> getAllParts() {
         return parts;
+    }
+
+    /**
+     * Returns the number of parts.
+     *
+     * @return number of parts
+     */
+    public int numParts() {
+        return parts.size();
     }
 
     @Override
