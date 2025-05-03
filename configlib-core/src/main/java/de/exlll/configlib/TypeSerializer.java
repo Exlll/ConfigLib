@@ -16,7 +16,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static de.exlll.configlib.Validator.requireNonNull;
-import static de.exlll.configlib.Validator.requireTargetType;
+import static de.exlll.configlib.Validator.requireTargetTypeRet;
 
 sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
         implements Serializer<T, Map<?, ?>>
@@ -107,7 +107,7 @@ sealed abstract class TypeSerializer<T, E extends ConfigurationElement<?>>
             Object serialized
     ) {
         try {
-            requireTargetType(serialized);
+            requireTargetTypeRet(serialized);
         } catch (ConfigurationException e) {
             String msg = ("Serialization of value '%s' for element '%s' of type '%s' failed. " +
                           "The serializer produced an invalid target type.")

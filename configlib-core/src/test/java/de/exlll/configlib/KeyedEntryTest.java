@@ -10,7 +10,6 @@ import static de.exlll.configlib.TestUtils.assertThrowsNullPointerException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.jupiter.api.Assertions.*;
 
 class KeyedEntryTest {
     @Test
@@ -78,8 +77,8 @@ class KeyedEntryTest {
         var entry1 = MissingKeyedEntry.fromKey(key, 0, Reason.PART_MISSING);
         assertThat(entry1.reason(), is(Reason.PART_MISSING));
 
-        var entry2 = MissingKeyedEntry.fromKey(key, 0, Reason.PART_WRONG_TYPE);
-        assertThat(entry2.reason(), is(Reason.PART_WRONG_TYPE));
+        var entry2 = MissingKeyedEntry.fromKey(key, 0, Reason.WRONG_TYPE);
+        assertThat(entry2.reason(), is(Reason.WRONG_TYPE));
     }
 
     @Test

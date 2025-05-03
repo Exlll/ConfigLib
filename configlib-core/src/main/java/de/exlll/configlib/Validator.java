@@ -3,6 +3,7 @@ package de.exlll.configlib;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 final class Validator {
     private Validator() {}
@@ -82,7 +83,18 @@ final class Validator {
         throw new IllegalArgumentException(msg);
     }
 
-    static void requireTargetType(Object object) {
+    static void requireTargetTypeArg(Object object) {
+        requireTargetType(object, IllegalArgumentException::new);
+    }
+
+    static void requireTargetTypeRet(Object object) {
+        requireTargetType(object, ConfigurationException::new);
+    }
+
+    private static void requireTargetType(
+            Object object,
+            Function<String, RuntimeException> f
+    ) {
         if (object == null) return;
 
         final Class<?> cls = object.getClass();
@@ -94,19 +106,19 @@ final class Validator {
         }
 
         if (object instanceof List<?> list) {
-            list.forEach(Validator::requireTargetType);
+            list.forEach((e) -> requireTargetType(e, f));
             return;
         }
 
         if (object instanceof Map<?, ?> map) {
-            map.keySet().forEach(Validator::requireTargetType);
-            map.values().forEach(Validator::requireTargetType);
+            map.keySet().forEach((k) -> requireTargetType(k, f));
+            map.values().forEach((v) -> requireTargetType(v, f));
             return;
         }
 
         final String msg =
-                "Object '" + object + "' does not have a valid target type. " +
-                "Its type is: " + object.getClass();
-        throw new ConfigurationException(msg);
+                "Value '" + object + "' must be null or of a valid target type " +
+                "but its type is " + object.getClass().getName() + ".";
+        throw f.apply(msg);
     }
 }

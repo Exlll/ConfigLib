@@ -11,24 +11,24 @@ import static de.exlll.configlib.Validator.requireNonNull;
  */
 public sealed interface KeyedEntry {
     /**
-     * Returns the key that was used to access this entry.
+     * Returns the key that is associated with this entry.
      *
-     * @return key used to access this entry
+     * @return key that is associated with this entry
      */
     Key key();
 
     /**
      * Represents an existing entry of a {@link KeyedCollection}.
      *
-     * @param key   the key used to access this entry
-     * @param value the value of this entry
+     * @param key   the key that is associated with this entry
+     * @param value the value that is associated with this entry
      */
     record ExistingKeyedEntry(Key key, Object value) implements KeyedEntry {
         /**
-         * Constructs a ExistingKeyedEntry.
+         * Constructs an ExistingKeyedEntry.
          *
-         * @param key   the key used to access this entry
-         * @param value the value of this entry
+         * @param key   the key that is associated with this entry
+         * @param value the value that is associated with this entry
          * @throws NullPointerException if {@code key} is null
          */
         public ExistingKeyedEntry {
@@ -110,12 +110,14 @@ public sealed interface KeyedEntry {
      * the parts of the {@code missing} key give the parts of the {@code key} used
      * to access this entry.
      * <p>
-     * An entry can be missing because some part of the {@code key} simply does
-     * not exist or because some part before the last part of the {@code key} is
-     * not a collection (and thus prevents further recursive lookup). These cases
-     * can be distinguished with the {@code reason} argument.
+     * An entry can be missing because (a) the {@code KeyedCollection} in question
+     * simply does not contain one of the parts of the {@code key} or (b) because
+     * some part before the last part of the {@code key} does either not reference
+     * a collection or references the wrong type of collection (and thus prevents
+     * further recursive lookup). These two cases can be distinguished from one
+     * another using the {@code reason} argument.
      *
-     * @param key      the key used to access this entry
+     * @param key      the key that is associated with this entry
      * @param existing a key of existing parts or null
      * @param missing  a key of missing parts
      * @param reason   the reason why this entry is missing
@@ -125,7 +127,7 @@ public sealed interface KeyedEntry {
         /**
          * Constructs a MissingKeyedEntry.
          *
-         * @param key      the key used to access this entry
+         * @param key      the key that is associated with this entry
          * @param existing a key of existing parts or null
          * @param missing  a key of missing parts
          * @throws NullPointerException     if {@code key}, {@code missing},
@@ -152,14 +154,14 @@ public sealed interface KeyedEntry {
             }
         }
 
-        enum Reason {PART_MISSING, PART_WRONG_TYPE}
+        enum Reason {PART_MISSING, WRONG_TYPE}
 
         /**
          * Creates a new MissingKeyedEntry. The {@code existing} and {@code missing}
          * keys of this entry are created by splitting the parts of {@code key} at
          * {@code splitIndex}.
          *
-         * @param key        the key used to access the entry
+         * @param key        the key that is associated with the entry
          * @param splitIndex index at which to split the parts of {@code key}
          * @param reason     the reason why the entry is missing
          * @return new MissingKeyedEntry

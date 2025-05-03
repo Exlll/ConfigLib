@@ -599,8 +599,8 @@ class TypeSerializerTest {
 
         ConfigurationException ex2 = (ConfigurationException) ex1.getCause();
         assertThat(ex2.getMessage(), is(
-                "Object '20' does not have a valid target type. " +
-                "Its type is: class java.lang.Integer"
+                "Value '20' must be null or of a valid target type but its type " +
+                "is java.lang.Integer."
         ));
     }
 }

@@ -3,7 +3,7 @@ package de.exlll.configlib;
 import org.junit.jupiter.api.Test;
 
 import static de.exlll.configlib.TestUtils.*;
-import static de.exlll.configlib.Validator.requireTargetType;
+import static de.exlll.configlib.Validator.requireTargetTypeRet;
 
 class ValidatorTest {
 
@@ -12,28 +12,28 @@ class ValidatorTest {
         enum E {E;}
         record R(Long l) {}
 
-        requireTargetType(null);
-        requireTargetType(1L);
-        requireTargetType(1.0);
-        requireTargetType("");
+        requireTargetTypeRet(null);
+        requireTargetTypeRet(1L);
+        requireTargetTypeRet(1.0);
+        requireTargetTypeRet("");
 
         assertThrowsConfigurationException(
-                () -> requireTargetType(1),
-                "Object '1' does not have a valid target type. Its type is: class java.lang.Integer"
+                () -> requireTargetTypeRet(1),
+                "Value '1' must be null or of a valid target type but its type is java.lang.Integer."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(1.0f),
-                "Object '1.0' does not have a valid target type. Its type is: class java.lang.Float"
+                () -> requireTargetTypeRet(1.0f),
+                "Value '1.0' must be null or of a valid target type but its type is java.lang.Float."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(E.E),
-                "Object 'E' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$1E"
+                () -> requireTargetTypeRet(E.E),
+                "Value 'E' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$1E."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(new R(1L)),
-                "Object 'R[l=1]' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$1R"
+                () -> requireTargetTypeRet(new R(1L)),
+                "Value 'R[l=1]' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$1R."
         );
-        assertThrowsConfigurationException(() -> requireTargetType(new Object()));
+        assertThrowsConfigurationException(() -> requireTargetTypeRet(new Object()));
     }
 
     @Test
@@ -41,53 +41,53 @@ class ValidatorTest {
         enum E {E;}
         record R(Long l) {}
 
-        requireTargetType(asList());
-        requireTargetType(asList((Object) null));
-        requireTargetType(asList(1L));
-        requireTargetType(asList(1.0));
-        requireTargetType(asList(""));
+        requireTargetTypeRet(asList());
+        requireTargetTypeRet(asList((Object) null));
+        requireTargetTypeRet(asList(1L));
+        requireTargetTypeRet(asList(1.0));
+        requireTargetTypeRet(asList(""));
 
         assertThrowsConfigurationException(
-                () -> requireTargetType(asList(1)),
-                "Object '1' does not have a valid target type. Its type is: class java.lang.Integer"
+                () -> requireTargetTypeRet(asList(1)),
+                "Value '1' must be null or of a valid target type but its type is java.lang.Integer."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asList(1.0f)),
-                "Object '1.0' does not have a valid target type. Its type is: class java.lang.Float"
+                () -> requireTargetTypeRet(asList(1.0f)),
+                "Value '1.0' must be null or of a valid target type but its type is java.lang.Float."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asList(E.E)),
-                "Object 'E' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$2E"
+                () -> requireTargetTypeRet(asList(E.E)),
+                "Value 'E' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$2E."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asList(new R(1L))),
-                "Object 'R[l=1]' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$2R"
+                () -> requireTargetTypeRet(asList(new R(1L))),
+                "Value 'R[l=1]' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$2R."
         );
-        assertThrowsConfigurationException(() -> requireTargetType(asList(new Object())));
+        assertThrowsConfigurationException(() -> requireTargetTypeRet(asList(new Object())));
 
-        requireTargetType(asList(asList()));
-        requireTargetType(asList(asList((Object) null)));
-        requireTargetType(asList(asList(1L)));
-        requireTargetType(asList(asList(1.0)));
-        requireTargetType(asList(asList("")));
+        requireTargetTypeRet(asList(asList()));
+        requireTargetTypeRet(asList(asList((Object) null)));
+        requireTargetTypeRet(asList(asList(1L)));
+        requireTargetTypeRet(asList(asList(1.0)));
+        requireTargetTypeRet(asList(asList("")));
 
         assertThrowsConfigurationException(
-                () -> requireTargetType(asList(asList(1))),
-                "Object '1' does not have a valid target type. Its type is: class java.lang.Integer"
+                () -> requireTargetTypeRet(asList(asList(1))),
+                "Value '1' must be null or of a valid target type but its type is java.lang.Integer."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asList(asList(1.0f))),
-                "Object '1.0' does not have a valid target type. Its type is: class java.lang.Float"
+                () -> requireTargetTypeRet(asList(asList(1.0f))),
+                "Value '1.0' must be null or of a valid target type but its type is java.lang.Float."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asList(asList(E.E))),
-                "Object 'E' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$2E"
+                () -> requireTargetTypeRet(asList(asList(E.E))),
+                "Value 'E' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$2E."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asList(asList(new R(1L)))),
-                "Object 'R[l=1]' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$2R"
+                () -> requireTargetTypeRet(asList(asList(new R(1L)))),
+                "Value 'R[l=1]' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$2R."
         );
-        assertThrowsConfigurationException(() -> requireTargetType(asList(asList(new Object()))));
+        assertThrowsConfigurationException(() -> requireTargetTypeRet(asList(asList(new Object()))));
     }
 
     @Test
@@ -95,99 +95,99 @@ class ValidatorTest {
         enum E {E;}
         record R(Long l) {}
 
-        requireTargetType(asMap());
+        requireTargetTypeRet(asMap());
 
-        requireTargetType(asMap("key", null));
-        requireTargetType(asMap("key", 1L));
-        requireTargetType(asMap("key", 1.0));
-        requireTargetType(asMap("key", ""));
-
-        assertThrowsConfigurationException(
-                () -> requireTargetType(asMap("key", 1)),
-                "Object '1' does not have a valid target type. Its type is: class java.lang.Integer"
-        );
-        assertThrowsConfigurationException(
-                () -> requireTargetType(asMap("key", 1.0f)),
-                "Object '1.0' does not have a valid target type. Its type is: class java.lang.Float"
-        );
-        assertThrowsConfigurationException(
-                () -> requireTargetType(asMap("key", E.E)),
-                "Object 'E' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$3E"
-        );
-        assertThrowsConfigurationException(
-                () -> requireTargetType(asMap("key", new R(1L))),
-                "Object 'R[l=1]' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$3R"
-        );
-        assertThrowsConfigurationException(() -> requireTargetType(asMap("key", new Object())));
-
-        requireTargetType(asMap(null, "val"));
-        requireTargetType(asMap(1L, "val"));
-        requireTargetType(asMap(1.0, "val"));
-        requireTargetType(asMap("", "val"));
+        requireTargetTypeRet(asMap("key", null));
+        requireTargetTypeRet(asMap("key", 1L));
+        requireTargetTypeRet(asMap("key", 1.0));
+        requireTargetTypeRet(asMap("key", ""));
 
         assertThrowsConfigurationException(
-                () -> requireTargetType(asMap(1, "val")),
-                "Object '1' does not have a valid target type. Its type is: class java.lang.Integer"
+                () -> requireTargetTypeRet(asMap("key", 1)),
+                "Value '1' must be null or of a valid target type but its type is java.lang.Integer."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asMap(1.0f, "val")),
-                "Object '1.0' does not have a valid target type. Its type is: class java.lang.Float"
+                () -> requireTargetTypeRet(asMap("key", 1.0f)),
+                "Value '1.0' must be null or of a valid target type but its type is java.lang.Float."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asMap(E.E, "val")),
-                "Object 'E' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$3E"
+                () -> requireTargetTypeRet(asMap("key", E.E)),
+                "Value 'E' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$3E."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asMap(new R(1L), "val")),
-                "Object 'R[l=1]' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$3R"
+                () -> requireTargetTypeRet(asMap("key", new R(1L))),
+                "Value 'R[l=1]' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$3R."
         );
-        assertThrowsConfigurationException(() -> requireTargetType(asMap(new Object(), "val")));
+        assertThrowsConfigurationException(() -> requireTargetTypeRet(asMap("key", new Object())));
 
-
-        requireTargetType(asMap("key", asMap("key", null)));
-        requireTargetType(asMap("key", asMap("key", 1L)));
-        requireTargetType(asMap("key", asMap("key", 1.0)));
-        requireTargetType(asMap("key", asMap("key", "")));
-
-        assertThrowsConfigurationException(
-                () -> requireTargetType(asMap("key", asMap("key", 1))),
-                "Object '1' does not have a valid target type. Its type is: class java.lang.Integer"
-        );
-        assertThrowsConfigurationException(
-                () -> requireTargetType(asMap("key", asMap("key", 1.0f))),
-                "Object '1.0' does not have a valid target type. Its type is: class java.lang.Float"
-        );
-        assertThrowsConfigurationException(
-                () -> requireTargetType(asMap("key", asMap("key", E.E))),
-                "Object 'E' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$3E"
-        );
-        assertThrowsConfigurationException(
-                () -> requireTargetType(asMap("key", asMap("key", new R(1L)))),
-                "Object 'R[l=1]' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$3R"
-        );
-        assertThrowsConfigurationException(() -> requireTargetType(asMap("key", asMap("key", new Object()))));
-
-        requireTargetType(asMap(asMap(null, "val"), "val"));
-        requireTargetType(asMap(asMap(1L, "val"), "val"));
-        requireTargetType(asMap(asMap(1.0, "val"), "val"));
-        requireTargetType(asMap(asMap("", "val"), "val"));
+        requireTargetTypeRet(asMap(null, "val"));
+        requireTargetTypeRet(asMap(1L, "val"));
+        requireTargetTypeRet(asMap(1.0, "val"));
+        requireTargetTypeRet(asMap("", "val"));
 
         assertThrowsConfigurationException(
-                () -> requireTargetType(asMap(asMap(1, "val"), "val")),
-                "Object '1' does not have a valid target type. Its type is: class java.lang.Integer"
+                () -> requireTargetTypeRet(asMap(1, "val")),
+                "Value '1' must be null or of a valid target type but its type is java.lang.Integer."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asMap(asMap(1.0f, "val"), "val")),
-                "Object '1.0' does not have a valid target type. Its type is: class java.lang.Float"
+                () -> requireTargetTypeRet(asMap(1.0f, "val")),
+                "Value '1.0' must be null or of a valid target type but its type is java.lang.Float."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asMap(asMap(E.E, "val"), "val")),
-                "Object 'E' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$3E"
+                () -> requireTargetTypeRet(asMap(E.E, "val")),
+                "Value 'E' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$3E."
         );
         assertThrowsConfigurationException(
-                () -> requireTargetType(asMap(asMap(new R(1L), "val"), "val")),
-                "Object 'R[l=1]' does not have a valid target type. Its type is: class de.exlll.configlib.ValidatorTest$3R"
+                () -> requireTargetTypeRet(asMap(new R(1L), "val")),
+                "Value 'R[l=1]' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$3R."
         );
-        assertThrowsConfigurationException(() -> requireTargetType(asMap(asMap(new Object(), "val"), "val")));
+        assertThrowsConfigurationException(() -> requireTargetTypeRet(asMap(new Object(), "val")));
+
+
+        requireTargetTypeRet(asMap("key", asMap("key", null)));
+        requireTargetTypeRet(asMap("key", asMap("key", 1L)));
+        requireTargetTypeRet(asMap("key", asMap("key", 1.0)));
+        requireTargetTypeRet(asMap("key", asMap("key", "")));
+
+        assertThrowsConfigurationException(
+                () -> requireTargetTypeRet(asMap("key", asMap("key", 1))),
+                "Value '1' must be null or of a valid target type but its type is java.lang.Integer."
+        );
+        assertThrowsConfigurationException(
+                () -> requireTargetTypeRet(asMap("key", asMap("key", 1.0f))),
+                "Value '1.0' must be null or of a valid target type but its type is java.lang.Float."
+        );
+        assertThrowsConfigurationException(
+                () -> requireTargetTypeRet(asMap("key", asMap("key", E.E))),
+                "Value 'E' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$3E."
+        );
+        assertThrowsConfigurationException(
+                () -> requireTargetTypeRet(asMap("key", asMap("key", new R(1L)))),
+                "Value 'R[l=1]' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$3R."
+        );
+        assertThrowsConfigurationException(() -> requireTargetTypeRet(asMap("key", asMap("key", new Object()))));
+
+        requireTargetTypeRet(asMap(asMap(null, "val"), "val"));
+        requireTargetTypeRet(asMap(asMap(1L, "val"), "val"));
+        requireTargetTypeRet(asMap(asMap(1.0, "val"), "val"));
+        requireTargetTypeRet(asMap(asMap("", "val"), "val"));
+
+        assertThrowsConfigurationException(
+                () -> requireTargetTypeRet(asMap(asMap(1, "val"), "val")),
+                "Value '1' must be null or of a valid target type but its type is java.lang.Integer."
+        );
+        assertThrowsConfigurationException(
+                () -> requireTargetTypeRet(asMap(asMap(1.0f, "val"), "val")),
+                "Value '1.0' must be null or of a valid target type but its type is java.lang.Float."
+        );
+        assertThrowsConfigurationException(
+                () -> requireTargetTypeRet(asMap(asMap(E.E, "val"), "val")),
+                "Value 'E' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$3E."
+        );
+        assertThrowsConfigurationException(
+                () -> requireTargetTypeRet(asMap(asMap(new R(1L), "val"), "val")),
+                "Value 'R[l=1]' must be null or of a valid target type but its type is de.exlll.configlib.ValidatorTest$3R."
+        );
+        assertThrowsConfigurationException(() -> requireTargetTypeRet(asMap(asMap(new Object(), "val"), "val")));
     }
 }
