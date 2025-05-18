@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -556,5 +557,21 @@ class YamlConfigurationStoreTest {
         F config = store.update(yamlFile);
         assertThat(config.s, is("S2"));
         assertThat(config.i, is(10));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void tryCreateParentDirectoriesDoesNotThrowIfParentIsNull(boolean createParentDirectories) {
+        YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
+                .createParentDirectories(createParentDirectories)
+                .build();
+        YamlConfigurationStore<A> store = new YamlConfigurationStore<>(
+                A.class,
+                properties
+        );
+
+        Path path = Paths.get("config.yml");
+        store.tryCreateParentDirectories(path);
+        assertDoesNotThrow(() -> store.tryCreateParentDirectories(path));
     }
 }
