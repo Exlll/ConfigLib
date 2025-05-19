@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -570,8 +569,7 @@ class YamlConfigurationStoreTest {
                 properties
         );
 
-        Path path = Paths.get("config.yml");
-        store.tryCreateParentDirectories(path);
+        Path path = fs.getPath("config.yml");
         assertDoesNotThrow(() -> store.tryCreateParentDirectories(path));
     }
 }
