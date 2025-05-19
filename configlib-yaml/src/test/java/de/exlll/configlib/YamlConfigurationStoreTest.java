@@ -557,4 +557,19 @@ class YamlConfigurationStoreTest {
         assertThat(config.s, is("S2"));
         assertThat(config.i, is(10));
     }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void tryCreateParentDirectoriesDoesNotThrowIfParentIsNull(boolean createParentDirectories) {
+        YamlConfigurationProperties properties = YamlConfigurationProperties.newBuilder()
+                .createParentDirectories(createParentDirectories)
+                .build();
+        YamlConfigurationStore<A> store = new YamlConfigurationStore<>(
+                A.class,
+                properties
+        );
+
+        Path path = fs.getPath("config.yml");
+        assertDoesNotThrow(() -> store.tryCreateParentDirectories(path));
+    }
 }
