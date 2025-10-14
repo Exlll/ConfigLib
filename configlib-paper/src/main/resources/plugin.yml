@@ -5,3 +5,4 @@ description: A library for working with YAML configurations.
 author: Exlll
 main: de.exlll.configlib.ConfigLib
 api-version: 1.19
+folia-supported: true
