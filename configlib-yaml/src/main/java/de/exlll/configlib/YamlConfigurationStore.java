@@ -73,8 +73,8 @@ public final class YamlConfigurationStore<T> implements
         requireNonNull(configuration, "configuration");
         requireNonNull(outputStream, "output stream");
         var extractedCommentNodes = extractor.extractCommentNodes(configuration);
-        var yamlFileWriter = new YamlWriter(outputStream, properties);
         var dumpedYaml = tryDump(configuration);
+        var yamlFileWriter = new YamlWriter(outputStream, properties);
         yamlFileWriter.writeYaml(dumpedYaml, extractedCommentNodes);
     }
 
@@ -84,8 +84,8 @@ public final class YamlConfigurationStore<T> implements
         requireNonNull(configurationFile, "configuration file");
         tryCreateParentDirectories(configurationFile);
         var extractedCommentNodes = extractor.extractCommentNodes(configuration);
-        var yamlFileWriter = new YamlWriter(configurationFile, properties);
         var dumpedYaml = tryDump(configuration);
+        var yamlFileWriter = new YamlWriter(configurationFile, properties);
         yamlFileWriter.writeYaml(dumpedYaml, extractedCommentNodes);
     }
 
