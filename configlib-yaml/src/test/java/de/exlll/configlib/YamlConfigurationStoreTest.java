@@ -572,4 +572,65 @@ class YamlConfigurationStoreTest {
         Path path = fs.getPath("config.yml");
         assertDoesNotThrow(() -> store.tryCreateParentDirectories(path));
     }
+
+    private record ThrowingWhileSerializingSerializer()
+            implements Serializer<String, String> {
+
+        @Override
+        public String serialize(String element) {
+            throw new UnsupportedOperationException(element);
+        }
+
+        @Override
+        public String deserialize(String element) {
+            return element;
+        }
+    }
+
+    @Configuration
+    private static final class G {
+        private String content = "-";
+    }
+
+    @Test
+    void saveDoesNotOverwriteConfigurationFileContentsOnYamlDumpFailure() throws IOException {
+        YamlConfigurationStore<G> store = new YamlConfigurationStore<>(
+                G.class,
+                YamlConfigurationProperties.newBuilder()
+                        .addSerializer(String.class, new ThrowingWhileSerializingSerializer())
+                        .build()
+        );
+
+        String content = "content: abcde";
+        Files.writeString(yamlFile, content);
+
+        G config = store.load(yamlFile);
+        assertThat(config.content, is("abcde"));
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> store.save(config, yamlFile)
+        );
+        assertThat(readFile(yamlFile), is(content));
+    }
+
+    @Test
+    void writeDoesNotOverwriteStreamContentsOnYamlDumpFailure() {
+        YamlConfigurationStore<G> store = new YamlConfigurationStore<>(
+                G.class,
+                YamlConfigurationProperties.newBuilder()
+                        .addSerializer(String.class, new ThrowingWhileSerializingSerializer())
+                        .build()
+        );
+
+        String content = "content: abcde";
+        outputStream.writeBytes(content.getBytes());
+
+        G config = store.read(inputFromOutput());
+        assertThat(config.content, is("abcde"));
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> store.write(config, outputStream)
+        );
+        assertThat(outputStream.toString(), is(content));
+    }
 }
