@@ -12,9 +12,12 @@ import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
+import static de.exlll.configlib.TestUtils.asList;
 import static de.exlll.configlib.TestUtils.createPlatformSpecificFilePath;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class YamlConfigurationsTest {
     private static final FieldFilter includeI = field -> field.getName().equals("i");
@@ -229,5 +232,80 @@ class YamlConfigurationsTest {
 
     private InputStream inputFromOutput() {
         return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    @Configuration
+    private static final class DoublesConfig {
+        double d;
+        Double boxed;
+        List<Double> list;
+    }
+
+    @Test
+    void loadYamlConfigurationDoublesAllDecimal() {
+        writeStringToFile(
+                """
+                d: 10.0
+                boxed: 20.0
+                list:
+                  - 1.0
+                  - 2.0
+                  - 3.0
+                """
+        );
+        DoublesConfig config = YamlConfigurations.load(yamlFile, DoublesConfig.class);
+        assertEquals(10.0, config.d);
+        assertEquals(20.0, config.boxed);
+        assertEquals(asList(1.0, 2.0, 3.0), config.list);
+    }
+
+    @Test
+    void loadYamlConfigurationDoublesUnboxed() {
+        writeStringToFile("d: 10");
+        DoublesConfig config = YamlConfigurations.load(yamlFile, DoublesConfig.class);
+        assertEquals(10.0, config.d);
+    }
+
+    @Test
+    void loadYamlConfigurationDoublesBoxed() {
+        writeStringToFile("boxed: 20");
+        DoublesConfig config = YamlConfigurations.load(yamlFile, DoublesConfig.class);
+        assertEquals(20.0, config.boxed);
+    }
+
+    @Test
+    void loadYamlConfigurationDoublesCollection() {
+        writeStringToFile(
+                """
+                list:
+                  - 1.0
+                  - 2
+                  - 3.0
+                """
+        );
+        DoublesConfig config = YamlConfigurations.load(yamlFile, DoublesConfig.class);
+        assertEquals(asList(1.0, 2.0, 3.0), config.list);
+    }
+
+    @Test
+    void loadYamlConfigurationDoublesWithNulls() {
+        writeStringToFile(
+                """
+                boxed: null
+                list:
+                - null
+                - null
+                - 1.0
+                - 2
+                """
+        );
+        DoublesConfig config = YamlConfigurations.load(
+                yamlFile,
+                DoublesConfig.class,
+                builder -> builder.inputNulls(true)
+        );
+        assertEquals(0.0, config.d);
+        assertNull(config.boxed);
+        assertEquals(asList(null, null, 1.0, 2.0), config.list);
     }
 }

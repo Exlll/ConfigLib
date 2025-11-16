@@ -77,10 +77,10 @@ final class Serializers {
 
         @Override
         public Number deserialize(Number element) {
-            if (Reflect.isIntegerType(element.getClass())) {
+            if (Reflect.isIntegerType(cls)) {
                 return deserializeFromIntegerType(element);
             }
-            if (Reflect.isFloatingPointType(element.getClass())) {
+            if (Reflect.isFloatingPointType(cls)) {
                 return deserializeFromFloatingPointType(element);
             }
             String clsName = element.getClass().getSimpleName();
