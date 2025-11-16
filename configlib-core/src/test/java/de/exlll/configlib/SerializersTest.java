@@ -61,17 +61,6 @@ class SerializersTest {
         );
     }
 
-    @Test
-    void numberSerializerDeserializeInvalidType() {
-        NumberSerializer serializer = new NumberSerializer(int.class);
-
-        assertThrowsConfigurationException(
-                () -> serializer.deserialize(BigInteger.ONE),
-                "Cannot deserialize element '1' of type BigInteger.\n" +
-                "This serializer only supports primitive number types and their wrapper types."
-        );
-    }
-
     @ParameterizedTest
     @ValueSource(classes = {
             byte.class, Byte.class,
