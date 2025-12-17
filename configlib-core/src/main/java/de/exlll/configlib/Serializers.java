@@ -19,8 +19,40 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-final class Serializers {
+import static de.exlll.configlib.Validator.*;
+
+/**
+ * Class that contains static factory methods for the creation of {@code Serializer}s.
+ */
+public final class Serializers {
     private Serializers() {}
+
+    /**
+     * Creates a new serializer that converts instances of the given configuration type
+     * to {@code Map}s of valid target types.
+     * <p>
+     * The serializer returned by this method respects most configuration properties of
+     * the given properties object. The following properties are ignored:
+     * - All properties of subclasses of the configuration properties object
+     * - Properties affecting environment variable resolution
+     *
+     * @param configurationType the type of configurations the newly created serializer
+     *                          can convert
+     * @param properties        the configuration properties the serializer will use
+     * @param <T>               the configuration type
+     * @return newly created serializer
+     * @throws NullPointerException   if any argument is null
+     * @throws ConfigurationException if {@code type} is not a configuration type
+     */
+    public static <T> Serializer<T, Map<?, ?>> newSerializerForType(
+            Class<T> configurationType,
+            ConfigurationProperties properties
+    ) {
+        requireNonNull(configurationType, "configuration type");
+        requireNonNull(properties, "configuration properties");
+        requireConfigurationType(configurationType);
+        return TypeSerializer.newSerializerFor(configurationType, properties);
+    }
 
     static <S extends Serializer<?, ?>> S newCustomSerializer(
             Class<S> serializerType,
@@ -61,7 +93,7 @@ final class Serializers {
         private final Class<? extends Number> cls;
 
         public NumberSerializer(Class<? extends Number> cls) {
-            this.cls = Validator.requireNonNull(cls, "number class");
+            this.cls = requireNonNull(cls, "number class");
             Validator.requirePrimitiveOrWrapperNumberType(cls);
         }
 
@@ -336,7 +368,7 @@ final class Serializers {
         private final Class<? extends Enum<?>> cls;
 
         public EnumSerializer(Class<? extends Enum<?>> cls) {
-            this.cls = Validator.requireNonNull(cls, "enum class");
+            this.cls = requireNonNull(cls, "enum class");
         }
 
         @Override
@@ -383,7 +415,7 @@ final class Serializers {
                 Supplier<L> lSupplier,
                 Supplier<R> rSupplier
         ) {
-            this.serializer = Validator.requireNonNull(serializer, "element serializer");
+            this.serializer = requireNonNull(serializer, "element serializer");
             this.outputNulls = outputNulls;
             this.inputNulls = inputNulls;
             this.lSupplier = lSupplier;
@@ -441,8 +473,8 @@ final class Serializers {
                 boolean outputNulls,
                 boolean inputNulls
         ) {
-            this.keySerializer = Validator.requireNonNull(keySerializer, "key serializer");
-            this.valSerializer = Validator.requireNonNull(valSerializer, "value serializer");
+            this.keySerializer = requireNonNull(keySerializer, "key serializer");
+            this.valSerializer = requireNonNull(valSerializer, "value serializer");
             this.outputNulls = outputNulls;
             this.inputNulls = inputNulls;
         }
@@ -504,8 +536,8 @@ final class Serializers {
                 boolean outputNulls,
                 boolean inputNulls
         ) {
-            this.componentType = Validator.requireNonNull(componentType, "component type");
-            this.serializer = Validator.requireNonNull(serializer, "element serializer");
+            this.componentType = requireNonNull(componentType, "component type");
+            this.serializer = requireNonNull(serializer, "element serializer");
             this.outputNulls = outputNulls;
             this.inputNulls = inputNulls;
         }
