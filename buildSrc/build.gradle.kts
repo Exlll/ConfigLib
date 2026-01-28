@@ -3,10 +3,10 @@ plugins {
 }
 
 repositories {
-    mavenCentral()
     gradlePluginPortal()
+    mavenCentral()
 }
 
 dependencies {
-    implementation("gradle.plugin.com.github.johnrengelman:shadow:7.1.2")
+    implementation("com.github.johnrengelman:shadow:8.1.1")
 }
