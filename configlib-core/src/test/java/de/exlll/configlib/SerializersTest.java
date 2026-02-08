@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.Locale;
 
 import static de.exlll.configlib.TestUtils.*;
 import static java.util.Arrays.asList;
@@ -1111,7 +1112,7 @@ class SerializersTest {
                    %s '%s' cannot be deserialized to type String because %s-to-string \
                    coercion has not been configured. If you want to allow this type of coercion, \
                    add the deserialization coercion type '%s' via a ConfigurationProperties object.\
-                   """.formatted(sourceTypeName, value, sourceTypeName.toLowerCase(), deserializationCoercingType);
+                   """.formatted(sourceTypeName, value, sourceTypeName.toLowerCase(Locale.ROOT), deserializationCoercingType);
         }
 
         @Test
