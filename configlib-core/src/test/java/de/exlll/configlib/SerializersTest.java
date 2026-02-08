@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.Locale;
 
 import static de.exlll.configlib.TestUtils.*;
 import static java.util.Arrays.asList;
