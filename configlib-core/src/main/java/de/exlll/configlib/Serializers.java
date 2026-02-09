@@ -264,7 +264,7 @@ public final class Serializers {
                     .formatted(
                             sourceTypeName,
                             value,
-                            sourceTypeName.toLowerCase(),
+                            sourceTypeName.toLowerCase(Locale.ROOT),
                             coercionType
                     );
         }

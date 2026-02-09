@@ -3,6 +3,7 @@ package de.exlll.configlib;
 import de.exlll.configlib.ConfigurationProperties.EnvVarResolutionConfiguration;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -86,7 +87,7 @@ final class RootSerializer<T> implements Serializer<T, Map<?, ?>> {
                         : prefix + '_' + key;
                 envVar = envVarConfig.caseSensitive()
                         ? envVar
-                        : envVar.toUpperCase();
+                        : envVar.toUpperCase(Locale.ROOT);
                 final String envVarVal = environment.getValue(envVar);
                 preprocessRecursively(val, envVar, envVarVal, entry::setValue);
             }
@@ -100,7 +101,7 @@ final class RootSerializer<T> implements Serializer<T, Map<?, ?>> {
                         : prefix + '_' + i;
                 envVar = envVarConfig.caseSensitive()
                         ? envVar
-                        : envVar.toUpperCase();
+                        : envVar.toUpperCase(Locale.ROOT);
                 final String envVarVal = environment.getValue(envVar);
                 final int index = i;
                 preprocessRecursively(val, envVar, envVarVal, o -> list.set(index, o));
