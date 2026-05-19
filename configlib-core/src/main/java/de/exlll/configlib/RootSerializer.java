@@ -82,12 +82,7 @@ final class RootSerializer<T> implements Serializer<T, Map<?, ?>> {
                 final Object key = entry.getKey();
                 if (key == null) continue;
                 final Object val = entry.getValue();
-                String envVar = prefix.isEmpty()
-                        ? key.toString()
-                        : prefix + '_' + key;
-                envVar = envVarConfig.caseSensitive()
-                        ? envVar
-                        : envVar.toUpperCase(Locale.ROOT);
+                String envVar = createEnvironmentVariable(prefix, key.toString());
                 final String envVarVal = environment.getValue(envVar);
                 preprocessRecursively(val, envVar, envVarVal, entry::setValue);
             }
@@ -96,16 +91,21 @@ final class RootSerializer<T> implements Serializer<T, Map<?, ?>> {
         private void preprocessEnvVarList(String prefix, List<Object> list) {
             for (int i = 0; i < list.size(); i++) {
                 final Object val = list.get(i);
-                String envVar = prefix.isEmpty()
-                        ? String.valueOf(i)
-                        : prefix + '_' + i;
-                envVar = envVarConfig.caseSensitive()
-                        ? envVar
-                        : envVar.toUpperCase(Locale.ROOT);
+                String envVar = createEnvironmentVariable(prefix, String.valueOf(i));
                 final String envVarVal = environment.getValue(envVar);
                 final int index = i;
                 preprocessRecursively(val, envVar, envVarVal, o -> list.set(index, o));
             }
+        }
+
+        private String createEnvironmentVariable(String prefix, String pathSegment) {
+            String envVar = prefix.isEmpty()
+                    ? pathSegment
+                    : prefix + '_' + pathSegment;
+            envVar = envVar.replace('-', '_');
+            return envVarConfig.caseSensitive()
+                    ? envVar
+                    : envVar.toUpperCase(Locale.ROOT);
         }
 
         private void preprocessRecursively(
