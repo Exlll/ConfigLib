@@ -47,9 +47,9 @@ class RootSerializerTest {
                 List<List<String>> listListString
         ) {}
 
-        record KebabConfig(String encryptionKey, KebabNestedConfig nestedConfig) {}
+        private record KebabConfig(String encryptionKey, KebabNestedConfig nestedConfig) {}
 
-        record KebabNestedConfig(int portNumber) {}
+        private record KebabNestedConfig(int portNumber) {}
 
 
         @Test
