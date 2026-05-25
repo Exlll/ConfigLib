@@ -47,6 +47,10 @@ class RootSerializerTest {
                 List<List<String>> listListString
         ) {}
 
+        private record KebabConfig(String encryptionKey, KebabNestedConfig nestedConfig) {}
+
+        private record KebabNestedConfig(int portNumber) {}
+
 
         @Test
         void preprocessEnvVarsFailsIfEnvVarTriesToReplaceCollection() {
@@ -175,6 +179,31 @@ class RootSerializerTest {
                     entry("listMapStringInteger", asList(asMap("NO", 1L, "YES", 2L))),
                     entry("listListString", asList(asList(), asList(), asList("", "TEST1")))
             )));
+        }
+
+        @Test
+        void preprocessLowerKebabEnvVarsWithSnakeCaseEnvironmentNames() {
+            final var envConfig = EnvVarResolutionConfiguration.resolveEnvVarsWithPrefix("MY_PREFIX", false);
+            final var props = ConfigurationProperties.newBuilder()
+                    .setNameFormatter(NameFormatters.LOWER_KEBAB_CASE)
+                    .setEnvVarResolutionConfiguration(envConfig)
+                    .build();
+            final var serializer = new RootSerializer<>(
+                    KebabConfig.class,
+                    props,
+                    new MapEnvironment(entriesAsMap(
+                            entry("MY_PREFIX_ENCRYPTION_KEY", "env-key"),
+                            entry("MY_PREFIX_NESTED_CONFIG_PORT_NUMBER", "5432")
+                    ))
+            );
+
+            KebabConfig config = serializer.deserialize(asMap(
+                    "encryption-key", "yaml-key",
+                    "nested-config", asMap("port-number", 3306L)
+            ));
+
+            assertThat(config.encryptionKey, is("env-key"));
+            assertThat(config.nestedConfig.portNumber, is(5432));
         }
 
         @Test
