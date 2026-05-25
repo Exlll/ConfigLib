@@ -7,6 +7,3 @@ dependencies {
     testImplementation(testFixtures(project(":configlib-core")))
 }
 
-tasks.compileJava {
-    dependsOn(project(":configlib-core").tasks.check)
-}

@@ -392,8 +392,68 @@ YamlConfigurationProperties properties = ConfigLib.BUKKIT_DEFAULT_PROPERTIES.toB
     .build();
 ```
 
-To get access to this object, you have to import `configlib-paper` instead
+If you are using **Paper** software, you can use `PAPER_DEFAULT_PROPERTIES` which includes both Bukkit `ConfigurationSerializable` support (e.g. `ItemStack`) and Adventure support pre-configured:
+
+```java
+YamlConfigurationProperties properties = ConfigLib.PAPER_DEFAULT_PROPERTIES.toBuilder()
+    // ...further configure the builder...
+    .build();
+```
+
+To get access to these objects, you have to import `configlib-paper` instead
 of `configlib-yaml` as described in the [Import](#import) section.
+
+#### Support for Adventure library types
+
+The `configlib-adventure` module provides serializers for Adventure library types
+commonly used in PaperMC and Velocity plugins. It supports:
+
+* `Component` - Text components with customizable format (MiniMessage, legacy, JSON)
+* `Key` - Namespaced keys (e.g., `minecraft:stone`)
+* `Sound` - Sound effects with pitch, volume, and source
+
+To use Adventure types in your configuration, use the helper method that registers all Adventure serializers:
+
+```java
+YamlConfigurationProperties.Builder<?> builder = YamlConfigurationProperties.newBuilder();
+AdventureConfigLib.addDefaults(builder);
+YamlConfigurationProperties properties = builder.build();
+```
+
+##### Component Formats
+
+The `AdventureComponentSerializer` supports multiple text formats through the `AdventureComponentFormat` enum:
+
+| Format              | Description                                        | Example                            |
+|---------------------|----------------------------------------------------|------------------------------------|
+| `MINI_MESSAGE`      | MiniMessage tags                                   | `<red>Hello <bold>World</bold>`    |
+| `LEGACY_AMPERSAND`  | Legacy colors with `&`                             | `&cHello &lWorld`                  |
+| `LEGACY_SECTION`    | Legacy colors with `§`                             | `§cHello §lWorld`                  |
+| `MINECRAFT_JSON`    | Minecraft JSON format                              | `{"text":"Hello","color":"red"}`  |
+| `TRANSLATION_KEY`   | Translation keys                                   | `block.minecraft.stone`            |
+
+You can customize the serialization and deserialization format order:
+
+```java
+List<AdventureComponentFormat> serializeOrder = List.of(AdventureComponentFormat.MINI_MESSAGE);
+List<AdventureComponentFormat> deserializeOrder = List.of(
+        AdventureComponentFormat.MINI_MESSAGE,
+        AdventureComponentFormat.LEGACY_AMPERSAND
+);
+AdventureConfigLib.addDefaults(builder, serializeOrder, deserializeOrder);
+```
+
+##### Sound Serialization
+
+Sounds are serialized in a compact string format: `<sound_id> [pitch] [volume] [source]`.
+Sound id can be anything even it is not in vanilla Minecraft to support custom sound from texture packs.
+```yaml
+# Full format
+joinSound: "minecraft:entity.experience_orb.pickup 1.0 1.0 MASTER"
+
+# Minimal format (defaults: pitch=1.0, volume=1.0, source=MASTER)
+leaveSound: "minecraft:entity.experience_orb.pickup"
+```
 
 ### Comments
 
@@ -1141,6 +1201,10 @@ This project contains three classes of modules:
 * The `configlib-yaml` module contains the classes that can save configuration
   instances as YAML files and instantiate new instances from such files. This
   module does not contain anything Minecraft related, either.
+* The `configlib-adventure` module provides serializers for Adventure library types
+  like `Component`, `Key`, and `Sound`. This module is useful for PaperMC and
+  Velocity plugins that use the Adventure text API. See the
+  [Adventure support section](#support-for-adventure-library-types) for details.
 * The `configlib-paper`, `configlib-velocity`, and `configlib-waterfall` modules
   contain basic plugins that are used to conveniently load this library. These
   three modules shade the `-core` module, the `-yaml` module, and the YAML

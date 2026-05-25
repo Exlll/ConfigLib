@@ -1216,8 +1216,10 @@ class SerializersTest {
 
             assertThrowsConfigurationException(
                     () -> serializer.deserialize(new File(TMP_CONFIG_PATH)),
-                    buildExceptionMessage("File", "/tmp/config.yml", "OBJECT_TO_STRING")
+                    buildExceptionMessage("File", TMP_CONFIG_PATH,
+                            "OBJECT_TO_STRING")
             );
+
             assertThrowsConfigurationException(
                     () -> serializer.deserialize(URI.create("https://example.com")),
                     buildExceptionMessage("URI", "https://example.com", "OBJECT_TO_STRING")
@@ -1275,7 +1277,7 @@ class SerializersTest {
 
             assertThat(
                     serializer.deserialize(new File(TMP_CONFIG_PATH)),
-                    is("/tmp/config.yml")
+                    is(TMP_CONFIG_PATH)
             );
             assertThat(
                     serializer.deserialize(URI.create("https://example.com")),

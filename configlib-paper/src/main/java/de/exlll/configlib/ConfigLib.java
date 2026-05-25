@@ -18,14 +18,35 @@ public final class ConfigLib extends JavaPlugin {
     public static final YamlConfigurationProperties BUKKIT_DEFAULT_PROPERTIES =
             initializeBukkitDefaultProperties();
 
+    /**
+     * A {@code YamlConfigurationProperties} object designed for the Paper platform. It provides
+     * native support for the Adventure library and serializer classes for types like
+     * {@link ItemStack} and other {@link ConfigurationSerializable} implementations.
+     * <p>
+     * You can configure these properties further by creating a new builder using the
+     * {@code toBuilder()} method of this object.
+     */
+    public static final YamlConfigurationProperties PAPER_DEFAULT_PROPERTIES =
+            initializePaperDefaultProperties();
+
     private static YamlConfigurationProperties initializeBukkitDefaultProperties() {
-        return YamlConfigurationProperties
-                .newBuilder()
+        return builder().build();
+    }
+
+    private static YamlConfigurationProperties initializePaperDefaultProperties() {
+        return AdventureConfigLib.addDefaults(builder())
+                .getThis()
+                .build();
+    }
+
+    private static YamlConfigurationProperties.Builder<?> builder() {
+        var builder = YamlConfigurationProperties.newBuilder();
+        return builder
                 .addSerializerByCondition(
                         type -> type instanceof Class<?> cls &&
                                 ConfigurationSerializable.class.isAssignableFrom(cls),
-                        BukkitConfigurationSerializableSerializer.DEFAULT
-                )
-                .build();
+                        BukkitConfigurationSerializableSerializer.DEFAULT);
     }
+
+
 }
